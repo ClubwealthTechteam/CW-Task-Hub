@@ -4,7 +4,8 @@
 
 import type { Person } from '@/config/people';
 import { departmentById } from '@/config/departments';
-import { AUTOMATIONS } from '@/data/automations';
+import { AUTOMATIONS, automationById } from '@/data/automations';
+import { integrationName } from '@/lib/integrations/registry';
 import { canViewDepartment, isSuperAdmin } from '@/lib/access';
 import { signValue } from '@/lib/auth/session';
 import type { Conversation } from './store';
@@ -44,7 +45,17 @@ export async function buildPayload(user: Person, conv: Conversation, userMessage
     'AUTOMATIONS THEY CAN SEE IN THE HUB:',
     automationLines(user) || '(none yet)',
   ].join('\n');
-  const tail = `\n\nMESSAGE:\n${asked.slice(0, MAX_MESSAGE)}`;
+  const task = conv.automationId ? automationById(conv.automationId) : undefined;
+  const taskBlock = task ? [
+    '',
+    '',
+    'TASK (they are chatting with this task\'s assistant in their department workspace):',
+    `title: ${task.title}`,
+    `what it does: ${task.summary}`,
+    `tools: ${task.integrations.map(integrationName).join(', ') || 'none'}`,
+    `stage: ${task.stage}${task.runsIn ? ` (runs in ${task.runsIn})` : ''}`,
+  ].join('\n') : '';
+  const tail = `${taskBlock}\n\nMESSAGE:\n${asked.slice(0, MAX_MESSAGE)}`;
 
   // Earlier turns, newest kept first when trimming to size.
   const earlier = conv.messages

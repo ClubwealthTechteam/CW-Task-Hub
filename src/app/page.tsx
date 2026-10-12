@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { StagePill } from '@/components/Bits';
 import { requireUser } from '@/lib/auth/current-user';
@@ -13,6 +14,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const user = await requireUser();
+  // Team members go straight to their department workspace; this overview is for super admins.
+  if (!isSuperAdmin(user)) redirect(`/w/${user.departments[0]}`);
   const depts = visibleDepartments(user);
   const mine = automationsOwnedBy(user.id);
   const runs = isSuperAdmin(user) ? (await listRuns()).slice(0, 8) : [];
@@ -32,7 +35,7 @@ export default async function Home() {
           {depts.map((d) => {
             const list = automationsFor(d.id);
             return (
-              <Link key={d.id} href={`/d/${d.id}`} className="card">
+              <Link key={d.id} href={`/w/${d.id}`} className="card">
                 <div className="spread"><h2>{d.name}</h2>{d.hidden && <span className="pill gold">Admins only</span>}</div>
                 <p className="muted small" style={{ margin: 0 }}>{d.blurb}</p>
                 <div className="stats">
@@ -50,7 +53,7 @@ export default async function Home() {
             <h2>My automations</h2>
             <div className="list">
               {mine.map((a) => (
-                <Link key={a.id} href={`/a/${a.id}`} className="item">
+                <Link key={a.id} href={`/w/${a.department}?t=${a.id}`} className="item">
                   <span className="num">{a.n ? String(a.n).padStart(2, '0') : '★'}</span>
                   <div><h3>{a.title}</h3><p>{a.summary}</p></div>
                   <div className="side"><StagePill a={a} /></div>

@@ -52,6 +52,8 @@ export function ChatWidget({ firstName }: { firstName: string }) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const pending = conv?.messages.some((m) => m.status === 'pending') ?? false;
+  // Task chats live in their department workspace; the bubble keeps the general ones.
+  const general = list.filter((c) => !c.automationId);
   const isOpen = size !== 'closed';
 
   const loadList = useCallback(async () => {
@@ -144,9 +146,9 @@ export function ChatWidget({ firstName }: { firstName: string }) {
   const chats = (
     <div className={`cwa-chats${showList ? '' : ' side'}`} aria-label="Your chats">
       <button className="cwa-new" onClick={newChat}>{Icon.plus} New chat</button>
-      {list.length === 0 ? <p className="cwa-none">No chats yet.</p> : (
+      {general.length === 0 ? <p className="cwa-none">No chats yet.</p> : (
         <ul>
-          {list.map((c) => (
+          {general.map((c) => (
             <li key={c.id} aria-current={conv?.id === c.id ? 'true' : undefined}>
               {confirmId === c.id ? (
                 <div className="cwa-confirm">

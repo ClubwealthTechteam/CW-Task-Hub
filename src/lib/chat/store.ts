@@ -18,12 +18,14 @@ export interface Conversation {
   id: string;
   owner: string;
   title: string;
+  /** Set when the chat belongs to one task's assistant in a department workspace. */
+  automationId?: string;
   created: number;
   updated: number;
   messages: ChatMessage[];
 }
 
-export interface ConversationSummary { id: string; title: string; updated: number }
+export interface ConversationSummary { id: string; title: string; updated: number; automationId?: string }
 
 /** A reply that hasn't arrived after this long is shown as failed, and the person can ask again. */
 export const REPLY_TIMEOUT_MS = 10 * 60 * 1000;
@@ -60,14 +62,14 @@ export async function listConversations(uid: string): Promise<ConversationSummar
 
 export async function touchIndex(conv: Conversation) {
   const list = (await listConversations(conv.owner)).filter((c) => c.id !== conv.id);
-  list.unshift({ id: conv.id, title: conv.title, updated: conv.updated });
+  list.unshift({ id: conv.id, title: conv.title, updated: conv.updated, automationId: conv.automationId });
   await setJSON(userKey(conv.owner), list.slice(0, MAX_CONVERSATIONS));
 }
 
-export function createConversation(owner: string, firstMessage: string): Conversation {
+export function createConversation(owner: string, firstMessage: string, automationId?: string): Conversation {
   const now = Date.now();
   const title = firstMessage.replace(/\s+/g, ' ').trim().slice(0, 60) || 'New chat';
-  return { id: newId('c'), owner, title, created: now, updated: now, messages: [] };
+  return { id: newId('c'), owner, title, automationId, created: now, updated: now, messages: [] };
 }
 
 export async function deleteConversation(conv: Conversation) {

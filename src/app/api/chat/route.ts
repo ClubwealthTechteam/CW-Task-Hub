@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/current-user';
-import { isSuperAdmin } from '@/lib/access';
+import { canViewDepartment, isSuperAdmin } from '@/lib/access';
+import { automationById } from '@/data/automations';
 import { storeIsPersistent } from '@/lib/store';
 import { chatIsConfigured, buildPayload, fireChatRoutine } from '@/lib/chat/routine';
 import {
@@ -22,7 +23,7 @@ export async function GET() {
   });
 }
 
-/** Sends a message: { conversationId?, text }. Starts the routine; the reply arrives later via /api/chat/reply. */
+/** Sends a message: { conversationId?, automationId?, text }. Starts the routine; the reply arrives later via /api/chat/reply. */
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
@@ -43,7 +44,13 @@ export async function POST(req: Request) {
   if (conv?.messages.some((m) => m.status === 'pending')) {
     return NextResponse.json({ error: 'Wait for the current reply first' }, { status: 409 });
   }
-  conv ??= createConversation(user.id, text);
+  // A task chat stays with its task; a new one can start for any task in a department the person can see.
+  const taskId = conv ? conv.automationId : body.automationId ? String(body.automationId) : undefined;
+  const task = taskId ? automationById(taskId) : undefined;
+  if (taskId && (!task || !canViewDepartment(user, task.department))) {
+    return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+  }
+  conv ??= createConversation(user.id, text, task?.id);
 
   const now = Date.now();
   const asked: ChatMessage = { id: newId('m'), role: 'user', text, at: now, status: 'done' };

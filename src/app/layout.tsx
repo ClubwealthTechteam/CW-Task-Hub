@@ -12,6 +12,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const user = await getCurrentUser();
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&display=swap" />
+      </head>
       <body>
         {children}
         {user && <ChatWidget firstName={user.name.split(/\s+/)[0]} />}

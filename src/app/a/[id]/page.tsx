@@ -22,7 +22,7 @@ export default async function AutomationPage({ params }: { params: { id: string 
     <>
       <Header user={user} current={a.department} />
       <main className="page">
-        <nav className="small"><Link href={`/d/${dept.id}`}>← {dept.name}</Link></nav>
+        <nav className="small"><Link href={`/w/${dept.id}?t=${a.id}`}>← Back to the {dept.name} workspace</Link></nav>
         <section className="hero">
           <span className="eyebrow">{owner?.name} · {dept.name}</span>
           <h1>{a.title}</h1>

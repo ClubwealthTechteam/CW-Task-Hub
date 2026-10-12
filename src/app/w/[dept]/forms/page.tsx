@@ -9,27 +9,11 @@ import { personById } from '@/config/people';
 import { automationsInDept } from '@/data/catalog';
 import { canViewAutomation, isSuperAdmin } from '@/lib/access';
 import { listSheets } from '@/lib/sheets';
-import { getSubmissions, type FormProcess } from '@/lib/forms/submissions';
+import { getSubmissions } from '@/lib/forms/submissions';
+import { ProcessFlow } from '@/components/ProcessFlow';
 import { Sidebar } from '../Sidebar';
 
 export const dynamic = 'force-dynamic';
-
-function Process({ p }: { p: FormProcess }) {
-  return (
-    <div className="fp">
-      <h3>{p.title}</h3>
-      <ol>
-        {p.steps.map((s, i) => (
-          <li key={i}>
-            <b>{s.tool}</b>
-            <span>{s.description}</span>
-            {s.outcomes.map((o) => <small key={o.label}>{o.label}: {o.result}</small>)}
-          </li>
-        ))}
-      </ol>
-    </div>
-  );
-}
 
 export default async function FormsPage({ params }: { params: { dept: string } }) {
   const dept = departmentById(params.dept);
@@ -76,13 +60,13 @@ export default async function FormsPage({ params }: { params: { dept: string } }
                 )}
                 <details open>
                   <summary><b>How it’s done now</b></summary>
-                  {s.manualProcesses.length ? s.manualProcesses.map((p) => <Process key={p.title} p={p} />) : <p className="fp-text">{s.manualOverview}</p>}
+                  {s.manualProcesses.length ? s.manualProcesses.map((p) => <ProcessFlow key={p.title} process={p} />) : <p className="fp-text">{s.manualOverview}</p>}
                 </details>
                 {(s.idealOverview || s.idealProcesses.length > 0) && (
                   <details>
                     <summary><b>Ideal automated version</b></summary>
                     {s.idealOverview && <p className="fp-text">{s.idealOverview}</p>}
-                    {s.idealProcesses.map((p) => <Process key={p.title} p={p} />)}
+                    {s.idealProcesses.map((p) => <ProcessFlow key={p.title} process={p} />)}
                   </details>
                 )}
                 {([['Information needed', s.info], ['Manual / repetitive steps', s.repetitive], ['Judgment / approval', s.judgment], ['Bottlenecks & workarounds', s.bottlenecks], ['Preferred platform', s.platform]] as const)

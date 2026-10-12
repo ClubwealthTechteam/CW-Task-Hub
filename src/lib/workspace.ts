@@ -12,6 +12,7 @@ const ACTION: Record<string, [string, string]> = {
   'google-sheets': ['Update the tracker', 'Write the result into the Google Sheet'],
   'google-calendar': ['Update the calendar', 'Add or change the Google Calendar event'],
   buildium: ['Update Buildium', 'Update the property, work order or contractor record'],
+  eventbrite: ['Check Eventbrite', 'Read the event, tickets and attendees (view-only)'],
   zapier: ['Run the Zap', 'Start the matching Zapier workflow'],
   slack: ['Post in Slack', 'Share the update in the right channel'],
   prospectboss: ['Update ProspectBoss', 'Update the contact list'],

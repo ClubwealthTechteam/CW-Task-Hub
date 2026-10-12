@@ -42,6 +42,7 @@ export interface Automation {
 const TOOL_HINTS: [RegExp, IntegrationId][] = [
   [/\b(keap|ifs|infusionsoft|crm)\b/i, 'keap'],
   [/zapier/i, 'zapier'],
+  [/eventbrite/i, 'eventbrite'],
   [/gmail|\bemail/i, 'gmail'],
   [/sheet|spreadsheet|tracker/i, 'google-sheets'],
   [/calendar/i, 'google-calendar'],

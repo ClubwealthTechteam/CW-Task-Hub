@@ -2,7 +2,7 @@
 
 export type IntegrationId =
   | 'keap' | 'zapier' | 'claude' | 'gmail' | 'google-sheets' | 'google-calendar' | 'slack'
-  | 'prospectboss' | 'buildium' | 'meta' | 'canva' | 'timedoctor' | 'wise' | 'aws' | 'recruitcrm';
+  | 'prospectboss' | 'buildium' | 'eventbrite' | 'meta' | 'canva' | 'timedoctor' | 'wise' | 'aws' | 'recruitcrm';
 
 export type ConnectionStatus = 'connected' | 'not_connected' | 'planned';
 

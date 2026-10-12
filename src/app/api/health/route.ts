@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { storeIsPersistent } from '@/lib/store';
 import { chatIsConfigured } from '@/lib/chat/routine';
 import { keapConfigured } from '@/lib/integrations/keap/client';
+import { eventbriteConfigured } from '@/lib/integrations/eventbrite/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,4 +13,5 @@ export const GET = () => NextResponse.json({
   storage: storeIsPersistent(),
   assistant: chatIsConfigured(),
   keap: keapConfigured(),
+  eventbrite: eventbriteConfigured(),
 });

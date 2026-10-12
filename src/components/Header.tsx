@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Person } from '@/config/people';
 import { visibleDepartments, canManageIntegrations, isSuperAdmin } from '@/lib/access';
+import { canViewEventbrite } from '@/lib/integrations/eventbrite/access';
 
 // White top bar in the CW University style. Team members see their workspace; super admins also get
 // every department and Integrations.
@@ -22,6 +23,7 @@ export function Header({ user, current }: { user: Person; current?: string }) {
           {(admin || depts.length > 1) && depts.map((d) => (
             <Link key={d.id} href={`/w/${d.id}`} aria-current={cur(d.id)}>{d.name}</Link>
           ))}
+          {canViewEventbrite(user) && <Link href="/eventbrite" aria-current={cur('eventbrite')}>Eventbrite</Link>}
           {admin && <Link href="/keap" aria-current={cur('keap')}>Keap</Link>}
           {canManageIntegrations(user) && <Link href="/integrations" aria-current={cur('integrations')}>Integrations</Link>}
         </nav>

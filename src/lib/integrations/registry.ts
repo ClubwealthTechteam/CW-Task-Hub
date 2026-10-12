@@ -3,6 +3,7 @@
 import { keapConfigured } from './keap/client';
 import { buildiumConfigured } from './buildium/client';
 import { zapierHooks } from './zapier';
+import { eventbriteConfigured } from './eventbrite/client';
 import type { IntegrationId, IntegrationInfo } from './types';
 
 const PLANNED: Record<string, string> = {
@@ -29,6 +30,11 @@ export function builtinIntegrations(): IntegrationInfo[] {
       status: Object.keys(zapierHooks()).length ? 'connected' : 'not_connected',
     },
     {
+      id: 'eventbrite', name: 'Eventbrite', kind: 'builtin', envKeys: ['EVENTBRITE_TOKEN'],
+      description: 'View-only: events, ticket types, attendees, orders and venues.',
+      status: eventbriteConfigured() ? 'connected' : 'not_connected',
+    },
+    {
       id: 'claude', name: 'Claude', kind: 'builtin', envKeys: ['ANTHROPIC_API_KEY'],
       description: 'Writing, summarizing, extracting and deciding steps inside automations.',
       status: process.env.ANTHROPIC_API_KEY ? 'connected' : 'not_connected',
@@ -44,4 +50,4 @@ export function plannedIntegrations(): IntegrationInfo[] {
 }
 
 export const integrationName = (id: IntegrationId | string) =>
-  ({ keap: 'Keap', buildium: 'Buildium', zapier: 'Zapier', claude: 'Claude' } as Record<string, string>)[id] ?? PLANNED[id] ?? id;
+  ({ keap: 'Keap', buildium: 'Buildium', eventbrite: 'Eventbrite', zapier: 'Zapier', claude: 'Claude' } as Record<string, string>)[id] ?? PLANNED[id] ?? id;

@@ -13,7 +13,7 @@ export default function LoginPage({ searchParams }: { searchParams: { next?: str
           <span>AI TASK HUB</span>
         </div>
         <h1 style={{ fontSize: 20 }}>Sign in</h1>
-        <p className="muted small" style={{ margin: 0 }}>Pick your name and enter the team access code. You'll only see your department&apos;s tools.</p>
+        <p className="muted small" style={{ margin: 0 }}>Pick your name and enter your own access code. You'll only see your department&apos;s tools.</p>
         <LoginForm people={people} next={searchParams.next} />
       </div>
     </main>

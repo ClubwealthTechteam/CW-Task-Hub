@@ -34,8 +34,9 @@ export function LoginForm({ people, next }: { people: { id: string; name: string
         </select>
       </div>
       <div className="field">
-        <label htmlFor="accessCode">Access code</label>
-        <input id="accessCode" name="accessCode" type="password" autoComplete="current-password" />
+        <label htmlFor="accessCode">Your access code</label>
+        <input id="accessCode" name="accessCode" type="password" autoComplete="current-password" placeholder="ClubWealth-YourName-2026-…" required />
+        <small className="muted">Everyone has their own code. Don’t share it.</small>
       </div>
       {error && <p className="note" role="alert" style={{ margin: 0 }}>{error}</p>}
       <button className="btn primary" type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>

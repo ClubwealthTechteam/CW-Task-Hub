@@ -1,0 +1,1022 @@
+{
+ "ali": [
+  {
+   "n": 1,
+   "request": "Daily Huddle Report Pulls",
+   "automation": "Build a Daily Huddle Report Generator that automatically collects the required data, calculates the metrics, and formats the report into a standard template.",
+   "integration": "App / reporting system integration required",
+   "difficulty": "Medium",
+   "recommendation": "Good candidate once we know where the huddle data comes from. Start with an uploaded/exported report, then automate the data pull.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 2,
+   "request": "RM A's Tracking",
+   "automation": "Create an RM Activity Tracker that monitors activity/status and highlights changes, missing activity, or items needing attention.",
+   "integration": "CRM / activity tracking system integration required",
+   "difficulty": "Medium",
+   "recommendation": "Useful for removing repetitive manual checking. Exact difficulty depends on where RM activity is stored and whether an API is available.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 3,
+   "request": "Task & Ownership Reassignment",
+   "automation": "Build a Task Reassignment Assistant that checks contacts/tasks against predefined rules and recommends or applies the correct RM assignment.",
+   "integration": "CRM / IFS / task-management integration required",
+   "difficulty": "Medium",
+   "recommendation": "The rules need to be clearly defined first. Start with AI recommendations + human approval before allowing automatic reassignment.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 4,
+   "request": "PB List Run Reports",
+   "automation": "Create a ProspectBoss Report Generator that pulls activity data and automatically summarizes performance into a standard report. To Tara",
+   "integration": "ProspectBoss integration required — App/API required",
+   "difficulty": "Medium",
+   "recommendation": "Straightforward if ProspectBoss provides usable access/API. Otherwise, start with exported data.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 5,
+   "request": "Remove from PB List",
+   "automation": "Build a Registration → PB List Cleaner that compares registered attendees against calling lists and identifies people who should be removed.",
+   "integration": "ProspectBoss + registration/event system integration required",
+   "difficulty": "Medium",
+   "recommendation": "Very good automation opportunity because the logic is mostly data matching and filtering.",
+   "requested": "Yes",
+   "status": "Ongoing"
+  },
+  {
+   "n": 6,
+   "request": "Email Blast Preparation",
+   "automation": "Build an Email Campaign Prep Assistant that creates the audience, checks exclusions, prepares content, and runs a pre-send QA checklist.",
+   "integration": "CRM + email marketing platform integration required",
+   "difficulty": "Medium",
+   "recommendation": "AI can handle the content and QA easily, while audience/exclusion logic requires system access. Keep final sending human-approved.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 7,
+   "request": "Marketing Gmail Monitoring",
+   "automation": "Create an Inbox Monitoring Assistant that categorizes incoming emails, summarizes conversations, extracts action items, and highlights only messages that require attention.",
+   "integration": "Gmail integration required — App/API required",
+   "difficulty": "Medium",
+   "recommendation": "Strong use case for AI, but automatic monitoring needs Gmail access and clear rules for priority/action detection.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 8,
+   "request": "Client Outreach Tracking",
+   "automation": "Build a Client Outreach Tracker that identifies who needs follow-up, determines the next follow-up date, tracks response status, and prepares the appropriate message or call note.",
+   "integration": "CRM + Email/Communication + Task/Calendar integration required",
+   "difficulty": "Medium → Hard",
+   "recommendation": "This becomes a full workflow rather than just AI generation because it needs to maintain contact state over time.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 9,
+   "request": "Event List Preparation",
+   "automation": "Build an Event List Preparation tool that combines lead sources, standardizes fields, cleans bad data, deduplicates contacts, splits lists based on rules, and creates upload-ready files.",
+   "integration": "CRM + spreadsheets/data processing integration required",
+   "difficulty": "Medium → Hard",
+   "recommendation": "Excellent automation target because there are many repetitive data-cleaning steps. Needs strict rules to avoid deleting or changing valid records incorrectly.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 10,
+   "request": "Event Reporting / Stats Updates",
+   "automation": "Build an Event Stats Automation that collects registrations, attendance, opt-ins, tags, Big Event sign-ups, and other metrics and updates the event report automatically.",
+   "integration": "Event/CRM/reporting integrations required",
+   "difficulty": "Medium → Hard",
+   "recommendation": "High-value automation, but it depends on how many separate systems hold the event data and whether they can be accessed automatically.",
+   "requested": "Yes",
+   "status": "Ongoing"
+  }
+ ],
+ "amrissa": [
+  {
+   "n": 1,
+   "request": "Recruiting and candidate screening — send interview invites",
+   "automation": "Create an Interview Invite Assistant inside the AI Task Hub. User provides the applicant information and AI prepares the appropriate interview invitation based on the position and available details.",
+   "integration": "No app required for drafting. Recruiting CRM + Email/Calendar integration required for automatic sending and scheduling.",
+   "difficulty": "Easy → Medium",
+   "recommendation": "Start with AI-generated invites and human approval. Once her CRM and email workflow are confirmed, automate the sending and status updates.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 2,
+   "request": "Write and personalize candidate messages",
+   "automation": "Build a Candidate Communication Assistant with options such as Interview Invite, Follow-Up, Rejection, Bench Notification, Onboarding Reminder, and Custom Message.",
+   "integration": "No app required for initial version. CRM + Email integration required for automatic delivery.",
+   "difficulty": "Easy → Medium",
+   "recommendation": "One of the best early AI Task Hub tools because multiple recruiting messages can be handled through one system.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 3,
+   "request": "Follow up with contractors",
+   "automation": "Build a Contractor Follow-Up Manager that tracks maintenance requests and identifies pending quotes, appointments, invoices, licenses, insurance, and unfinished work. AI can prepare the appropriate follow-up message.",
+   "integration": "App / CRM / Property Management System required for automatic tracking. Email integration required for automated communication.",
+   "difficulty": "Medium",
+   "recommendation": "Start by generating follow-up messages from manually entered information. Full automation should come after we identify where maintenance records are stored.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 4,
+   "request": "Summarize property maintenance issues",
+   "automation": "Create a Property Maintenance Summary Assistant that turns long emails/messages into: Issue → What Has Been Done → What Is Still Needed → Next Action.",
+   "integration": "No app required for manual copy/paste or upload. Email / Property Management System integration required for automatic collection.",
+   "difficulty": "Easy → Medium",
+   "recommendation": "Strong AI use case. Start with manual input, then connect the actual communication/property system.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 5,
+   "request": "Compare contractor quotes",
+   "automation": "Build a Contractor Quote Comparison tool where quotes are uploaded and AI extracts price, equipment/materials, labor, warranty, inclusions, exclusions, and missing information into one standardized comparison.",
+   "integration": "Document/file upload required. Optional spreadsheet/database integration for saving comparisons.",
+   "difficulty": "Medium",
+   "recommendation": "Very useful because it converts several documents into one consistent comparison. Human review should remain before selecting a contractor.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 6,
+   "request": "Research properties and create property summaries",
+   "automation": "Build a Property Research Assistant that collects listing information and outputs a standardized property table with price, square footage, year built, bedrooms, bathrooms, property type, and other criteria.",
+   "integration": "Web research / property listing access required.",
+   "difficulty": "Medium",
+   "recommendation": "The AI summary itself is easy; reliable automated property research is the harder part because the system needs access to listing sources and consistent data.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 7,
+   "request": "Create and organize trackers and spreadsheets",
+   "automation": "Build an AI Spreadsheet Assistant that cleans data, identifies missing information, sorts/organizes records, creates formulas, and generates reports based on a defined spreadsheet structure.",
+   "integration": "Google Sheets / Excel integration required",
+   "difficulty": "Medium",
+   "recommendation": "Good automation candidate, especially if she repeatedly uses the same trackers. First identify her current spreadsheets and their structure.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 8,
+   "request": "Turn emails and messages into action items",
+   "automation": "Create an Email-to-Tasks Assistant that extracts Person → Task → Deadline → Priority → Follow-Up Date → Status from emails/messages.",
+   "integration": "Email / Messaging integration required for automatic reading. Task management/CRM integration required for automatic task creation.",
+   "difficulty": "Medium",
+   "recommendation": "Start by allowing her to paste an email/thread into the Task Hub. Later, connect Gmail or the actual communication platform.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 9,
+   "request": "Create SOPs and step-by-step processes",
+   "automation": "Build an SOP Generator that turns an existing process description, notes, or recorded workflow into a standardized SOP, checklist, and training guide.",
+   "integration": "No app required for initial version. Document/knowledge base integration optional later.",
+   "difficulty": "Easy",
+   "recommendation": "Very easy to implement and also valuable for documenting the systems we build for Club Wealth.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 10,
+   "request": "Daily assistant and task prioritization",
+   "automation": "Create a Daily Admin Assistant that organizes tasks, prioritizes urgent items, identifies follow-ups, and gives Amrissa a daily summary of what needs attention.",
+   "integration": "No app required for manual task input. Calendar + CRM + Task System integration required for a fully automated version.",
+   "difficulty": "Easy → Medium",
+   "recommendation": "Build the standalone planner first. Connect her actual task/calendar/CRM systems after the process form identifies the sources.",
+   "requested": "Yes",
+   "status": "To be processed"
+  }
+ ],
+ "jaymar": [
+  {
+   "n": 1,
+   "request": "New Client Welcome Posts",
+   "automation": "Build a New Client Post Generator that takes the client's basic information and creates Facebook Page and Group captions ready for review and publishing.",
+   "integration": "IFS integration required for automatic client information retrieval. Social media integration optional.",
+   "difficulty": "Medium",
+   "recommendation": "Start with manual client information input so the AI tool can be built quickly. Connect IFS afterward.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 2,
+   "request": "Birthday Posts",
+   "automation": "Create a Birthday Content Assistant that pulls upcoming birthdays, generates personalized captions, creates graphic directions/copy, and organizes them into a posting schedule.",
+   "integration": "IFS + Google Sheets/Calendar + design tool integration required",
+   "difficulty": "Medium",
+   "recommendation": "Good candidate for recurring automation. The biggest benefit comes from automatically pulling birthdays and generating the scheduled content.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 3,
+   "request": "Lead Source Tracking",
+   "automation": "Build a Lead Source Tracker that identifies where new members came from, updates the Lead Sources List, and prepares appropriate follow-up messages.",
+   "integration": "IFS/CRM integration + Facebook/social data access required",
+   "difficulty": "Hard",
+   "recommendation": "The AI part is manageable, but automatically identifying lead sources and monitoring new member posts requires multiple data sources and potentially Meta access.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 4,
+   "request": "Social Media Content Creation",
+   "automation": "Create a Social Content Generator that takes videos, transcripts, quotes, testimonials, or topics and produces platform-specific posts for Facebook, Instagram, Threads, and Groups.",
+   "integration": "No app required for initial version. Cloud storage/social integrations optional.",
+   "difficulty": "Easy",
+   "recommendation": "One of the strongest quick wins. AI can handle the repurposing directly from the Task Hub.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 5,
+   "request": "Threads Content",
+   "automation": "Build a Threads Content Generator where one topic/hook becomes a complete Threads-style post plus 5–10 supporting comments.",
+   "integration": "No app required",
+   "difficulty": "Easy",
+   "recommendation": "Very easy to implement and requires almost no external integration.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 6,
+   "request": "Marketing Graphics",
+   "automation": "Create a Marketing Creative Assistant that turns a marketing request into graphic concepts, copy, layouts, dimensions, and platform-specific variations.",
+   "integration": "No app required for concepts/copy. Canva or design-tool integration optional.",
+   "difficulty": "Easy",
+   "recommendation": "Excellent early Task Hub feature. Actual graphic production can be added later.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 7,
+   "request": "Half Day Event Publishing",
+   "automation": "Build an Event Publishing Generator that takes one event brief and creates Facebook Page/Group posts, Google Business content, promotional captions, and reminders.",
+   "integration": "No app required for content. Google Business/social media integrations required for automated publishing.",
+   "difficulty": "Easy → Medium",
+   "recommendation": "Very good opportunity to use a single event brief to generate everything needed for promotion.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 8,
+   "request": "Referral Prospecting",
+   "automation": "Build a Referral Opportunity Finder that identifies relevant Facebook Group posts, organizes opportunities by location, identifies the appropriate Club Wealth member, and prepares SMS outreach.",
+   "integration": "Meta/Facebook integration required + CRM/member database",
+   "difficulty": "Hard",
+   "recommendation": "Monitoring and qualifying posts across Facebook Groups makes this significantly more complex than simple content generation.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 9,
+   "request": "Content Calendar & Task Management",
+   "automation": "Create a Marketing Calendar Assistant that organizes events, birthdays, testimonials, promotions, and recurring posts into a weekly calendar and daily task list.",
+   "integration": "Google Sheets/Calendar or task-management integration required",
+   "difficulty": "Medium",
+   "recommendation": "Start with AI-generated calendars, then connect the actual calendar/task system for automatic scheduling and updates.",
+   "requested": "",
+   "status": ""
+  },
+  {
+   "n": 10,
+   "request": "One Input → Multiple Outputs",
+   "automation": "Build a Content Repurposing Engine where one video, transcript, testimonial, event, or training topic generates captions, posts, hooks, graphic copy, CTAs, and promotional content.",
+   "integration": "No app required initially. File/video/transcript integration optional.",
+   "difficulty": "Easy",
+   "recommendation": "This should be one of the first tools built because it can support several other Jay requests at once.",
+   "requested": "",
+   "status": ""
+  }
+ ],
+ "camille": [
+  {
+   "n": 1,
+   "request": "Big Events — Full Planning Package",
+   "automation": "Create an Event Planning Assistant that takes the event details and generates the room capacity plan, hotel function agenda, 3 theme options, VIP dinner concepts, raffle logistics, and transportation estimates.",
+   "integration": "No app required for planning. Event/CRM + spreadsheet + hotel/vendor data integrations for live execution.",
+   "difficulty": "Medium → Hard",
+   "recommendation": "Start with AI-generated planning packages. Keep vendor decisions and approvals with Camille.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 2,
+   "request": "Big Events — Promotion & Communications",
+   "automation": "Create an Event Communications Generator that takes one approved event brief and generates registration emails, SMS, landing-page copy, speaker/sponsor outreach, attendee logistics, and post-event coaching follow-up.",
+   "integration": "No app required for content generation. Email/SMS/CRM/GHL integration required for automated delivery.",
+   "difficulty": "Medium",
+   "recommendation": "Great Task Hub feature. One event brief should be the single source used to create all communication assets.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 3,
+   "request": "Webinars + AI Summit — Full Campaign",
+   "automation": "Build a Campaign Generator that creates registration, confirmation, reminder, live-now, post-event, replay, and coaching-offer messages and automatically adapts them for clients, past attendees, no-shows, and new prospects.",
+   "integration": "CRM/email/SMS platform integration required for segmentation and scheduling.",
+   "difficulty": "Medium → Hard",
+   "recommendation": "Build the content-generation engine first; automate segmentation and delivery afterward.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 4,
+   "request": "Webinars + AI Summit — Setup & Debrief",
+   "automation": "Create a Webinar Setup & Performance Assistant that prepares required Zoom/Keap assets and then analyzes registrations, show-ups, and conversions against previous events.",
+   "integration": "Zoom + Keap + reporting/data integration required",
+   "difficulty": "Medium → Hard",
+   "recommendation": "Very useful because it combines preparation and post-event analysis, but live system data is needed.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 5,
+   "request": "Recruiting — Hiring Pipeline",
+   "automation": "Build a Recruiting Assistant that generates job posts, evaluates applications against predefined criteria, ranks candidates, and prepares interview questions and scorecards.",
+   "integration": "Recruit CRM / applicant system integration required",
+   "difficulty": "Hard",
+   "recommendation": "High-value automation, but candidate screening should be based on documented criteria and remain human-reviewed.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 6,
+   "request": "Recruiting — Onboarding",
+   "automation": "Create an Onboarding Automation that prepares agreements, expectations, training checklists, welcome messages, and collects/adds payroll, Time Doctor, and Wise details for new hires.",
+   "integration": "Recruiting/HR + Payroll + Time Doctor + Wise integrations required",
+   "difficulty": "Hard",
+   "recommendation": "Several systems and sensitive employee data are involved. Build in stages and require human approval before onboarding/payroll actions.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 7,
+   "request": "Payroll — Time Doctor → Wise",
+   "automation": "Build a Payroll Preparation System that imports the Time Doctor exports, matches employees to Wise emails, separates CW/PFL/HX batches and paydays, and produces upload-ready files.",
+   "integration": "Time Doctor + Wise + payroll spreadsheet/database integration required",
+   "difficulty": "Extremely Hard",
+   "recommendation": "This is one of the highest-risk requests because it's financially sensitive and depends on exact matching, calculations, and batch rules. Human review should remain mandatory.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 8,
+   "request": "Payroll — Checks & Pay Questions",
+   "automation": "Create a Payroll Validation Assistant that checks missing roster entries, unusual hours/amounts, manual payments, and answers pay questions using the exact Time Doctor formula.",
+   "integration": "Time Doctor + payroll data integration required",
+   "difficulty": "Hard",
+   "recommendation": "AI can help identify exceptions and explain the formula, but calculations and outputs need strict validation.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 9,
+   "request": "Marketing — Meta Ad Builds",
+   "automation": "Create a Meta Ads Assistant that uses approved Half Day/recognition templates to generate copy variants, Canva-ready graphic specifications, audience/budget setup, launch checklists, and campaign performance diagnostics.",
+   "integration": "Meta Ads + Canva + campaign data integration required",
+   "difficulty": "Medium → Hard",
+   "recommendation": "Start with AI-generated assets and launch checklists. Automate campaign setup and performance analysis later.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 10,
+   "request": "Marketing — Content Production",
+   "automation": "Build a Content Production Pipeline where a source such as a blog draft, success story, or lead magnet is processed into branded HTML, fact-checked posts, PDFs, email, and SMS promotion.",
+   "integration": "No app required for initial generation. CMS + Canva/document + email/SMS integrations for full automation.",
+   "difficulty": "Medium",
+   "recommendation": "Strong candidate for the AI Task Hub because one source can produce multiple finished assets.",
+   "requested": "Yes",
+   "status": "To be processed"
+  }
+ ],
+ "omerson": [
+  {
+   "n": 1,
+   "request": "Automate AWS server and infrastructure monitoring and connect it with Slack",
+   "automation": "Build an Infrastructure Monitoring & Alert System that monitors AWS services and sends Slack/email alerts when defined alarms or infrastructure events occur.",
+   "integration": "AWS + Slack integration required; AWS monitoring/alerting services and webhook/API",
+   "difficulty": "Hard",
+   "recommendation": "This is a good automation target, but I would start with read-only monitoring and alerts. Avoid giving AI permission to change infrastructure until the monitoring is proven reliable.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 2,
+   "request": "Work the security backlog down / automated scheduled security audits",
+   "automation": "Build a Security Audit Assistant that runs scheduled checks, collects findings, categorizes vulnerabilities/misconfigurations, and creates a prioritized security report.",
+   "integration": "Security tooling + AWS/Club Wealth/University access required",
+   "difficulty": "Extremely Hard",
+   "recommendation": "Start with audit/reporting only. Automated security edits should come much later because an incorrect change could create a security incident or take down a system.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 3,
+   "request": "Make deploys prove themselves",
+   "automation": "Build a Deployment Verification System that checks staging/production after deployment and verifies that the expected code/change is actually live and functioning.",
+   "integration": "GitHub/GitLab + CI/CD + staging/production + monitoring/API access required",
+   "difficulty": "Extremely Hard",
+   "recommendation": "This is substantially more complex than checking whether a deployment pipeline is green. The system needs actual post-deployment validation and rollback/escalation logic.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 4,
+   "request": "Clubwealth Explained — automate or create a UI instead of using a spreadsheet",
+   "automation": "Build a Club Wealth Explained Knowledge Hub where users search or ask questions and receive answers from approved Club Wealth information instead of manually searching a spreadsheet.",
+   "integration": "No app required for initial prototype. Knowledge base/database + AI integration required for production.",
+   "difficulty": "Medium",
+   "recommendation": "This is one of the best opportunities to build early. Start by turning the spreadsheet into a structured knowledge source, then add AI search/Q&A.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 5,
+   "request": "Big Event Stat Tracker",
+   "automation": "Build a Big Event Stat Tracker modeled after the existing Half Day stats system, with a dashboard for registrations, attendance, conversions, or other agreed event metrics.",
+   "integration": "Event/CRM/data-source integrations required",
+   "difficulty": "Medium",
+   "recommendation": "Good candidate because there is already a Half Day implementation to use as a reference. First map exactly which stats need to be collected.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 6,
+   "request": "BSM2026 digital registration similar to LABC2026",
+   "automation": "Replicate/adapt the existing LABC 2026 digital registration workflow for BSM2026.",
+   "integration": "Existing LABC system + registration/event platform integration required",
+   "difficulty": "Medium → Hard",
+   "recommendation": "Since there is an existing implementation to model, this is considerably easier than creating a registration system from scratch.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 7,
+   "request": "AI writes the fixes / reviews and tests backend fixes",
+   "automation": "Build an AI Coding & Repair Workflow where Claude analyzes bugs, proposes fixes, writes code, runs tests, reviews the changes, and prepares a pull request for human approval.",
+   "integration": "GitHub + Claude Code + development/testing environment required",
+   "difficulty": "Hard",
+   "recommendation": "AI coding is already useful here, but fully autonomous production changes should not happen without code review, automated tests, and approval gates.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 8,
+   "request": "Answer “why can’t this person see this?”",
+   "automation": "Build an Access Troubleshooting Assistant that checks approved tags, rulesets, permissions, course/call/data access, and explains the likely reason a user cannot access something.",
+   "integration": "Keap + Club Wealth University + permissions/access systems required",
+   "difficulty": "Hard",
+   "recommendation": "Very strong AI use case if the AI can securely read the relevant configurations. Start read-only and have it provide the diagnosis before allowing any fixes.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 9,
+   "request": "Keap is my biggest time sink — give it to AI",
+   "automation": "Build a Keap Operations Assistant for tag audits, ruleset checks, contact merges, and bulk tagging using documented business rules.",
+   "integration": "Keap API/integration required; n8n/MCP could be useful",
+   "difficulty": "Hard",
+   "recommendation": "High potential for time savings, but bulk changes and contact merges can affect many records. Start with audits/recommendations, then introduce controlled write actions.",
+   "requested": "Yes",
+   "status": "To be processed"
+  },
+  {
+   "n": 10,
+   "request": "Catch failures that report success",
+   "automation": "Build a Workflow Outcome Monitoring System that verifies whether an expected result actually happened instead of trusting a “success” status.",
+   "integration": "Multiple system/API/webhook integrations required + monitoring/logging",
+   "difficulty": "Extremely Hard",
+   "recommendation": "This is one of the most technically difficult requests because the system needs to understand expected outcomes and detect silent failures across different applications.",
+   "requested": "Yes",
+   "status": "To be processed"
+  }
+ ],
+ "jizel": [
+  {
+   "n": 1,
+   "request": "Draft and rewrite client emails and messages",
+   "automation": "Add a Client Communication Generator in the AI Task Hub. Jizel enters her notes/context, selects the type of message, and AI creates a clear response while preserving her preferred tone.",
+   "integration": "No app required — AI Task Hub + Claude API",
+   "difficulty": "Easy",
+   "recommendation": "One of the easiest tasks to build first. No external system is required for the initial version.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 2,
+   "request": "Handle client billing communications",
+   "automation": "Create a Billing Response Assistant where AI explains billing information, payment plans, discounts, balances, cancellation timelines, etc. based on verified client data.",
+   "integration": "App / CRM / Billing system integration required",
+   "difficulty": "Medium",
+   "recommendation": "AI should not guess billing information. It needs access to the actual source of truth before generating an explanation. Human review should remain required.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 3,
+   "request": "Create coaching follow-up messages",
+   "automation": "Create a Coaching Follow-Up Assistant. Jizel selects the situation (assign coach, reschedule, confirm session, remind client, etc.), provides the relevant details, and AI generates the message.",
+   "integration": "No app required for drafting. CRM/Calendar integration required for automatic scheduling/updates.",
+   "difficulty": "Easy → Medium",
+   "recommendation": "Build the drafting portion first, then add automated scheduling and CRM updates later.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 4,
+   "request": "Create event communications",
+   "automation": "Create an Event Communication Generator. Jizel enters/selects the event and AI generates registration emails, location information, hotel details, reminders, and helpful links using a standardized event brief.",
+   "integration": "No app required initially. Event database/CRM integration recommended later.",
+   "difficulty": "Easy",
+   "recommendation": "A good early AI Task Hub feature. Keep event information in one controlled source so AI uses the correct details.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 5,
+   "request": "Summarize client situations and account history",
+   "automation": "Create a Client Summary Assistant that takes client notes/conversations and produces a structured summary: Situation → History → Current Issue → Important Details → Next Action.",
+   "integration": "CRM integration required for automatic pulling of client history. No app required for manual input/upload version.",
+   "difficulty": "Easy → Medium",
+   "recommendation": "Very useful for reducing time spent reading long conversations. Start with copy/paste/upload, then connect the CRM.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 6,
+   "request": "Create follow-up reminders and action lists",
+   "automation": "Build a Follow-Up & Action Manager that identifies who needs a response, billing action, scheduling update, or follow-up and organizes them by priority/date.",
+   "integration": "CRM + task/calendar integration required for automatic reminders.",
+   "difficulty": "Medium",
+   "recommendation": "This becomes much more useful when connected to the actual task/client system instead of relying on manual input.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 7,
+   "request": "Help manage repetitive Client Care responses",
+   "automation": "Build a Client Care Knowledge Assistant containing approved answers for Zoom, coaching, University, onboarding, billing, help desk, etc. AI finds the relevant answer and personalizes it.",
+   "integration": "Knowledge base / document repository required. CRM integration optional.",
+   "difficulty": "Easy → Medium",
+   "recommendation": "One of the strongest projects for Jizel. Build an approved knowledge base first so answers stay consistent.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 8,
+   "request": "Organize information from different tasks into trackers",
+   "automation": "Create an AI Data Organizer that turns scattered notes/data into standardized tables and pushes them into predefined trackers.",
+   "integration": "Google Sheets / Excel integration required",
+   "difficulty": "Medium",
+   "recommendation": "Useful for eliminating manual copy/paste. Need to identify exactly which information goes into which tracker.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 9,
+   "request": "Create internal team updates and summaries",
+   "automation": "Create an Internal Update Generator where Jizel enters rough notes and AI turns them into concise updates for coaches, managers, or admin.",
+   "integration": "No app required for drafting. Slack/Email/Teams integration optional for automatic delivery.",
+   "difficulty": "Easy",
+   "recommendation": "Very easy to implement and a good early-win task.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 10,
+   "request": "Help with content and communication ideas",
+   "automation": "Create a Content & Communication Assistant for motivational messages, huddle content, announcements, captions, and quick communications.",
+   "integration": "No app required",
+   "difficulty": "Easy",
+   "recommendation": "Pure AI generation. Can be one of the first tools inside her AI Task Hub section.",
+   "requested": "No",
+   "status": "Unrequested"
+  }
+ ],
+ "jowee": [
+  {
+   "n": 1,
+   "request": "Client follow-ups",
+   "automation": "Build a Client Follow-Up Assistant inside the AI Task Hub. Jowelyn provides/selects the client and relevant context, and AI reviews the situation, previous conversation, and next step to create a personalized follow-up message.",
+   "integration": "No app required for the first version. CRM integration required for automatic client history lookup and follow-up tracking.",
+   "difficulty": "Easy → Medium",
+   "recommendation": "Build the message-generation version first. Later, connect the CRM so AI can automatically pull the client's history and identify who needs follow-up.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 2,
+   "request": "Call scripts",
+   "automation": "Create a Call Script Generator where Jowelyn enters the client's concern and AI creates a natural, conversational script with key points, possible responses, and next steps.",
+   "integration": "No app required",
+   "difficulty": "Easy",
+   "recommendation": "Excellent first AI Task Hub feature because it can work entirely from user-provided information.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 3,
+   "request": "Email responses",
+   "automation": "Create an Email Response Assistant. Jowelyn pastes the client's question or her notes, chooses the desired tone, and AI prepares a professional response.",
+   "integration": "No app required initially. Email integration optional later.",
+   "difficulty": "Easy",
+   "recommendation": "Very easy to implement and should be one of the first tools deployed.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 4,
+   "request": "Call notes & summaries",
+   "automation": "Build a Call Summary Assistant that turns a transcript into a structured output: Key Issue → Discussion → Action Items → Next Steps → Important Details.",
+   "integration": "No app required for transcript upload/paste. Call/transcription integration required for automatic transcript retrieval.",
+   "difficulty": "Easy → Medium",
+   "recommendation": "Start with transcript upload/paste, then connect the actual call/transcription system once identified.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 5,
+   "request": "Client task tracking",
+   "automation": "Create a Client Task Manager that takes client requests and organizes them by priority, deadline, owner, status, and next action.",
+   "integration": "Task management / CRM integration required for persistent tracking and automatic updates.",
+   "difficulty": "Medium",
+   "recommendation": "The AI organization is easy; the difficult part is keeping the task list synchronized with the actual system the team uses.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 6,
+   "request": "Event follow-ups",
+   "automation": "Build an Event Follow-Up Assistant that identifies requirements such as tickets, registration, headshots, forms, payments, etc., and generates the appropriate reminder.",
+   "integration": "Event/CRM system integration required for automatic status checking and reminders.",
+   "difficulty": "Medium",
+   "recommendation": "Good candidate for automation after the event data source is identified. Start with AI-generated reminders before adding automatic tracking.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 7,
+   "request": "Internal team updates",
+   "automation": "Create an Internal Update Generator where Jowelyn enters rough notes and AI turns them into a short, clear update with What Happened → Current Status → What Needs to Happen → Who Needs to Act.",
+   "integration": "No app required for generation. Slack/Email/Teams integration optional for automated delivery.",
+   "difficulty": "Easy",
+   "recommendation": "Quick win with minimal technical complexity.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 8,
+   "request": "SOP creation and improvement",
+   "automation": "Build an SOP Generator that takes a process description, notes, or transcript and converts it into a standardized SOP with steps, responsibilities, exceptions, and troubleshooting.",
+   "integration": "No app required for first version. Knowledge/document repository integration optional later.",
+   "difficulty": "Easy",
+   "recommendation": "Very suitable for the AI Task Hub and also useful for documenting the systems you build later.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 9,
+   "request": "Client issue troubleshooting",
+   "automation": "Create a Client Troubleshooting Assistant that takes the client's issue and produces possible causes, questions to ask, troubleshooting steps, and escalation criteria.",
+   "integration": "Knowledge base / internal documentation required for reliable answers.",
+   "difficulty": "Medium",
+   "recommendation": "AI should be grounded in Club Wealth's actual procedures and approved solutions rather than relying only on general AI knowledge.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 10,
+   "request": "Daily workload planning",
+   "automation": "Build a Daily Work Planner where Jowelyn inputs her tasks and AI organizes them by urgency, deadline, priority, repetitive work, and automation opportunities.",
+   "integration": "No app required for manual task input. Task/calendar integration recommended for a fully automated version.",
+   "difficulty": "Easy → Medium",
+   "recommendation": "Very easy as a standalone assistant; becomes much more powerful once connected to her actual task/calendar systems.",
+   "requested": "No",
+   "status": "Unrequested"
+  }
+ ],
+ "kathleen": [
+  {
+   "n": 1,
+   "request": "Blog Content Review",
+   "automation": "Create a Blog Review Assistant that takes a draft and checks grammar, clarity, formatting, SEO opportunities, missing information, and overall readability.",
+   "integration": "No app required for first version.",
+   "difficulty": "Easy",
+   "recommendation": "This is one of the easiest tasks. It can run directly through the AI Task Hub with a text box or document upload.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 2,
+   "request": "Nurture Email Campaigns",
+   "automation": "Build a Campaign Builder where the user enters the campaign objective, audience, offer, and timing. AI creates the email sequence, subject lines, CTAs, and follow-up messages.",
+   "integration": "No app required for drafting. Email/CRM platform integration required for scheduling and launching campaigns.",
+   "difficulty": "Easy → Medium",
+   "recommendation": "Start as a campaign-generation tool, then connect it to the actual email system after the process is confirmed.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 3,
+   "request": "Event Forms & Event Follow-Up",
+   "automation": "Create an Event Follow-Up Assistant that reviews form submissions, finds missing information, summarizes registrations, and generates follow-up tasks/messages.",
+   "integration": "Form system + CRM/event system integration required for automatic processing.",
+   "difficulty": "Medium",
+   "recommendation": "Very practical, but the form and event systems need to be identified first.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 4,
+   "request": "Audits & Reports",
+   "automation": "Build an Activity Audit Assistant that compares required actions against actual records and produces a report showing completed, missing, or overdue actions.",
+   "integration": "CRM / IFS / activity-data integration required",
+   "difficulty": "Medium",
+   "recommendation": "The AI analysis is straightforward; the main work is getting reliable records into the system and defining the audit rules.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 5,
+   "request": "Reassigning Tasks to RMs",
+   "automation": "Create a Task Assignment Assistant that checks task information against predefined assignment rules and recommends the correct RM. It can then prepare the ownership update.",
+   "integration": "IFS / task-management integration required",
+   "difficulty": "Medium",
+   "recommendation": "Start with AI recommendations + human approval. Automatic reassignment can come later once the rules are confirmed.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 6,
+   "request": "IFS Task Management",
+   "automation": "Build an IFS Task Assistant that retrieves tasks, summarizes them, groups/prioritizes them, flags urgent items, and prepares follow-up actions.",
+   "integration": "IFS integration required — App/API required",
+   "difficulty": "Medium",
+   "recommendation": "Strong candidate for automation, but we need to understand exactly what data and actions IFS exposes.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 7,
+   "request": "Event & Speaker Coordination",
+   "automation": "Build a Speaker Coordination Tracker that tracks agreements, PPTs, headshots, missing materials, deadlines, and follow-ups, then generates reminders automatically.",
+   "integration": "CRM/event tracker + email integration required",
+   "difficulty": "Medium",
+   "recommendation": "Good automation candidate because the workflow is largely tracking + communication.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 8,
+   "request": "Event Vendor Research",
+   "automation": "Create a Vendor Research Assistant that researches coffee carts, bands, and other vendors, extracts pricing/packages, organizes quotes in a comparison table, and summarizes the best options.",
+   "integration": "Web research capability required + optional Google Sheets integration",
+   "difficulty": "Medium → Hard",
+   "recommendation": "The research and summarization are manageable, but reliable web data collection and quote comparison make it more involved.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 9,
+   "request": "Facebook Moderation & Participant Requests",
+   "automation": "Build a Facebook Request Review Assistant that collects participant requests, checks them against Club Wealth criteria, organizes them by group, and flags exceptions for review.",
+   "integration": "Facebook/Meta integration required — App/API required",
+   "difficulty": "Hard",
+   "recommendation": "Requires access to Facebook group/request information and dependable rules for qualification. Human review should remain for unclear cases.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 10,
+   "request": "Referrals Across 30+ Facebook Groups",
+   "automation": "Build a Referral Monitoring System that monitors approved Facebook groups, finds relevant posts, checks them against referral criteria, captures the lead information, and creates follow-up tasks.",
+   "integration": "Facebook/Meta integration required — App/API required",
+   "difficulty": "Hard",
+   "recommendation": "Monitoring 30+ groups and reliably filtering relevant posts is much more complex than simply asking AI to analyze a post.",
+   "requested": "No",
+   "status": "Unrequested"
+  }
+ ],
+ "andrea": [
+  {
+   "n": 1,
+   "request": "Turn event concepts into marketing campaigns",
+   "automation": "Create an Event Campaign Generator. Andrea enters the event topic, speaker information, date, and audience, and AI produces registration-page copy, emails, reminders, social posts, text messages, talking points, sponsor messaging, and follow-up content.",
+   "integration": "No app required for initial version. GHL/CRM + email/SMS integrations for automatic deployment.",
+   "difficulty": "Easy → Medium",
+   "recommendation": "One of the best starting points because most of the work is content generation.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 2,
+   "request": "Turn conversations into execution",
+   "automation": "Create a Conversation → Action Assistant that processes meeting notes, emails, and transcripts and extracts decisions, commitments, follow-ups, deadlines, owners, and next steps.",
+   "integration": "No app required for upload/paste version. Email/transcription + task/CRM integration for automation.",
+   "difficulty": "Easy → Medium",
+   "recommendation": "Strong quick win. Start with manual input, then automate data collection and task creation.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 3,
+   "request": "Build a reusable Club Wealth operating system",
+   "automation": "Create an Event Operations Knowledge Hub that turns processes into SOPs, templates, checklists, research prompts, email sequences, and decision frameworks.",
+   "integration": "No app required initially. Knowledge base / document repository integration recommended later.",
+   "difficulty": "Easy → Medium",
+   "recommendation": "High value because the output can become the foundation for many other AI tools.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 4,
+   "request": "Create the entire event plan from one request",
+   "automation": "Build an Event Planner where Andrea provides city, date, target attendance, event type, and goals. AI generates venue requirements, timeline, outreach plan, registration strategy, marketing calendar, follow-up schedule, staffing, and day-of checklist.",
+   "integration": "No app required for planning. Calendar/CRM/event system integration for execution.",
+   "difficulty": "Medium",
+   "recommendation": "Planning is very achievable; the harder part is connecting the generated plan to real event operations.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 5,
+   "request": "Analyze event performance and tell me what needs attention",
+   "automation": "Create an Event Performance Analyzer that takes registration, attendance, outreach, engagement, and follow-up data and produces performance insights and recommended actions.",
+   "integration": "Google Sheets/Excel or CRM integration required",
+   "difficulty": "Medium",
+   "recommendation": "Very useful once the data is standardized. Start with uploaded/exported reports before building live integrations.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 6,
+   "request": "Build local real-estate partnership lists",
+   "automation": "Create a Partnership Research Assistant that researches associations, MLSs, brokerages, title/escrow companies, lenders, attorneys, etc., and outputs a structured partner database with contacts and opportunities.",
+   "integration": "Web research required + optional Google Sheets/CRM integration",
+   "difficulty": "Medium → Hard",
+   "recommendation": "The AI organization is easy; accurate research and contact discovery are the challenging parts.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 7,
+   "request": "Research an entire market before launching an event",
+   "automation": "Create a Market Research Assistant that analyzes target markets, associations, brokerages, agent concentration, competing events, sponsors/hosts, and produces an event strategy.",
+   "integration": "Web research required + optional research database/Sheets",
+   "difficulty": "Medium → Hard",
+   "recommendation": "Good candidate for AI-assisted research, but results need verification before being used for business decisions.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 8,
+   "request": "Manage event changes and problems",
+   "automation": "Build an Event Problem Solver. Andrea enters a situation such as venue cancellation or capacity issue, and AI researches replacement options, compares them, drafts communications, and creates a revised action plan.",
+   "integration": "Web research + event/CRM/calendar integration recommended",
+   "difficulty": "Hard",
+   "recommendation": "Requires AI to react to changing conditions, gather fresh information, and coordinate several downstream actions.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 9,
+   "request": "Automate agent and partner outreach",
+   "automation": "Build an Outreach Automation System that segments contacts, generates personalized messages, tracks replies/registrations/declines/no-response, and triggers appropriate follow-ups.",
+   "integration": "CRM + Email/SMS platform required; likely n8n/Make",
+   "difficulty": "Hard",
+   "recommendation": "This is no longer just AI writing. It requires persistent contact state, triggers, timing logic, and multi-step automation.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 10,
+   "request": "Find and qualify event venues from start to finish",
+   "automation": "Build a Venue Research & Qualification System that discovers potential hosts, verifies outside-event policies, compares capacity/location/cost/parking/AV/catering/contact details, and produces a prioritized outreach list.",
+   "integration": "Web research required + database/Sheets/CRM; potentially email automation",
+   "difficulty": "Hard",
+   "recommendation": "This combines research, qualification, data extraction, comparison, contact discovery, and prioritization into one workflow.",
+   "requested": "No",
+   "status": "Unrequested"
+  }
+ ],
+ "liz": [
+  {
+   "n": 1,
+   "request": "Research REALTOR® associations in each target city and identify meeting rooms available for outside events",
+   "automation": "Build a Venue Research Assistant that takes a target city and event requirements, researches qualifying associations, and produces a structured list of potential venues.",
+   "integration": "Web research required",
+   "difficulty": "Hard",
+   "recommendation": "The AI can organize research, but reliable venue discovery and verification will require web access and clear qualification criteria.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 2,
+   "request": "Find the right contact person and gather email, phone, and rental information",
+   "automation": "Add a Venue Contact Finder that collects the facility/events/rental contact and organizes contact details and venue information into a standard record.",
+   "integration": "Web research required",
+   "difficulty": "Hard",
+   "recommendation": "Contact discovery is more difficult than normal AI research because the system needs to identify the correct person rather than just any contact.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 3,
+   "request": "Automatically send customized venue inquiry emails",
+   "automation": "Create a Venue Inquiry Generator that takes the event requirements and automatically fills the Club Wealth template with date, city, attendance, room setup, AV, parking, and other requirements.",
+   "integration": "Email integration required",
+   "difficulty": "Medium",
+   "recommendation": "Very good automation target. Start with AI drafting + human approval, then move to automatic sending once the workflow is proven.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 4,
+   "request": "Automatically follow up with venues at 1 week, 4 days, 2 days, and 24 hours",
+   "automation": "Build a Venue Follow-Up Engine that records when the inquiry was sent, checks whether a reply was received, and triggers the correct follow-up based on the timeline.",
+   "integration": "Email + task/calendar/CRM integration required; n8n recommended",
+   "difficulty": "Hard",
+   "recommendation": "This requires persistent tracking and timed conditional logic. It is much more than simply generating an email.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 5,
+   "request": "Track and organize venue responses in one place",
+   "automation": "Create a Venue Database / Tracker that stores rental cost, capacity, AV, parking, coffee, availability, restrictions, contracts, and payment requirements. AI can extract these details from incoming replies and quotes.",
+   "integration": "Google Sheets / database + Email integration required",
+   "difficulty": "Medium",
+   "recommendation": "Strong automation opportunity. The key is creating a standardized venue record so every response is stored in the same structure.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 6,
+   "request": "Automatically identify alternative venue types",
+   "automation": "Build a Venue Fallback Research Workflow that follows a predefined sequence: REALTOR® associations → homebuilders associations → title companies → hotels.",
+   "integration": "Web research required",
+   "difficulty": "Hard",
+   "recommendation": "The sequential logic is manageable, but the actual research and qualification across different organization types makes it more complex.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 7,
+   "request": "Automatically compare venue options based on requirements",
+   "automation": "Create a Venue Comparison Assistant that scores each venue against capacity, price, parking, AV, location, setup, and availability and highlights the strongest options.",
+   "integration": "Venue database / Google Sheets integration required",
+   "difficulty": "Medium",
+   "recommendation": "Once venue data is standardized, this becomes much easier. AI can generate the comparison and recommendation from structured data.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 8,
+   "request": "Calculate and compare total venue costs",
+   "automation": "Build a Venue Cost Calculator that breaks down rental, AV, coffee, taxes, and other fees and calculates the real estimated total for each venue.",
+   "integration": "Spreadsheet/database required",
+   "difficulty": "Easy → Medium",
+   "recommendation": "The calculations themselves are straightforward. The harder part is reliably extracting all fees from different quotes.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 9,
+   "request": "Create a complete venue proposal/update for Tara",
+   "automation": "Create a Venue Recommendation Generator that turns the collected venue data into a standardized update with recommendations, pricing, pros/cons, parking, AV, capacity, and outstanding approvals.",
+   "integration": "No app required for first version. Venue database integration recommended later.",
+   "difficulty": "Easy",
+   "recommendation": "Excellent AI Task Hub feature once venue data is organized.",
+   "requested": "No",
+   "status": "Unrequested"
+  },
+  {
+   "n": 10,
+   "request": "Build the event venue checklist and timeline automatically after a venue is selected",
+   "automation": "Create a Venue Closing Checklist Generator that uses the selected venue/event date to automatically generate tasks for agreement, payment, AV, room setup, parking, registration table, signage, and final confirmation.",
+   "integration": "No app required initially. Task/Calendar integration required for automatic task creation and reminders.",
+   "difficulty": "Easy → Medium",
+   "recommendation": "Very practical and easy to standardize. Full automation comes once the checklist can create and track tasks in the team's actual system.",
+   "requested": "No",
+   "status": "Unrequested"
+  }
+ ]
+}

@@ -24,6 +24,9 @@ async function hmac(data: string) {
   return b64url(await crypto.subtle.sign('HMAC', key, enc.encode(data)));
 }
 
+/** Signs any short value with SESSION_SECRET (used for one-off tokens, e.g. chat reply tokens). */
+export const signValue = (data: string) => hmac(data);
+
 export async function signSession(uid: string) {
   const payload: SessionPayload = { uid, exp: Date.now() + SESSION_DAYS * 864e5 };
   const body = b64url(enc.encode(JSON.stringify(payload)));

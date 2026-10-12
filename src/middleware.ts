@@ -4,7 +4,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { SESSION_COOKIE, verifySession } from '@/lib/auth/session';
 
-const PUBLIC = ['/login', '/api/auth/login', '/api/health'];
+// /api/chat/reply is called by the CW Assistant routine, which proves itself with a per-message token.
+const PUBLIC = ['/login', '/api/auth/login', '/api/health', '/api/chat/reply'];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

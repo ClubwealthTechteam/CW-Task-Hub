@@ -1,10 +1,10 @@
 // Small key-value store for things the app writes at runtime (custom integrations, run log).
-// Uses Upstash Redis over REST when KV_REST_API_URL/TOKEN are set (Vercel → Storage → Upstash);
-// otherwise falls back to memory, which resets whenever the server restarts.
+// Uses Upstash Redis over REST when KV_REST_API_URL/TOKEN (or UPSTASH_REDIS_REST_URL/TOKEN) are set
+// (Vercel → Storage → Upstash); otherwise falls back to memory, which resets whenever the server restarts.
 
 const memory = new Map<string, string>();
-const url = () => process.env.KV_REST_API_URL;
-const token = () => process.env.KV_REST_API_TOKEN;
+const url = () => process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const token = () => process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 
 export const storeIsPersistent = () => Boolean(url() && token());
 

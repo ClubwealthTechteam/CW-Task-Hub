@@ -13,11 +13,15 @@ interface Props {
   tasks: Automation[];          // already filtered to what this person may see
   selectedId?: string;
   sheetCount: number;
+  formCount?: number;
   onSheets?: boolean;
+  onForms?: boolean;
 }
 
-export function Sidebar({ user, dept, tasks, selectedId, sheetCount, onSheets }: Props) {
-  const mine = tasks.filter((a) => a.ownerId === user.id);
+export function Sidebar({ user, dept, tasks, selectedId, sheetCount, formCount, onSheets, onForms }: Props) {
+  const mineAll = tasks.filter((a) => a.ownerId === user.id);
+  const mine = mineAll.filter((a) => a.source !== 'form');
+  const mineForm = mineAll.filter((a) => a.source === 'form');
   const byOwner = new Map<string, Automation[]>();
   for (const a of tasks) if (a.ownerId !== user.id) byOwner.set(a.ownerId, [...(byOwner.get(a.ownerId) ?? []), a]);
   const keapOn = isConnected('keap');
@@ -34,6 +38,7 @@ export function Sidebar({ user, dept, tasks, selectedId, sheetCount, onSheets }:
     <aside className="ws-side" aria-label={`${dept.name} tasks`}>
       <div className="ws-side-h"><b>{dept.name}</b><span>AI Task Hub · {user.name.split(/\s+/)[0]}</span></div>
       <nav className="ws-navs">
+        {mineForm.length > 0 && (<><div className="ws-group">From my process form</div>{mineForm.map(navItem)}</>)}
         {mine.length > 0 && (<><div className="ws-group">My tasks</div>{mine.map(navItem)}</>)}
         {[...byOwner].map(([id, list]) => (
           <div key={id} className="ws-navs">
@@ -41,9 +46,14 @@ export function Sidebar({ user, dept, tasks, selectedId, sheetCount, onSheets }:
             {list.map(navItem)}
           </div>
         ))}
-        {tasks.length === 0 && <p className="ws-empty">{isSuperAdmin(user) ? 'No tasks in this department yet.' : 'You don’t have any tasks yet. Ask Miguel to add yours from the AI audit.'}</p>}
+        {tasks.length === 0 && <p className="ws-empty">{isSuperAdmin(user) ? 'No tasks in this department yet.' : 'You don’t have any tasks yet. Fill in the Workflow Process Form and your processes show up here.'}</p>}
       </nav>
       <div className="ws-side-f">
+        <Link href={`/w/${dept.id}/forms`} className="ws-nav" aria-current={onForms ? 'page' : undefined}>
+          <Icon name="book" />
+          <span>{isSuperAdmin(user) ? 'Process forms' : 'My process forms'}</span>
+          {formCount != null && <span className="ws-count">{formCount}</span>}
+        </Link>
         <Link href={`/w/${dept.id}/sheets`} className="ws-nav" aria-current={onSheets ? 'page' : undefined}>
           <Icon name="table" />
           <span>{isSuperAdmin(user) ? 'Spreadsheets' : 'My spreadsheets'}</span>

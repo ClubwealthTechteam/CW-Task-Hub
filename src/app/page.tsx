@@ -4,11 +4,10 @@ import { Header } from '@/components/Header';
 import { StagePill } from '@/components/Bits';
 import { requireUser } from '@/lib/auth/current-user';
 import { visibleDepartments, isSuperAdmin } from '@/lib/access';
-import { automationsFor, automationsOwnedBy } from '@/data/automations';
+import { allAutomations } from '@/data/catalog';
 import { peopleIn } from '@/config/people';
 import { listRuns } from '@/lib/automations/runner';
 import { personById } from '@/config/people';
-import { automationById } from '@/data/automations';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +16,8 @@ export default async function Home() {
   // Team members go straight to their department workspace; this overview is for super admins.
   if (!isSuperAdmin(user)) redirect(`/w/${user.departments[0]}`);
   const depts = visibleDepartments(user);
-  const mine = automationsOwnedBy(user.id);
+  const all = await allAutomations();
+  const mine = all.filter((a) => a.ownerId === user.id);
   const runs = isSuperAdmin(user) ? (await listRuns()).slice(0, 8) : [];
   const first = user.name.split(' ')[0];
 
@@ -33,7 +33,7 @@ export default async function Home() {
 
         <section className="grid" aria-label="Departments">
           {depts.map((d) => {
-            const list = automationsFor(d.id);
+            const list = all.filter((a) => a.department === d.id);
             return (
               <Link key={d.id} href={`/w/${d.id}`} className="card">
                 <div className="spread"><h2>{d.name}</h2>{d.hidden && <span className="pill gold">Admins only</span>}</div>
@@ -75,7 +75,7 @@ export default async function Home() {
                       <tr key={i}>
                         <td>{new Date(r.at).toLocaleString()}</td>
                         <td>{personById(r.by)?.name ?? r.by}</td>
-                        <td>{automationById(r.automationId)?.title ?? r.automationId}</td>
+                        <td>{all.find((a) => a.id === r.automationId)?.title ?? r.automationId}</td>
                         <td>{r.mode === 'dry_run' ? 'Plan (skeleton)' : r.ok ? 'Done' : 'Failed'}</td>
                       </tr>
                     ))}

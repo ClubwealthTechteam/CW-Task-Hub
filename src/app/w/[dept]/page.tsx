@@ -9,19 +9,22 @@ import { StagePill } from '@/components/Bits';
 import { requireDepartment } from '@/lib/auth/current-user';
 import { departmentById, type DepartmentId } from '@/config/departments';
 import { personById } from '@/config/people';
-import { automationsFor } from '@/data/automations';
+import { automationsInDept } from '@/data/catalog';
 import { integrationName } from '@/lib/integrations/registry';
 import { canViewAutomation, isSuperAdmin } from '@/lib/access';
 import { approveSteps, isConnected, primaryTool, starters } from '@/lib/workspace';
 import { chatIsConfigured } from '@/lib/chat/routine';
 import { storeIsPersistent } from '@/lib/store';
 import { listSheets } from '@/lib/sheets';
+import { getSubmissions } from '@/lib/forms/submissions';
 import { TaskChat } from './TaskChat';
 import { Sidebar } from './Sidebar';
 import { KeapContact } from './KeapContact';
 import { SidePanel } from './SidePanel';
 
 export const dynamic = 'force-dynamic';
+
+const PLAN_LABEL = { read: 'Reads', draft: 'Drafts for you', approval: 'Needs approval', assist: 'Assists' } as const;
 
 export default async function WorkspacePage({ params, searchParams }: { params: { dept: string }; searchParams: { t?: string } }) {
   const dept = departmentById(params.dept);
@@ -30,7 +33,7 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
   const first = user.name.split(/\s+/)[0];
 
   // Team members only see their own tasks; super admins see everyone's, grouped by person.
-  const all = automationsFor(dept.id).filter((a) => canViewAutomation(user, a));
+  const all = (await automationsInDept(dept.id as DepartmentId)).filter((a) => canViewAutomation(user, a));
   const mine = all.filter((a) => a.ownerId === user.id);
   const selected = all.find((a) => a.id === searchParams.t) ?? mine[0] ?? all[0];
 
@@ -38,6 +41,7 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
   // Spreadsheets: your own (super admins: everyone's in this department) and the ones linked to this task.
   const sheets = (await listSheets()).filter((sh) => (isSuperAdmin(user) ? personById(sh.owner)?.departments.includes(dept.id as DepartmentId) || sh.owner === user.id : sh.owner === user.id));
   const sheetCount = sheets.length;
+  const formCount = (await getSubmissions()).filter((s) => (isSuperAdmin(user) ? personById(s.personId ?? '')?.departments.includes(dept.id as DepartmentId) : s.personId === user.id)).length;
   const taskSheets = selected ? sheets.filter((sh) => sh.taskIds.includes(selected.id)) : [];
   const steps = selected ? approveSteps(selected) : [];
   const tool = selected ? primaryTool(selected) : null;
@@ -47,7 +51,7 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
     <>
       <Header user={user} current={dept.id} />
       <div className="ws">
-        <Sidebar user={user} dept={dept} tasks={all} selectedId={selected?.id} sheetCount={sheetCount} />
+        <Sidebar user={user} dept={dept} tasks={all} selectedId={selected?.id} sheetCount={sheetCount} formCount={formCount} />
 
         {selected ? (
           <TaskChat
@@ -102,6 +106,22 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
               <Link href={`/w/${dept.id}/sheets?task=${selected.id}`} className="ws-more"><Icon name="plus" size={14} /> Add a spreadsheet</Link>
             </section>
 
+            {selected.source === 'form' && selected.plan ? (
+              <section>
+                <h5>Build plan · from your process form</h5>
+                {selected.manualTime && <p className="muted small" style={{ margin: 0 }}>Takes about <b>{selected.manualTime}</b> by hand today.</p>}
+                <ol className="plan">
+                  {selected.plan.map((p, i) => (
+                    <li key={i}>
+                      <span className={`plan-mode ${p.mode}`}>{PLAN_LABEL[p.mode]}</span>
+                      <div><b>{p.tool}</b><span>{p.action}</span>{p.branches?.map((b) => <small key={b}>{b}</small>)}</div>
+                    </li>
+                  ))}
+                </ol>
+                {selected.ideal && <blockquote className="ideal"><b>Your ideal version</b>{selected.ideal}</blockquote>}
+                <p className="muted small" style={{ margin: 0 }}>Steps marked “Needs approval” change Keap or another system. They stay off until Miguel approves them; Keap is view-only for now.</p>
+              </section>
+            ) : (
             <section>
               <h5>When you approve{tool ? `, ${tool} will` : ', the hub will'}</h5>
               <div className="kflow">
@@ -117,6 +137,7 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
               </div>
               <p className="muted small" style={{ margin: 0 }}>Nothing is sent or changed until you press Approve.</p>
             </section>
+            )}
 
             <Link href={`/a/${selected.id}`} className="ws-more"><Icon name="info" size={14} /> Full task details</Link>
           </SidePanel>

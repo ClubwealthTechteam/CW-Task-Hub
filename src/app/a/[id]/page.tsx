@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { StagePill, ToolChips } from '@/components/Bits';
 import { requireDepartment } from '@/lib/auth/current-user';
-import { automationById } from '@/data/automations';
+import { findAutomation } from '@/data/catalog';
 import { departmentById } from '@/config/departments';
 import { personById } from '@/config/people';
 import { canViewAutomation, isSuperAdmin } from '@/lib/access';
@@ -12,7 +12,7 @@ import { RunPanel } from './RunPanel';
 export const dynamic = 'force-dynamic';
 
 export default async function AutomationPage({ params }: { params: { id: string } }) {
-  const a = automationById(params.id);
+  const a = await findAutomation(params.id);
   if (!a) notFound();
   const user = await requireDepartment(a.department);
   if (!canViewAutomation(user, a)) notFound();

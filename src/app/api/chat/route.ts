@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/current-user';
 import { canViewAutomation, isSuperAdmin } from '@/lib/access';
-import { automationById } from '@/data/automations';
+import { findAutomation } from '@/data/catalog';
 import { cleanContact } from '@/lib/chat/contact';
 import { keapContext } from '@/lib/chat/keap-context';
 import { eventbriteContext } from '@/lib/chat/eventbrite-context';
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
   }
   // A task chat stays with its task; people can only chat with their own tasks (super admins: any).
   const taskId = conv ? conv.automationId : body.automationId ? String(body.automationId) : undefined;
-  const task = taskId ? automationById(taskId) : undefined;
+  const task = taskId ? await findAutomation(taskId) : undefined;
   if (taskId && (!task || !canViewAutomation(user, task))) {
     return NextResponse.json({ error: 'Task not found' }, { status: 404 });
   }

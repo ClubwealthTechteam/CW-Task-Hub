@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/current-user';
 import { canViewAutomation, isSuperAdmin } from '@/lib/access';
-import { automationById } from '@/data/automations';
+import { findAutomation } from '@/data/catalog';
 import { newId } from '@/lib/chat/store';
 import {
   accountAllowed, isEmail, listApproved, listSheets, mainAccount, normalizeEmail, saveSheets, sheetIdFromUrl, type SheetEntry,
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     }, { status: 403 });
   }
   for (const id of taskIds) {
-    const a = automationById(id);
+    const a = await findAutomation(id);
     if (!a || !canViewAutomation(user, a)) return NextResponse.json({ error: 'One of the tasks wasn’t found' }, { status: 400 });
   }
 

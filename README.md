@@ -37,6 +37,10 @@ Joshua and JP have no audit requests yet; their sections fill in once their data
 - **Add an integration** (`src/lib/integrations/custom.ts`): super admins add any webhook or REST API in the app (name, URL, optional auth header and key). Keys stay on the server and are never sent back to the browser. Use it for Buildium, ProspectBoss, Make, n8n, etc.
 - Planned integrations needed by the audit requests are listed on the page.
 
+## Workflow Process Form → tasks
+
+The hub reads the form's responses sheet live (`src/lib/forms/`; read-only, cached 5 minutes) and turns every process a person described into a task under **From my process form** in their workspace, with a build plan: each step marked *Reads*, *Drafts for you*, *Needs approval* (changes Keap or another system; off until approved) or *Assists*, plus their ideal version and how long it takes by hand. Test rows and repeat submissions are skipped. **My process forms** in the sidebar shows the submissions themselves. The assistant gets the plan when chatting in a form task.
+
 ## CW Assistant (chat bubble)
 
 Every signed-in page shows a Messenger-style bubble in the bottom-right corner (`src/components/chat/ChatWidget.tsx`): open, maximize, minimize, start and remove chats. It uses no Anthropic API key. Each message fires the claude.ai routine **"CW Assistant → Task Hub chat replies"** (`src/lib/chat/routine.ts`) with the person's name, department, visible automations and recent conversation. Claude writes the reply in its own session and posts it to `/api/chat/reply` with a one-time HMAC token; the widget polls until it arrives. Chats are stored in Upstash (`src/lib/chat/store.ts`), so the assistant needs both `CLAUDE_CHAT_ROUTINE_TOKEN` and storage. `/api/health` shows whether each is switched on.

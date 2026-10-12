@@ -9,7 +9,7 @@ import type { IntegrationId, IntegrationInfo } from './types';
 const PLANNED: Record<string, string> = {
   gmail: 'Gmail', 'google-sheets': 'Google Sheets', 'google-calendar': 'Google Calendar', slack: 'Slack',
   prospectboss: 'ProspectBoss', meta: 'Meta (Facebook / Instagram)', canva: 'Canva', timedoctor: 'Time Doctor',
-  wise: 'Wise', aws: 'AWS',
+  wise: 'Wise', aws: 'AWS', outlook: 'Outlook & Microsoft Calendar', turbodial: 'Turbo Dial', zoom: 'Zoom',
 };
 
 export function builtinIntegrations(): IntegrationInfo[] {

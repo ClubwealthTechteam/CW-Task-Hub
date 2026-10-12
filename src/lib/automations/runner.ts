@@ -1,7 +1,8 @@
 // Runs an automation. Skeletons return a dry-run plan (what they will do and which tools they need);
 // built automations register a handler in HANDLERS and do the real work. Every run is logged.
 
-import { automationById, type Automation } from '@/data/automations';
+import type { Automation } from '@/data/automations';
+import { findAutomation } from '@/data/catalog';
 import { builtinIntegrations, integrationName } from '@/lib/integrations/registry';
 import { getJSON, setJSON } from '@/lib/store';
 import type { Person } from '@/config/people';
@@ -45,14 +46,16 @@ function dryRun(a: Automation, input: RunInput): RunResult {
     steps: [
       { label: 'Read the request', status: 'done', detail: input.notes ? `Notes: ${String(input.notes).slice(0, 200)}` : 'No notes given' },
       ...tools,
-      { label: a.summary, status: 'waiting', detail: 'To be built from the Workflow Process Form map' },
+      ...(a.plan?.length
+        ? a.plan.map((p) => ({ label: `${p.tool}: ${p.action}`, status: 'waiting' as const, detail: p.mode === 'approval' ? 'Changes data: needs approval before it is built' : p.mode === 'draft' ? 'The hub drafts it for you to review' : p.mode === 'read' ? 'The hub reads it (view-only)' : 'The hub assists' }))
+        : [{ label: a.summary, status: 'waiting' as const, detail: 'To be built from the Workflow Process Form map' }]),
       { label: 'Human review before anything is sent or changed', status: 'waiting' },
     ],
   };
 }
 
 export async function runAutomation(id: string, input: RunInput, user: Person): Promise<RunResult> {
-  const a = automationById(id);
+  const a = await findAutomation(id);
   if (!a) throw new Error('Automation not found');
   const handler = HANDLERS[id];
   const result = handler ? await handler(a, input, user) : dryRun(a, input);

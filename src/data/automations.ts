@@ -36,14 +36,29 @@ export interface Automation {
   stage: Stage;
   /** Where it runs today, for automations that already work outside the hub. */
   runsIn?: string;
+  /** Where the task came from: the CW AI AUDIT sheet, the Workflow Process Form, or already live. */
+  source?: 'audit' | 'form' | 'live';
+  /** Build plan (form tasks): each step, the tool, and whether the hub reads, drafts, or needs approval. */
+  plan?: PlanStep[];
+  /** Form tasks: the person's ideal automated version, in their words. */
+  ideal?: string;
+  /** Form tasks: how long it takes by hand, as they wrote it. */
+  manualTime?: string;
+  submissionId?: string;
 }
 
+export type PlanMode = 'read' | 'draft' | 'approval' | 'assist';
+export interface PlanStep { tool: string; action: string; mode: PlanMode; branches?: string[] }
+
 // Which tools a request needs, read from the "App / Integration Required" and request text.
-const TOOL_HINTS: [RegExp, IntegrationId][] = [
+export const TOOL_HINTS: [RegExp, IntegrationId][] = [
   [/\b(keap|ifs|infusionsoft|crm)\b/i, 'keap'],
   [/zapier/i, 'zapier'],
   [/eventbrite/i, 'eventbrite'],
   [/gmail|\bemail/i, 'gmail'],
+  [/outlook|microsoft calendar/i, 'outlook'],
+  [/turbo ?dial/i, 'turbodial'],
+  [/\bzoom\b/i, 'zoom'],
   [/sheet|spreadsheet|tracker/i, 'google-sheets'],
   [/calendar/i, 'google-calendar'],
   [/prospect ?boss|\bPB\b/, 'prospectboss'],
@@ -56,7 +71,7 @@ const TOOL_HINTS: [RegExp, IntegrationId][] = [
   [/aws|server|infrastructure/i, 'aws'],
 ];
 
-function detectIntegrations(...texts: string[]): IntegrationId[] {
+export function detectIntegrations(...texts: string[]): IntegrationId[] {
   const text = texts.join(' ');
   const found = new Set<IntegrationId>(['claude']);
   for (const [re, id] of TOOL_HINTS) if (re.test(text)) found.add(id);
@@ -82,6 +97,7 @@ const fromAudit: Automation[] = PEOPLE.flatMap((person) => {
     requested: /^yes$/i.test(item.requested),
     auditStatus: item.status || 'No status yet',
     stage: 'skeleton',
+    source: 'audit',
   }));
 });
 
@@ -102,6 +118,7 @@ const live: Automation[] = [
     auditStatus: 'Completed',
     stage: 'live',
     runsIn: 'Claude routine + Zapier (#half-day-registration-forms)',
+    source: 'live',
   },
 ];
 

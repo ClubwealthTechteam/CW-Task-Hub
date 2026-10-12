@@ -4,7 +4,7 @@
 
 import type { Person } from '@/config/people';
 import { departmentById } from '@/config/departments';
-import { AUTOMATIONS, automationById } from '@/data/automations';
+import { allAutomations, findAutomation } from '@/data/catalog';
 import { integrationName } from '@/lib/integrations/registry';
 import { canViewAutomation, isSuperAdmin } from '@/lib/access';
 import { signValue } from '@/lib/auth/session';
@@ -27,8 +27,8 @@ export async function validReplyToken(conversationId: string, messageId: string,
   return diff === 0;
 }
 
-function automationLines(user: Person) {
-  const mine = AUTOMATIONS.filter((a) => canViewAutomation(user, a));
+async function automationLines(user: Person) {
+  const mine = (await allAutomations()).filter((a) => canViewAutomation(user, a));
   return mine.slice(0, 60).map((a) => `- ${a.title} (${departmentById(a.department)?.name}, ${a.stage})`).join('\n');
 }
 
@@ -44,9 +44,9 @@ export async function buildPayload(user: Person, conv: Conversation, userMessage
     `DATE: ${new Date().toISOString().slice(0, 10)}`,
     '',
     isSuperAdmin(user) ? 'AUTOMATIONS IN THE HUB (they see every department):' : 'THEIR OWN AUTOMATIONS IN THE HUB:',
-    automationLines(user) || '(none yet)',
+    (await automationLines(user)) || '(none yet)',
   ].join('\n');
-  const task = conv.automationId ? automationById(conv.automationId) : undefined;
+  const task = conv.automationId ? await findAutomation(conv.automationId) : undefined;
   const taskBlock = task ? [
     '',
     '',
@@ -55,6 +55,12 @@ export async function buildPayload(user: Person, conv: Conversation, userMessage
     `what it does: ${task.summary}`,
     `tools: ${task.integrations.map(integrationName).join(', ') || 'none'}`,
     `stage: ${task.stage}${task.runsIn ? ` (runs in ${task.runsIn})` : ''}`,
+    ...(task.source === 'form' ? [
+      `from their Workflow Process Form${task.manualTime ? ` · takes them ${task.manualTime} by hand` : ''}`,
+      'how they do it now / build plan:',
+      ...(task.plan ?? []).map((p, i) => `  ${i + 1}. [${p.tool}] ${p.action} (${p.mode === 'approval' ? 'changes data: needs approval' : p.mode === 'draft' ? 'hub drafts for review' : p.mode === 'read' ? 'read-only' : 'assist'})${p.branches?.length ? ` → ${p.branches.join(' | ')}` : ''}`),
+      ...(task.ideal ? [`their ideal automated version: ${task.ideal.slice(0, 1500)}`] : []),
+    ] : []),
   ].join('\n') : '';
   // Keap data read by the hub wins; the panel's copy is only a fallback when Keap couldn't be read.
   const contactBlock = keapBlock || (contact ? [

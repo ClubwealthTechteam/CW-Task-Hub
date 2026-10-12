@@ -387,3 +387,32 @@ details.card summary { cursor: pointer; }
 .zap-confirm { background: var(--warn-tint); border-radius: 8px; padding: 4px 8px; font-size: 13.5px; }
 .zap-steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
 .zap-url { display: block; margin-top: 6px; font-size: 12px; overflow-wrap: anywhere; background: var(--surface-2); padding: 6px 8px; border-radius: 6px; }
+
+/* Build plan from the process form */
+.plan { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; counter-reset: plan; }
+.plan li { display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; }
+.plan li div { display: flex; flex-direction: column; gap: 2px; }
+.plan b { font-size: 12.5px; color: var(--ink-2); }
+.plan span:not(.plan-mode) { font-size: 13px; }
+.plan small { font-size: 12px; color: var(--muted); }
+.plan-mode { align-self: flex-start; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; border-radius: 999px; padding: 1px 8px; }
+.plan-mode.read { background: var(--muted-tint); color: var(--ink-2); }
+.plan-mode.draft { background: #e6edf7; color: #0c3f7a; }
+.plan-mode.approval { background: var(--warn-tint); color: var(--warn); }
+.plan-mode.assist { background: var(--ok-tint); color: var(--ok); }
+.ideal { margin: 0; border-left: 3px solid var(--gold); background: var(--surface-2); padding: 8px 12px; font-size: 13px; border-radius: 0 8px 8px 0; display: flex; flex-direction: column; gap: 4px; }
+.ideal b { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+/* Process forms page */
+.fsub details { border-top: 1px solid var(--line); padding-top: 10px; }
+.fsub summary { cursor: pointer; font-size: 14px; }
+.fp { margin-top: 10px; }
+.fp h3 { font-size: 14.5px; margin-bottom: 6px; }
+.fp ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
+.fp li { display: flex; flex-direction: column; gap: 2px; }
+.fp li b { font-size: 12.5px; color: #0c3f7a; }
+.fp li span { white-space: pre-wrap; }
+.fp li small { color: var(--muted); font-size: 12.5px; }
+.fp-text { white-space: pre-wrap; font-size: 13.5px; margin: 8px 0 0; }
+a.chip { text-decoration: none; }
+a.chip:hover { border-color: #0c3f7a; color: #0c3f7a; }

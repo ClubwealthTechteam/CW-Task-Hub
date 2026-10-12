@@ -275,3 +275,31 @@ td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .ws-more:hover { text-decoration: underline; }
 .ws-composer .row { flex-wrap: nowrap; }
 .ws-composer .row .chip-btn { white-space: nowrap; }
+
+/* Spreadsheets page */
+.ws.ws-wide { grid-template-columns: 260px minmax(0, 1fr); }
+.ws-page { overflow-y: auto; padding: 26px 32px 96px; display: flex; flex-direction: column; gap: 18px; min-height: 0; }
+.ws-page-h h1 { font-size: 22px; }
+.ws-page-h p { margin: 6px 0 0; color: var(--muted); max-width: 75ch; font-size: 14px; }
+.sheet-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+.sheet-form .sheet-tasks, .sheet-form > .row { grid-column: 1 / -1; }
+.sheet-form small { font-size: 12px; }
+.sheet-tasks { border: 0; padding: 0; margin: 0; }
+.sheet-tasks legend { font-weight: 600; color: var(--ink-2); font-size: 13px; padding: 0; margin-bottom: 6px; }
+.sheet-task-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 4px 16px; max-height: 220px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.check { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; cursor: pointer; padding: 3px 0; }
+.check input { width: auto; margin-top: 3px; }
+.ok-text { color: var(--ok); font-size: 13px; font-weight: 600; }
+.btn.danger { background: #c0392b; border-color: #c0392b; color: #fff; }
+.approved-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.approved-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 13.5px; }
+.ws-count { font-size: 11.5px; font-weight: 700; color: var(--muted); background: var(--muted-tint); border-radius: 999px; padding: 1px 8px; }
+.ws-nav[aria-current="page"] .ws-count { background: rgba(255,255,255,.18); color: #fff; }
+.ws-side-f { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; padding-inline: 10px; }
+.ws-side-f .ws-nav { width: 100%; }
+.ws-side-f .keap-pill { margin-left: 10px; }
+.ws-sheets { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.ws-sheets li { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; }
+.ws-sheets a { display: inline-flex; gap: 6px; align-items: center; font-size: 13.5px; font-weight: 600; color: #0c3f7a; text-decoration: none; }
+.ws-sheets a:hover { text-decoration: underline; }
+.ws-sheets small { font-size: 11.5px; color: var(--muted); }

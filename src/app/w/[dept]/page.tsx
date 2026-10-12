@@ -9,13 +9,15 @@ import { StagePill } from '@/components/Bits';
 import { requireDepartment } from '@/lib/auth/current-user';
 import { departmentById, type DepartmentId } from '@/config/departments';
 import { personById } from '@/config/people';
-import { automationsFor, type Automation } from '@/data/automations';
+import { automationsFor } from '@/data/automations';
 import { integrationName } from '@/lib/integrations/registry';
 import { canViewAutomation, isSuperAdmin } from '@/lib/access';
-import { approveSteps, isConnected, primaryTool, starters, taskIcon } from '@/lib/workspace';
+import { approveSteps, isConnected, primaryTool, starters } from '@/lib/workspace';
 import { chatIsConfigured } from '@/lib/chat/routine';
 import { storeIsPersistent } from '@/lib/store';
+import { listSheets } from '@/lib/sheets';
 import { TaskChat } from './TaskChat';
+import { Sidebar } from './Sidebar';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,43 +30,22 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
   // Team members only see their own tasks; super admins see everyone's, grouped by person.
   const all = automationsFor(dept.id).filter((a) => canViewAutomation(user, a));
   const mine = all.filter((a) => a.ownerId === user.id);
-  const byOwner = new Map<string, Automation[]>();
-  for (const a of all) if (a.ownerId !== user.id) byOwner.set(a.ownerId, [...(byOwner.get(a.ownerId) ?? []), a]);
   const selected = all.find((a) => a.id === searchParams.t) ?? mine[0] ?? all[0];
 
   const keapOn = isConnected('keap');
+  // Spreadsheets: your own (super admins: everyone's in this department) and the ones linked to this task.
+  const sheets = (await listSheets()).filter((sh) => (isSuperAdmin(user) ? personById(sh.owner)?.departments.includes(dept.id as DepartmentId) || sh.owner === user.id : sh.owner === user.id));
+  const sheetCount = sheets.length;
+  const taskSheets = selected ? sheets.filter((sh) => sh.taskIds.includes(selected.id)) : [];
   const steps = selected ? approveSteps(selected) : [];
   const tool = selected ? primaryTool(selected) : null;
   const owner = selected ? personById(selected.ownerId) : null;
-
-  const navItem = (a: Automation) => (
-    <Link key={a.id} href={`/w/${dept.id}?t=${a.id}`} className="ws-nav" aria-current={a.id === selected?.id ? 'page' : undefined} title={a.title}>
-      <Icon name={taskIcon(a)} />
-      <span>{a.title}</span>
-      {a.stage === 'live' && <span className="ws-live" title="Live">Live</span>}
-    </Link>
-  );
 
   return (
     <>
       <Header user={user} current={dept.id} />
       <div className="ws">
-        <aside className="ws-side" aria-label={`${dept.name} tasks`}>
-          <div className="ws-side-h"><b>{dept.name}</b><span>AI Task Hub · {first}</span></div>
-          <nav className="ws-navs">
-            {mine.length > 0 && (<><div className="ws-group">My tasks</div>{mine.map(navItem)}</>)}
-            {[...byOwner].map(([id, list]) => (
-              <div key={id} className="ws-navs">
-                <div className="ws-group">{personById(id)?.name.split(/\s+/)[0] ?? id}&apos;s tasks</div>
-                {list.map(navItem)}
-              </div>
-            ))}
-            {all.length === 0 && <p className="ws-empty">{isSuperAdmin(user) ? 'No tasks in this department yet.' : 'You don’t have any tasks yet. Ask Miguel to add yours from the AI audit.'}</p>}
-          </nav>
-          <div className="ws-side-f">
-            <span className={`keap-pill${keapOn ? '' : ' off'}`}>{keapOn ? 'Keap connected' : 'Keap not connected'}</span>
-          </div>
-        </aside>
+        <Sidebar user={user} dept={dept} tasks={all} selectedId={selected?.id} sheetCount={sheetCount} />
 
         {selected ? (
           <TaskChat
@@ -105,6 +86,20 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
                   <span key={id} className={`tag${isConnected(id) ? ' on' : ''}`} title={isConnected(id) ? 'Connected' : 'Not connected yet'}>{integrationName(id)}</span>
                 ))}
               </div>
+            </section>
+
+            <section>
+              <h5>Spreadsheets</h5>
+              {taskSheets.length === 0
+                ? <p className="muted small" style={{ margin: 0 }}>No spreadsheets linked to this task yet.</p>
+                : (
+                  <ul className="ws-sheets">
+                    {taskSheets.map((sh) => (
+                      <li key={sh.id}><a href={sh.url} target="_blank" rel="noreferrer"><Icon name="table" size={14} /> {sh.name}</a><small>{sh.account}</small></li>
+                    ))}
+                  </ul>
+                )}
+              <Link href={`/w/${dept.id}/sheets?task=${selected.id}`} className="ws-more"><Icon name="plus" size={14} /> Add a spreadsheet</Link>
             </section>
 
             <section>

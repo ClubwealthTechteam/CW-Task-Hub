@@ -32,7 +32,7 @@ function automationLines(user: Person) {
   return mine.slice(0, 60).map((a) => `- ${a.title} (${departmentById(a.department)?.name}, ${a.stage})`).join('\n');
 }
 
-export async function buildPayload(user: Person, conv: Conversation, userMessageId: string, replyId: string, contact?: ChatContact, keapBlock = '') {
+export async function buildPayload(user: Person, conv: Conversation, userMessageId: string, replyId: string, contact?: ChatContact, keapBlock = '', eventsBlock = '') {
   const depts = user.departments.map((d) => departmentById(d)?.name ?? d).join(', ');
   const asked = conv.messages.find((m) => m.id === userMessageId)?.text ?? '';
   const header = [
@@ -66,7 +66,7 @@ export async function buildPayload(user: Person, conv: Conversation, userMessage
     `keap id: ${contact.id}`,
     `tags: ${contact.tags.join(', ') || 'none'}`,
   ].join('\n') : '');
-  const tail = `${taskBlock}${contactBlock}\n\nMESSAGE:\n${asked.slice(0, MAX_MESSAGE)}`;
+  const tail = `${taskBlock}${contactBlock}${eventsBlock}\n\nMESSAGE:\n${asked.slice(0, MAX_MESSAGE)}`;
 
   // Earlier turns, newest kept first when trimming to size.
   const earlier = conv.messages

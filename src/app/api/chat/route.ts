@@ -4,6 +4,7 @@ import { canViewAutomation, isSuperAdmin } from '@/lib/access';
 import { automationById } from '@/data/automations';
 import { cleanContact } from '@/lib/chat/contact';
 import { keapContext } from '@/lib/chat/keap-context';
+import { eventbriteContext } from '@/lib/chat/eventbrite-context';
 import { storeIsPersistent } from '@/lib/store';
 import { chatIsConfigured, buildPayload, fireChatRoutine } from '@/lib/chat/routine';
 import {
@@ -62,8 +63,11 @@ export async function POST(req: Request) {
 
   try {
     const contact = task ? cleanContact(body.contact) : undefined;
-    const keapBlock = await keapContext(text, contact?.id);
-    await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock));
+    const [keapBlock, eventsBlock] = await Promise.all([
+      keapContext(text, contact?.id),
+      eventbriteContext(user, text, Boolean(task && (task.department === 'events' || task.integrations.includes('eventbrite')))),
+    ]);
+    await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, eventsBlock));
   } catch (e) {
     reply.status = 'error';
     reply.text = (e as Error).message;

@@ -43,3 +43,6 @@ export const BUILDIUM_CAPABILITIES: BuildiumCapability[] = [
 ];
 
 export const buildiumCapability = (id: string) => BUILDIUM_CAPABILITIES.find((c) => c.id === id);
+
+/** The hub is view-only for Buildium: only these (GET) actions can run. */
+export const BUILDIUM_READS = BUILDIUM_CAPABILITIES.filter((c) => c.method === 'GET' && !c.writes);

@@ -8,7 +8,7 @@ import { zapierHooks } from '@/lib/integrations/zapier';
 import { listCustom, toPublic } from '@/lib/integrations/custom';
 import { storeIsPersistent } from '@/lib/store';
 import { ActionConsole } from './ActionConsole';
-import { BUILDIUM_CAPABILITIES } from '@/lib/integrations/buildium/capabilities';
+import { BUILDIUM_READS } from '@/lib/integrations/buildium/capabilities';
 import { CustomIntegrations } from './CustomIntegrations';
 import { ZapierPanel } from './ZapierPanel';
 
@@ -56,9 +56,9 @@ export default async function IntegrationsPage() {
         </section>
 
         <section className="card" aria-labelledby="buildium-title">
-          <div className="spread"><h2 id="buildium-title">Buildium</h2><span className="muted small">{BUILDIUM_CAPABILITIES.length} actions</span></div>
+          <div className="spread"><h2 id="buildium-title">Buildium</h2><span className="muted small">{BUILDIUM_READS.length} views · read-only</span></div>
           <p className="muted small" style={{ margin: 0 }}>Properties, maintenance, contractors and leasing for Amrissa&apos;s automations.</p>
-          <ActionConsole name="Buildium" endpoint="/api/integrations/buildium" capabilities={BUILDIUM_CAPABILITIES} connected={buildium.status === 'connected'} />
+          <ActionConsole name="Buildium" endpoint="/api/integrations/buildium" capabilities={BUILDIUM_READS} connected={buildium.status === 'connected'} />
         </section>
 
         <section className="card" aria-labelledby="zap-title">

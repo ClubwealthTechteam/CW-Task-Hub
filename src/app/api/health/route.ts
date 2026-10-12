@@ -3,6 +3,7 @@ import { storeIsPersistent } from '@/lib/store';
 import { chatIsConfigured } from '@/lib/chat/routine';
 import { keapConfigured } from '@/lib/integrations/keap/client';
 import { eventbriteConfigured } from '@/lib/integrations/eventbrite/client';
+import { signInMode } from '@/lib/auth/access-codes';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,7 @@ export const dynamic = 'force-dynamic';
 export const GET = () => NextResponse.json({
   ok: true,
   app: 'cw-task-hub',
+  signIn: signInMode(),
   storage: storeIsPersistent(),
   assistant: chatIsConfigured(),
   keap: keapConfigured(),

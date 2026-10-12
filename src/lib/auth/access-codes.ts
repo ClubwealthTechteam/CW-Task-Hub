@@ -23,6 +23,9 @@ function codes(): Record<string, string> | null {
 const digest = (s: string) => crypto.createHash('sha256').update(s).digest();
 const same = (a: string, b: string) => crypto.timingSafeEqual(digest(a), digest(b));
 
+/** Which sign-in is active, for /api/health (never the codes themselves). */
+export const signInMode = () => (codes() ? 'personal_codes' : process.env.HUB_ACCESS_CODE ? 'shared_code' : 'not_set_up');
+
 export type CodeCheck = 'ok' | 'wrong' | 'no_code' | 'not_set_up';
 
 export function checkAccessCode(personId: string, given: string): CodeCheck {

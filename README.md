@@ -36,6 +36,10 @@ Joshua and JP have no audit requests yet; their sections fill in once their data
 - **Add an integration** (`src/lib/integrations/custom.ts`): super admins add any webhook or REST API in the app (name, URL, optional auth header and key). Keys stay on the server and are never sent back to the browser. Use it for Buildium, ProspectBoss, Make, n8n, etc.
 - Planned integrations needed by the audit requests are listed on the page.
 
+## CW Assistant (chat bubble)
+
+Every signed-in page shows a Messenger-style bubble in the bottom-right corner (`src/components/chat/ChatWidget.tsx`): open, maximize, minimize, start and remove chats. It uses no Anthropic API key. Each message fires the claude.ai routine **"CW Assistant → Task Hub chat replies"** (`src/lib/chat/routine.ts`) with the person's name, department, visible automations and recent conversation. Claude writes the reply in its own session and posts it to `/api/chat/reply` with a one-time HMAC token; the widget polls until it arrives. Chats are stored in Upstash (`src/lib/chat/store.ts`), so the assistant needs both `CLAUDE_CHAT_ROUTINE_TOKEN` and storage. `/api/health` shows whether each is switched on.
+
 ## Sign-in (temporary)
 
 Until CW University or Google sign-in is connected, people pick their name and type a shared access code (`HUB_ACCESS_CODE`). The session is an HMAC-signed cookie (`SESSION_SECRET`). Switching to real logins only changes `src/lib/auth/` and `src/app/api/auth/`; pages and APIs read the user from `getCurrentUser()`.
@@ -71,8 +75,9 @@ npm run typecheck && npm run build
 
 1. Vercel → **Add New → Project** → import this GitHub repo (framework: Next.js, defaults are fine).
 2. **Environment Variables**: `SESSION_SECRET` (long random string), `HUB_ACCESS_CODE`, and when ready `KEAP_API_KEY`, `BUILDIUM_CLIENT_ID`, `BUILDIUM_CLIENT_SECRET`, `ZAPIER_HOOKS`, `ANTHROPIC_API_KEY`.
-3. Optional: **Storage → Upstash for Redis** → connect to the project (adds `KV_REST_API_URL` / `KV_REST_API_TOKEN`) so added integrations and the run log persist.
-4. Deploy.
+3. **Storage → Upstash for Redis** → connect to the project with the prefix `KV` (adds `KV_REST_API_URL` / `KV_REST_API_TOKEN`) so chats, added integrations and the run log persist.
+4. For CW Assistant: generate an API token on the routine "CW Assistant → Task Hub chat replies" (claude.ai/code → Routines) and add it as `CLAUDE_CHAT_ROUTINE_TOKEN`.
+5. Deploy.
 
 ## Putting it inside CW University
 

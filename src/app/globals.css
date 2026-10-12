@@ -194,7 +194,7 @@ td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .cwa-send:disabled { color: var(--line-strong); cursor: default; }
 
 /* Department workspace (Option 2: task inside CWU with the Keap panel) */
-.ws { display: grid; grid-template-columns: 260px minmax(0, 1fr) 320px; height: calc(100vh - 64px); background: var(--bg); }
+.ws { display: grid; grid-template-columns: 260px minmax(0, 1fr) auto; height: calc(100vh - 64px); background: var(--bg); }
 .ws-side { background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
 .ws-side-h { padding: 20px 20px 12px; display: flex; flex-direction: column; gap: 2px; }
 .ws-side-h b { font-size: 17px; }
@@ -252,7 +252,15 @@ td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .ws-send:disabled { opacity: .45; cursor: default; }
 .cwa-typing { display: inline-flex; align-items: center; gap: 4px; padding: 3px 0; }
 
-.ws-panel { background: var(--surface); border-left: 1px solid var(--line); padding: 20px 20px 96px; overflow-y: auto; display: flex; flex-direction: column; gap: 22px; min-height: 0; }
+.ws-panel-wrap { position: relative; width: 320px; min-height: 0; display: flex; background: var(--surface); border-left: 1px solid var(--line); transition: width .2s ease; }
+.ws-panel-wrap.collapsed { width: 40px; }
+.ws-panel-tab { position: absolute; left: -14px; top: 18px; z-index: 5; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-2); display: grid; place-items: center; cursor: pointer; box-shadow: 0 2px 6px rgba(15, 30, 60, .12); }
+.ws-panel-tab:hover { border-color: #0c3f7a; color: #0c3f7a; }
+.ws-panel-rail { flex: 1; border: 0; background: none; cursor: pointer; display: flex; justify-content: center; padding-top: 64px; color: var(--muted); }
+.ws-panel-rail span { writing-mode: vertical-rl; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.ws-panel-rail:hover { color: #0c3f7a; background: var(--surface-2); }
+@media (prefers-reduced-motion: reduce) { .ws-panel-wrap { transition: none; } }
+.ws-panel { flex: 1; min-width: 0; padding: 20px 20px 96px; overflow-y: auto; display: flex; flex-direction: column; gap: 22px; min-height: 0; }
 .ws-panel section { display: flex; flex-direction: column; gap: 10px; }
 .ws-panel h5 { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
 .ws-sum { margin: 0; font-size: 13.5px; color: var(--ink-2); }

@@ -19,6 +19,7 @@ import { listSheets } from '@/lib/sheets';
 import { TaskChat } from './TaskChat';
 import { Sidebar } from './Sidebar';
 import { KeapContact } from './KeapContact';
+import { SidePanel } from './SidePanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,7 +62,7 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
         ) : <main className="ws-main" />}
 
         {selected && (
-          <aside className="ws-panel" aria-label="Task details">
+          <SidePanel>
             <section>
               <h5>About this task</h5>
               <p className="ws-sum">{selected.summary}</p>
@@ -118,7 +119,7 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
             </section>
 
             <Link href={`/a/${selected.id}`} className="ws-more"><Icon name="info" size={14} /> Full task details</Link>
-          </aside>
+          </SidePanel>
         )}
       </div>
     </>

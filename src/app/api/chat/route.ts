@@ -64,7 +64,7 @@ export async function POST(req: Request) {
   try {
     const contact = task ? cleanContact(body.contact) : undefined;
     const [keapBlock, eventsBlock] = await Promise.all([
-      keapContext(text, contact?.id),
+      keapContext(user, text, contact?.id),
       eventbriteContext(user, text, Boolean(task && (task.department === 'events' || task.integrations.includes('eventbrite')))),
     ]);
     await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, eventsBlock));

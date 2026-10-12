@@ -2,7 +2,7 @@
 
 The Club Wealth AI Task Hub: one web app where each admin team opens its department, runs its automations, and (for super admins) connects the tools those automations use. It is built to sit inside **CW University** later as a tab (web-extension page), so it is a standalone site that can be framed by `learning.clubwealth.com`.
 
-Stack: **Next.js 14 (App Router) + TypeScript**, deployed on **Vercel**. No database is required to start; runtime data (custom integrations, run log) goes to Upstash Redis when connected.
+Stack: **Next.js 14 (App Router) + TypeScript**, deployed on **Vercel**. The backend is the `src/app/api/` routes, which run as server functions on Vercel: every call to Keap, Buildium, Zapier or a custom integration goes through them, so API keys stay on the server and access rules are checked before anything runs. No database is required to start; runtime data (custom integrations, run log) goes to Upstash Redis when connected.
 
 ## Departments and access
 
@@ -31,6 +31,7 @@ Joshua and JP have no audit requests yet; their sections fill in once their data
 ## Integrations
 
 - **Keap** (`src/lib/integrations/keap/`): a server-side client plus an allowlist of 38 actions covering contacts, tags (apply/remove: how most Keap automations start), campaigns and sequences, **API goals** (the cleanest shortcut into a Campaign Builder automation), email, notes, tasks, opportunities, orders, products, subscriptions, users and REST hooks. Super admins can try any action on the Integrations page. Needs `KEAP_API_KEY`.
+- **Buildium** (`src/lib/integrations/buildium/`): properties, units, work orders, resident requests, vendors (contractors), bills, leases and applicants, for Amrissa's automations. Needs `BUILDIUM_CLIENT_ID` and `BUILDIUM_CLIENT_SECRET`; set `BUILDIUM_BASE_URL` to the sandbox while testing.
 - **Zapier** (`src/lib/integrations/zapier.ts`): starts a Zap by posting to its Catch Hook URL. Zaps are listed in `ZAPIER_HOOKS`.
 - **Add an integration** (`src/lib/integrations/custom.ts`): super admins add any webhook or REST API in the app (name, URL, optional auth header and key). Keys stay on the server and are never sent back to the browser. Use it for Buildium, ProspectBoss, Make, n8n, etc.
 - Planned integrations needed by the audit requests are listed on the page.
@@ -49,7 +50,8 @@ src/
     access.ts                                  ← every permission rule
     auth/        session.ts, current-user.ts   ← signed cookie, page guards
     automations/ runner.ts                     ← dry-run plans, handlers, run log
-    integrations/ registry.ts, types.ts, zapier.ts, custom.ts, keap/{client,capabilities}.ts
+    integrations/ registry.ts, types.ts, http.ts, zapier.ts, custom.ts,
+                  keap/{client,capabilities}.ts, buildium/{client,capabilities}.ts
     store.ts                                   ← Upstash Redis or in-memory
   middleware.ts                                ← sign-in required everywhere except /login
   app/           pages (/, /d/[dept], /a/[id], /integrations, /login) and api/ routes
@@ -68,7 +70,7 @@ npm run typecheck && npm run build
 ## Deploy on Vercel
 
 1. Vercel → **Add New → Project** → import this GitHub repo (framework: Next.js, defaults are fine).
-2. **Environment Variables**: `SESSION_SECRET` (long random string), `HUB_ACCESS_CODE`, and when ready `KEAP_API_KEY`, `ZAPIER_HOOKS`, `ANTHROPIC_API_KEY`.
+2. **Environment Variables**: `SESSION_SECRET` (long random string), `HUB_ACCESS_CODE`, and when ready `KEAP_API_KEY`, `BUILDIUM_CLIENT_ID`, `BUILDIUM_CLIENT_SECRET`, `ZAPIER_HOOKS`, `ANTHROPIC_API_KEY`.
 3. Optional: **Storage → Upstash for Redis** → connect to the project (adds `KV_REST_API_URL` / `KV_REST_API_TOKEN`) so added integrations and the run log persist.
 4. Deploy.
 

@@ -7,7 +7,8 @@ import { KEAP_CAPABILITIES } from '@/lib/integrations/keap/capabilities';
 import { zapierHooks } from '@/lib/integrations/zapier';
 import { listCustom, toPublic } from '@/lib/integrations/custom';
 import { storeIsPersistent } from '@/lib/store';
-import { KeapConsole } from './KeapConsole';
+import { ActionConsole } from './ActionConsole';
+import { BUILDIUM_CAPABILITIES } from '@/lib/integrations/buildium/capabilities';
 import { CustomIntegrations } from './CustomIntegrations';
 import { ZapierPanel } from './ZapierPanel';
 
@@ -21,6 +22,7 @@ export default async function IntegrationsPage() {
   if (!canManageIntegrations(user)) notFound();
   const builtins = builtinIntegrations();
   const keap = builtins.find((b) => b.id === 'keap')!;
+  const buildium = builtins.find((b) => b.id === 'buildium')!;
   const custom = (await listCustom()).map(toPublic);
 
   return (
@@ -50,7 +52,13 @@ export default async function IntegrationsPage() {
         <section className="card" aria-labelledby="keap-title">
           <div className="spread"><h2 id="keap-title">Keap shortcuts</h2><span className="muted small">{KEAP_CAPABILITIES.length} actions</span></div>
           <p className="muted small" style={{ margin: 0 }}>Every Keap feature the automations can use. Try one here; actions that change data are marked.</p>
-          <KeapConsole capabilities={KEAP_CAPABILITIES} connected={keap.status === 'connected'} />
+          <ActionConsole name="Keap" endpoint="/api/integrations/keap" capabilities={KEAP_CAPABILITIES} connected={keap.status === 'connected'} />
+        </section>
+
+        <section className="card" aria-labelledby="buildium-title">
+          <div className="spread"><h2 id="buildium-title">Buildium</h2><span className="muted small">{BUILDIUM_CAPABILITIES.length} actions</span></div>
+          <p className="muted small" style={{ margin: 0 }}>Properties, maintenance, contractors and leasing for Amrissa&apos;s automations.</p>
+          <ActionConsole name="Buildium" endpoint="/api/integrations/buildium" capabilities={BUILDIUM_CAPABILITIES} connected={buildium.status === 'connected'} />
         </section>
 
         <section className="card" aria-labelledby="zap-title">

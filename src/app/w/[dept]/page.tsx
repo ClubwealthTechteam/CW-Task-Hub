@@ -18,6 +18,7 @@ import { storeIsPersistent } from '@/lib/store';
 import { listSheets } from '@/lib/sheets';
 import { TaskChat } from './TaskChat';
 import { Sidebar } from './Sidebar';
+import { KeapContact } from './KeapContact';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,9 +71,7 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
             {selected.integrations.includes('keap') && (
               <section>
                 <h5>Keap contact</h5>
-                {keapOn ? (
-                  <div className="ws-contact"><div className="ws-ava">?</div><div><b>No contact picked</b><small>Contact lookup is added when this task is built</small></div></div>
-                ) : (
+                {keapOn ? <KeapContact taskId={selected.id} /> : (
                   <div className="ws-contact off"><div className="ws-ava">K</div><div><b>Keap isn&apos;t connected yet</b><small>Once it is, the contact you&apos;re working on shows here with their tags</small></div></div>
                 )}
               </section>

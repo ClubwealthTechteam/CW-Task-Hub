@@ -22,6 +22,7 @@ export function Header({ user, current }: { user: Person; current?: string }) {
           {(admin || depts.length > 1) && depts.map((d) => (
             <Link key={d.id} href={`/w/${d.id}`} aria-current={cur(d.id)}>{d.name}</Link>
           ))}
+          {admin && <Link href="/keap" aria-current={cur('keap')}>Keap</Link>}
           {canManageIntegrations(user) && <Link href="/integrations" aria-current={cur('integrations')}>Integrations</Link>}
         </nav>
         <div className="who">

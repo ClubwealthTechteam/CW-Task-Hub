@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { storeIsPersistent } from '@/lib/store';
 import { chatIsConfigured } from '@/lib/chat/routine';
+import { keapConfigured } from '@/lib/integrations/keap/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,4 +11,5 @@ export const GET = () => NextResponse.json({
   app: 'cw-task-hub',
   storage: storeIsPersistent(),
   assistant: chatIsConfigured(),
+  keap: keapConfigured(),
 });

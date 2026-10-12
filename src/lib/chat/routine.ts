@@ -9,6 +9,7 @@ import { integrationName } from '@/lib/integrations/registry';
 import { canViewAutomation, isSuperAdmin } from '@/lib/access';
 import { signValue } from '@/lib/auth/session';
 import type { Conversation } from './store';
+import type { ChatContact } from './contact';
 
 const DEFAULT_ROUTINE_ID = 'trig_018jZ5AiA2CBb6AFPU6iTovc';
 const MAX_PAYLOAD = 48_000; // the routine accepts up to 64 KiB
@@ -31,7 +32,7 @@ function automationLines(user: Person) {
   return mine.slice(0, 60).map((a) => `- ${a.title} (${departmentById(a.department)?.name}, ${a.stage})`).join('\n');
 }
 
-export async function buildPayload(user: Person, conv: Conversation, userMessageId: string, replyId: string) {
+export async function buildPayload(user: Person, conv: Conversation, userMessageId: string, replyId: string, contact?: ChatContact, keapBlock = '') {
   const depts = user.departments.map((d) => departmentById(d)?.name ?? d).join(', ');
   const asked = conv.messages.find((m) => m.id === userMessageId)?.text ?? '';
   const header = [
@@ -55,7 +56,17 @@ export async function buildPayload(user: Person, conv: Conversation, userMessage
     `tools: ${task.integrations.map(integrationName).join(', ') || 'none'}`,
     `stage: ${task.stage}${task.runsIn ? ` (runs in ${task.runsIn})` : ''}`,
   ].join('\n') : '';
-  const tail = `${taskBlock}\n\nMESSAGE:\n${asked.slice(0, MAX_MESSAGE)}`;
+  // Keap data read by the hub wins; the panel's copy is only a fallback when Keap couldn't be read.
+  const contactBlock = keapBlock || (contact ? [
+    '',
+    '',
+    'KEAP CONTACT THEY PICKED (from the task panel):',
+    `name: ${contact.name}`,
+    `email: ${contact.email ?? 'none on file'}`,
+    `keap id: ${contact.id}`,
+    `tags: ${contact.tags.join(', ') || 'none'}`,
+  ].join('\n') : '');
+  const tail = `${taskBlock}${contactBlock}\n\nMESSAGE:\n${asked.slice(0, MAX_MESSAGE)}`;
 
   // Earlier turns, newest kept first when trimming to size.
   const earlier = conv.messages

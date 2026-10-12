@@ -19,7 +19,9 @@ export interface KeapCapability {
 export const KEAP_CAPABILITIES: KeapCapability[] = [
   // Contacts
   { id: 'contacts.list', group: 'Contacts', label: 'Find contacts', method: 'GET', path: '/v1/contacts', hint: 'Filter by email, given_name, family_name; limit/offset' },
-  { id: 'contacts.get', group: 'Contacts', label: 'Get a contact', method: 'GET', path: '/v1/contacts/{contactId}' },
+  { id: 'contacts.get', group: 'Contacts', label: 'Get a contact', method: 'GET', path: '/v1/contacts/{contactId}', hint: 'Add optional_properties=custom_fields,lead_source_id,origin,…' },
+  { id: 'contacts.emails', group: 'Contacts', label: "A contact's emails", method: 'GET', path: '/v1/contacts/{contactId}/emails' },
+  { id: 'contacts.model', group: 'Contacts', label: 'Contact fields (incl. custom fields)', method: 'GET', path: '/v1/contacts/model' },
   { id: 'contacts.create', group: 'Contacts', label: 'Create a contact', method: 'POST', path: '/v1/contacts', writes: true },
   { id: 'contacts.upsert', group: 'Contacts', label: 'Create or update a contact', method: 'PUT', path: '/v1/contacts', writes: true, hint: 'Use duplicate_option: "Email"' },
   { id: 'contacts.update', group: 'Contacts', label: 'Update a contact', method: 'PATCH', path: '/v1/contacts/{contactId}', writes: true },
@@ -27,6 +29,7 @@ export const KEAP_CAPABILITIES: KeapCapability[] = [
 
   // Tags (applying a tag is how most Keap automations start)
   { id: 'tags.list', group: 'Tags', label: 'List tags', method: 'GET', path: '/v1/tags' },
+  { id: 'tags.get', group: 'Tags', label: 'Get a tag', method: 'GET', path: '/v1/tags/{tagId}' },
   { id: 'tags.contacts', group: 'Tags', label: 'Contacts with a tag', method: 'GET', path: '/v1/tags/{tagId}/contacts' },
   { id: 'contacts.tags.list', group: 'Tags', label: "A contact's tags", method: 'GET', path: '/v1/contacts/{contactId}/tags' },
   { id: 'contacts.tags.apply', group: 'Tags', label: 'Apply tags to a contact', method: 'POST', path: '/v1/contacts/{contactId}/tags', writes: true, hint: 'Body: { "tagIds": [123] }. Starts any campaign that listens for the tag.' },
@@ -39,9 +42,12 @@ export const KEAP_CAPABILITIES: KeapCapability[] = [
   { id: 'campaigns.sequence.remove', group: 'Campaigns & automations', label: 'Remove a contact from a sequence', method: 'DELETE', path: '/v1/campaigns/{campaignId}/sequences/{sequenceId}/contacts/{contactId}', writes: true },
   { id: 'campaigns.goal.achieve', group: 'Campaigns & automations', label: 'Trigger an API goal', method: 'POST', path: '/v1/campaigns/goals/{integration}/{callName}', writes: true, hint: 'Body: { "contact_id": 123 }. The cleanest "shortcut" into a Campaign Builder automation.' },
   { id: 'automations.list', group: 'Campaigns & automations', label: 'List automations (v2)', method: 'GET', path: '/v2/automations' },
+  { id: 'automations.get', group: 'Campaigns & automations', label: 'Get an automation (v2)', method: 'GET', path: '/v2/automations/{automationId}' },
+  { id: 'automations.categories', group: 'Campaigns & automations', label: 'Automation categories (v2)', method: 'GET', path: '/v2/automationCategory' },
 
   // Email
   { id: 'emails.list', group: 'Email', label: 'Email history', method: 'GET', path: '/v1/emails' },
+  { id: 'emails.get', group: 'Email', label: 'Get an email', method: 'GET', path: '/v1/emails/{id}' },
   { id: 'emails.send', group: 'Email', label: 'Send an email', method: 'POST', path: '/v1/emails/queue', writes: true, hint: 'Keep human approval on anything client-facing' },
 
   // Notes & tasks
@@ -53,11 +59,14 @@ export const KEAP_CAPABILITIES: KeapCapability[] = [
 
   // Sales
   { id: 'opportunities.list', group: 'Sales', label: 'List opportunities', method: 'GET', path: '/v1/opportunities' },
+  { id: 'opportunities.pipeline', group: 'Sales', label: 'Opportunity stages (pipeline)', method: 'GET', path: '/v1/opportunity/stage_pipeline' },
   { id: 'opportunities.update', group: 'Sales', label: 'Update an opportunity', method: 'PATCH', path: '/v1/opportunities/{opportunityId}', writes: true },
   { id: 'orders.list', group: 'Sales', label: 'List orders', method: 'GET', path: '/v1/orders' },
   { id: 'products.list', group: 'Sales', label: 'List products', method: 'GET', path: '/v1/products' },
   { id: 'subscriptions.list', group: 'Sales', label: 'List subscriptions', method: 'GET', path: '/v1/subscriptions' },
   { id: 'transactions.list', group: 'Sales', label: 'List transactions', method: 'GET', path: '/v1/transactions' },
+  { id: 'affiliates.list', group: 'Sales', label: 'List affiliates', method: 'GET', path: '/v1/affiliates' },
+  { id: 'merchants.list', group: 'Sales', label: 'List merchant accounts', method: 'GET', path: '/v1/merchants' },
 
   // Other records
   { id: 'companies.list', group: 'Other', label: 'List companies', method: 'GET', path: '/v1/companies' },
@@ -73,3 +82,7 @@ export const KEAP_CAPABILITIES: KeapCapability[] = [
 ];
 
 export const keapCapability = (id: string) => KEAP_CAPABILITIES.find((c) => c.id === id);
+
+/** The hub is view-only for Keap: only these (GET) actions can run. */
+export const isKeapRead = (c: KeapCapability) => c.method === 'GET' && !c.writes;
+export const KEAP_READS = KEAP_CAPABILITIES.filter(isKeapRead);

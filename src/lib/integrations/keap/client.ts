@@ -1,6 +1,7 @@
 // Thin Keap REST client. The API key stays on the server (KEAP_API_KEY); the browser never sees it.
+// View-only: every call goes through callKeap, which refuses anything that isn't a read.
 
-import { keapCapability } from './capabilities';
+import { isKeapRead, keapCapability } from './capabilities';
 import { callRest, IntegrationError } from '../http';
 
 const BASE = 'https://api.infusionsoft.com/crm/rest';
@@ -12,11 +13,13 @@ export { IntegrationError as KeapError };
 export async function callKeap(capabilityId: string, params: Record<string, unknown> = {}) {
   const cap = keapCapability(capabilityId);
   if (!cap) throw new IntegrationError(`Unknown Keap action "${capabilityId}"`, 404);
+  // View-only: the hub never creates, changes, deletes, sends or starts anything in Keap.
+  if (!isKeapRead(cap)) throw new IntegrationError('The hub is view-only for Keap. Nothing in Keap can be changed from here.', 403);
   if (!keapConfigured()) throw new IntegrationError('Keap is not connected yet. Add KEAP_API_KEY in Vercel.', 503);
   return callRest(BASE, cap, params, { 'X-Keap-API-Key': process.env.KEAP_API_KEY as string });
 }
 
-// Named helpers the automations use, so their code reads like the workflow.
+// Named helpers for later automations. While the hub is view-only, the write helpers are refused above.
 export const keap = {
   findContactByEmail: (email: string) => callKeap('contacts.list', { email, limit: 5 }),
   applyTag: (contactId: number, tagId: number) => callKeap('contacts.tags.apply', { contactId, tagIds: [tagId] }),

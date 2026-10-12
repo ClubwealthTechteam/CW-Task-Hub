@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ChatMessage, Conversation } from '@/lib/chat/store';
 import { Markdown } from '@/components/chat/Markdown';
 import { Icon, Sparkle } from '@/components/Icon';
+import { CONTACT_EVENT, loadContact, type ChatContact } from '@/lib/chat/contact';
 
 const POLL_MS = 3000;
 const SLOW_MS = 3 * 60 * 1000;
@@ -42,6 +43,7 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
   const [error, setError] = useState('');
   const [copied, setCopied] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [contact, setContact] = useState<ChatContact | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const pending = conv?.messages.some((m) => m.status === 'pending') ?? false;
@@ -50,6 +52,17 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
     const res = await fetch(`/api/chat/${id}`, { cache: 'no-store' });
     if (res.ok) setConv((await res.json()).conversation);
   }, []);
+
+  // The Keap contact picked in the side panel.
+  useEffect(() => {
+    setContact(loadContact(taskId));
+    const on = (e: Event) => {
+      const d = (e as CustomEvent<{ taskId: string; contact: ChatContact | null }>).detail;
+      if (d.taskId === taskId) setContact(d.contact);
+    };
+    window.addEventListener(CONTACT_EVENT, on);
+    return () => window.removeEventListener(CONTACT_EVENT, on);
+  }, [taskId]);
 
   // Pick up this task's latest chat.
   useEffect(() => {
@@ -77,7 +90,7 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
     setBusy(true); setError('');
     const res = await fetch('/api/chat', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversationId: conv?.id, automationId: taskId, text: msg }),
+      body: JSON.stringify({ conversationId: conv?.id, automationId: taskId, text: msg, contact }),
     });
     const body = await res.json().catch(() => ({}));
     if (res.ok) { setConv(body.conversation); setText(''); setNow(Date.now()); }
@@ -144,6 +157,7 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
       </div>
 
       {error && <p className="note" role="alert" style={{ margin: '0 26px' }}>{error}</p>}
+      {contact && <div className="ws-ctx">Working on <b>{contact.name}</b> from Keap{contact.tags.length ? ` · ${contact.tags.length} tag${contact.tags.length > 1 ? 's' : ''}` : ''}</div>}
       <form className="ws-composer" onSubmit={(e) => { e.preventDefault(); send(); }}>
         <label htmlFor="ws-input" className="sr-only">Message the {title} assistant</label>
         <textarea

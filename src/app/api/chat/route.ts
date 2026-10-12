@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/current-user';
 import { canViewAutomation, isSuperAdmin } from '@/lib/access';
 import { automationById } from '@/data/automations';
+import { cleanContact } from '@/lib/chat/contact';
+import { keapContext } from '@/lib/chat/keap-context';
 import { storeIsPersistent } from '@/lib/store';
 import { chatIsConfigured, buildPayload, fireChatRoutine } from '@/lib/chat/routine';
 import {
@@ -59,7 +61,9 @@ export async function POST(req: Request) {
   conv.updated = now;
 
   try {
-    await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id));
+    const contact = task ? cleanContact(body.contact) : undefined;
+    const keapBlock = await keapContext(text, contact?.id);
+    await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock));
   } catch (e) {
     reply.status = 'error';
     reply.text = (e as Error).message;

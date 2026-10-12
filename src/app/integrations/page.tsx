@@ -3,7 +3,7 @@ import { Header } from '@/components/Header';
 import { requireUser } from '@/lib/auth/current-user';
 import { canManageIntegrations } from '@/lib/access';
 import { builtinIntegrations, plannedIntegrations } from '@/lib/integrations/registry';
-import { KEAP_CAPABILITIES } from '@/lib/integrations/keap/capabilities';
+import { KEAP_READS } from '@/lib/integrations/keap/capabilities';
 import { zapierHooks } from '@/lib/integrations/zapier';
 import { listCustom, toPublic } from '@/lib/integrations/custom';
 import { storeIsPersistent } from '@/lib/store';
@@ -50,9 +50,9 @@ export default async function IntegrationsPage() {
         </section>
 
         <section className="card" aria-labelledby="keap-title">
-          <div className="spread"><h2 id="keap-title">Keap shortcuts</h2><span className="muted small">{KEAP_CAPABILITIES.length} actions</span></div>
-          <p className="muted small" style={{ margin: 0 }}>Every Keap feature the automations can use. Try one here; actions that change data are marked.</p>
-          <ActionConsole name="Keap" endpoint="/api/integrations/keap" capabilities={KEAP_CAPABILITIES} connected={keap.status === 'connected'} />
+          <div className="spread"><h2 id="keap-title">Keap shortcuts</h2><span className="muted small">{KEAP_READS.length} views · read-only</span></div>
+          <p className="muted small" style={{ margin: 0 }}>View-only: the hub can read everything in Keap but never changes it. Browse it all in the Keap tab.</p>
+          <ActionConsole name="Keap" endpoint="/api/integrations/keap" capabilities={KEAP_READS} connected={keap.status === 'connected'} />
         </section>
 
         <section className="card" aria-labelledby="buildium-title">

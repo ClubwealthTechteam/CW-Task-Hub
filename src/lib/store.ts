@@ -30,3 +30,8 @@ export async function setJSON(key: string, value: unknown) {
   if (storeIsPersistent()) await redis(['SET', key, raw]);
   else memory.set(key, raw);
 }
+
+export async function deleteKey(key: string) {
+  if (storeIsPersistent()) await redis(['DEL', key]);
+  else memory.delete(key);
+}

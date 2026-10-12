@@ -1,7 +1,7 @@
 // CW Assistant conversations. Each conversation is one key (chat:conv:<id>); each person has an
 // index of their conversation ids (chat:user:<uid>), newest first.
 
-import { getJSON, setJSON } from '@/lib/store';
+import { deleteKey, getJSON, setJSON } from '@/lib/store';
 
 export type ChatRole = 'user' | 'assistant';
 export type ChatStatus = 'pending' | 'done' | 'error';
@@ -68,4 +68,10 @@ export function createConversation(owner: string, firstMessage: string): Convers
   const now = Date.now();
   const title = firstMessage.replace(/\s+/g, ' ').trim().slice(0, 60) || 'New chat';
   return { id: newId('c'), owner, title, created: now, updated: now, messages: [] };
+}
+
+export async function deleteConversation(conv: Conversation) {
+  await deleteKey(convKey(conv.id));
+  const list = (await listConversations(conv.owner)).filter((c) => c.id !== conv.id);
+  await setJSON(userKey(conv.owner), list);
 }

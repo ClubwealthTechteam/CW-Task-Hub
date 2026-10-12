@@ -362,3 +362,20 @@ details.card summary { cursor: pointer; }
 .im-state.on { color: var(--ok); }
 .im-sep { height: 1px; background: var(--line); margin: 6px 4px; }
 .nav .im-manage b { color: #0c3f7a; }
+
+/* Zapier page */
+.zap-feed { list-style: none; margin: 0; padding: 0; }
+.zap-feed li { border-top: 1px solid var(--line); }
+.zap-feed li:first-child { border-top: 0; }
+.zap-row { width: 100%; display: flex; gap: 12px; align-items: center; text-align: left; background: none; border: 0; padding: 10px 16px; cursor: pointer; font: inherit; }
+.zap-row:hover { background: var(--surface-2); }
+.zap-dir { font-size: 10.5px; font-weight: 800; letter-spacing: .06em; border-radius: 5px; padding: 2px 6px; flex: none; }
+.zap-dir.in { background: var(--ok-tint); color: var(--ok); }
+.zap-dir.out { background: #e6edf7; color: #0c3f7a; }
+.zap-main { flex: 1; min-width: 0; font-size: 14px; }
+.zap-main small { display: block; color: var(--muted); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zap-data { padding: 4px 16px 14px 62px; font-size: 13px; }
+.zap-data dd { overflow-wrap: anywhere; }
+.zap-confirm { background: var(--warn-tint); border-radius: 8px; padding: 4px 8px; font-size: 13.5px; }
+.zap-steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.zap-url { display: block; margin-top: 6px; font-size: 12px; overflow-wrap: anywhere; background: var(--surface-2); padding: 6px 8px; border-radius: 6px; }

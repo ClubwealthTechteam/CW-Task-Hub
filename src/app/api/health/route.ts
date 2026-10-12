@@ -4,6 +4,8 @@ import { chatIsConfigured } from '@/lib/chat/routine';
 import { keapConfigured } from '@/lib/integrations/keap/client';
 import { eventbriteConfigured } from '@/lib/integrations/eventbrite/client';
 import { signInMode } from '@/lib/auth/access-codes';
+import { inboxConfigured } from '@/lib/integrations/zapier-feed';
+import { zapierHooks } from '@/lib/integrations/zapier';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,4 +18,6 @@ export const GET = () => NextResponse.json({
   assistant: chatIsConfigured(),
   keap: keapConfigured(),
   eventbrite: eventbriteConfigured(),
+  zapierInbox: inboxConfigured(),
+  zapsToStart: Object.keys(zapierHooks()).length,
 });

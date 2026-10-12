@@ -20,7 +20,7 @@ export function Header({ user, current }: { user: Person; current?: string }) {
     admin && { id: 'keap', name: 'Keap', note: 'Club Wealth’s database · view-only', href: '/keap', connected: status.keap },
     canViewEventbrite(user) && { id: 'eventbrite', name: 'Eventbrite', note: 'Events, tickets and attendees · view-only', href: '/eventbrite', connected: status.eventbrite },
     admin && { id: 'buildium', name: 'Buildium', note: 'Properties, work orders, contractors', href: '/integrations#buildium-title', connected: status.buildium },
-    admin && { id: 'zapier', name: 'Zapier', note: 'Start Zaps from the hub', href: '/integrations#zap-title', connected: status.zapier },
+    admin && { id: 'zapier', name: 'Zapier', note: 'Updates from Zaps, and starting Zaps', href: '/zapier', connected: status.zapier || Boolean(process.env.ZAPIER_INBOUND_SECRET) },
     admin && { id: 'claude', name: 'Claude', note: 'AI inside automations', href: '/integrations', connected: status.claude },
   ].filter(Boolean) as MenuApp[];
   return (
@@ -35,7 +35,7 @@ export function Header({ user, current }: { user: Person; current?: string }) {
           {(admin || depts.length > 1) && depts.map((d) => (
             <Link key={d.id} href={`/w/${d.id}`} aria-current={cur(d.id)}>{d.name}</Link>
           ))}
-          {apps.length > 0 && <IntegrationsMenu apps={apps} manage={canManageIntegrations(user)} active={['keap', 'eventbrite', 'integrations'].includes(current ?? '')} />}
+          {apps.length > 0 && <IntegrationsMenu apps={apps} manage={canManageIntegrations(user)} active={['keap', 'eventbrite', 'zapier', 'integrations'].includes(current ?? '')} />}
         </nav>
         <div className="who">
           <span className="avatar" aria-hidden="true">{initials}</span>

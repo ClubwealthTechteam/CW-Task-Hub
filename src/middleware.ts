@@ -5,7 +5,8 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { SESSION_COOKIE, verifySession } from '@/lib/auth/session';
 
 // /api/chat/reply is called by the CW Assistant routine, which proves itself with a per-message token.
-const PUBLIC = ['/login', '/api/auth/login', '/api/health', '/api/chat/reply'];
+// /api/zapier/inbox is called by Zaps, which prove themselves with ZAPIER_INBOUND_SECRET.
+const PUBLIC = ['/login', '/api/auth/login', '/api/health', '/api/chat/reply', '/api/zapier/inbox'];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

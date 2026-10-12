@@ -350,7 +350,7 @@
    "n": 5,
    "request": "Recruiting — Hiring Pipeline",
    "automation": "Build a Recruiting Assistant that generates job posts, evaluates applications against predefined criteria, ranks candidates, and prepares interview questions and scorecards.",
-   "integration": "Recruit CRM / applicant system integration required",
+   "integration": "Applicant system integration required",
    "difficulty": "Hard",
    "recommendation": "High-value automation, but candidate screening should be based on documented criteria and remain human-reviewed.",
    "requested": "Yes",

@@ -54,7 +54,6 @@ const TOOL_HINTS: [RegExp, IntegrationId][] = [
   [/time doctor|payroll/i, 'timedoctor'],
   [/\bwise\b/i, 'wise'],
   [/aws|server|infrastructure/i, 'aws'],
-  [/recruit/i, 'recruitcrm'],
 ];
 
 function detectIntegrations(...texts: string[]): IntegrationId[] {

@@ -11,6 +11,7 @@ import { departmentById, type DepartmentId } from '@/config/departments';
 import { personById } from '@/config/people';
 import { automationsFor, type Automation } from '@/data/automations';
 import { integrationName } from '@/lib/integrations/registry';
+import { canViewAutomation, isSuperAdmin } from '@/lib/access';
 import { approveSteps, isConnected, primaryTool, starters, taskIcon } from '@/lib/workspace';
 import { chatIsConfigured } from '@/lib/chat/routine';
 import { storeIsPersistent } from '@/lib/store';
@@ -24,7 +25,8 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
   const user = await requireDepartment(dept.id as DepartmentId);
   const first = user.name.split(/\s+/)[0];
 
-  const all = automationsFor(dept.id);
+  // Team members only see their own tasks; super admins see everyone's, grouped by person.
+  const all = automationsFor(dept.id).filter((a) => canViewAutomation(user, a));
   const mine = all.filter((a) => a.ownerId === user.id);
   const byOwner = new Map<string, Automation[]>();
   for (const a of all) if (a.ownerId !== user.id) byOwner.set(a.ownerId, [...(byOwner.get(a.ownerId) ?? []), a]);
@@ -57,7 +59,7 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
                 {list.map(navItem)}
               </div>
             ))}
-            {all.length === 0 && <p className="ws-empty">No tasks in this department yet.</p>}
+            {all.length === 0 && <p className="ws-empty">{isSuperAdmin(user) ? 'No tasks in this department yet.' : 'You don’t have any tasks yet. Ask Miguel to add yours from the AI audit.'}</p>}
           </nav>
           <div className="ws-side-f">
             <span className={`keap-pill${keapOn ? '' : ' off'}`}>{keapOn ? 'Keap connected' : 'Keap not connected'}</span>

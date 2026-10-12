@@ -6,7 +6,7 @@ import { requireDepartment } from '@/lib/auth/current-user';
 import { automationById } from '@/data/automations';
 import { departmentById } from '@/config/departments';
 import { personById } from '@/config/people';
-import { isSuperAdmin } from '@/lib/access';
+import { canViewAutomation, isSuperAdmin } from '@/lib/access';
 import { RunPanel } from './RunPanel';
 
 export const dynamic = 'force-dynamic';
@@ -15,6 +15,7 @@ export default async function AutomationPage({ params }: { params: { id: string 
   const a = automationById(params.id);
   if (!a) notFound();
   const user = await requireDepartment(a.department);
+  if (!canViewAutomation(user, a)) notFound();
   const dept = departmentById(a.department)!;
   const owner = personById(a.ownerId);
 

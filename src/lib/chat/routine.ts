@@ -6,7 +6,7 @@ import type { Person } from '@/config/people';
 import { departmentById } from '@/config/departments';
 import { AUTOMATIONS, automationById } from '@/data/automations';
 import { integrationName } from '@/lib/integrations/registry';
-import { canViewDepartment, isSuperAdmin } from '@/lib/access';
+import { canViewAutomation, isSuperAdmin } from '@/lib/access';
 import { signValue } from '@/lib/auth/session';
 import type { Conversation } from './store';
 
@@ -27,7 +27,7 @@ export async function validReplyToken(conversationId: string, messageId: string,
 }
 
 function automationLines(user: Person) {
-  const mine = AUTOMATIONS.filter((a) => (isSuperAdmin(user) ? true : canViewDepartment(user, a.department)));
+  const mine = AUTOMATIONS.filter((a) => canViewAutomation(user, a));
   return mine.slice(0, 60).map((a) => `- ${a.title} (${departmentById(a.department)?.name}, ${a.stage})`).join('\n');
 }
 
@@ -42,7 +42,7 @@ export async function buildPayload(user: Person, conv: Conversation, userMessage
     `PERSON: ${user.name}${user.title ? ` (${user.title})` : ''} · department: ${depts} · ${isSuperAdmin(user) ? 'super admin (sees every department)' : 'team member'}`,
     `DATE: ${new Date().toISOString().slice(0, 10)}`,
     '',
-    'AUTOMATIONS THEY CAN SEE IN THE HUB:',
+    isSuperAdmin(user) ? 'AUTOMATIONS IN THE HUB (they see every department):' : 'THEIR OWN AUTOMATIONS IN THE HUB:',
     automationLines(user) || '(none yet)',
   ].join('\n');
   const task = conv.automationId ? automationById(conv.automationId) : undefined;

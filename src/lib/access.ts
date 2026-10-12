@@ -15,5 +15,11 @@ export function visibleDepartments(user: Person | null | undefined): Department[
   return DEPARTMENTS.filter((d) => canViewDepartment(user, d.id) && (!d.hidden || isSuperAdmin(user)));
 }
 
+/** Team members only see their own tasks; super admins see every task in every department. */
+export function canViewAutomation(user: Person | null | undefined, a: { ownerId: string; department: DepartmentId }): boolean {
+  if (!user) return false;
+  return isSuperAdmin(user) || (a.ownerId === user.id && canViewDepartment(user, a.department));
+}
+
 /** Only super admins add, edit or test integrations. */
 export const canManageIntegrations = isSuperAdmin;

@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/current-user';
 import { automationById } from '@/data/automations';
-import { canViewDepartment } from '@/lib/access';
+import { canViewAutomation } from '@/lib/access';
 import { runAutomation } from '@/lib/automations/runner';
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
   const a = automationById(params.id);
-  if (!a || !canViewDepartment(user, a.department)) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!a || !canViewAutomation(user, a)) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const input = await req.json().catch(() => ({}));
   try {

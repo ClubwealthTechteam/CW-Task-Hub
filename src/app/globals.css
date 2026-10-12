@@ -1,4 +1,4 @@
-/* CW Task Hub: Club Wealth University look (navy + gold), light and dark. */
+/* CW Task Hub: Club Wealth University look (navy + gold). Always light, like CWU. */
 :root {
   --bg: #f2f4f8; --surface: #ffffff; --surface-2: #f7f8fb; --ink: #121a2b; --ink-2: #33405a; --muted: #5d6a82;
   --line: #e1e6ef; --line-strong: #c9d1de; --navy: #0b1f4b; --navy-2: #13306e; --on-navy: #ffffff; --gold: #b08d4a;
@@ -6,14 +6,7 @@
   --shadow: 0 1px 2px rgba(15, 30, 60, .06), 0 6px 18px rgba(15, 30, 60, .07);
   --sans: "Inter", "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif;
   --radius: 12px;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0d1322; --surface: #151d30; --surface-2: #111828; --ink: #e8ecf4; --ink-2: #c4cbd9; --muted: #95a0b5;
-    --line: #26304a; --line-strong: #35415e; --navy: #0b1f4b; --navy-2: #1a3a80; --gold: #d4b06a; --accent: #7aa2ff;
-    --ok: #6fcf8f; --ok-tint: #17301f; --warn: #e6b45c; --warn-tint: #33280f; --muted-tint: #1c2438;
-    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.3); color-scheme: dark;
-  }
+  color-scheme: light;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }

@@ -451,3 +451,7 @@ a.chip:hover { border-color: #0c3f7a; color: #0c3f7a; }
 .ws-subj { margin: 0; font-size: 13.5px; }
 .ws-draft a.btn { text-decoration: none; display: inline-flex; align-items: center; }
 .ws-draft small { font-size: 12px; }
+.share-hint { margin: 8px 0 0 !important; font-size: 13.5px !important; color: var(--ink-2) !important; background: #e6edf7; border-radius: 8px; padding: 8px 12px; }
+.acc { font-size: 12px; font-weight: 600; margin-top: 2px; }
+.acc.ok { color: var(--ok); }
+.acc.no { color: var(--warn); }

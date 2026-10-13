@@ -9,6 +9,7 @@ import { listApproved, listSheets, mainAccount } from '@/lib/sheets';
 import { Sidebar } from '../Sidebar';
 import { getSubmissions } from '@/lib/forms/submissions';
 import { SheetsManager } from './SheetsManager';
+import { serviceAccountEmail, sheetInfo, sheetsConfigured } from '@/lib/integrations/google/sheets';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,17 @@ export default async function SheetsPage({ params, searchParams }: { params: { d
     ? s.owner === user.id || personById(s.owner)?.departments.includes(dept.id as DepartmentId)
     : s.owner === user.id));
 
+  // Can the hub read each sheet? (Only when Google Sheets is connected; a short check per sheet.)
+  const access: Record<string, 'ok' | 'not_shared'> = {};
+  if (sheetsConfigured()) {
+    await Promise.all(sheets.map(async (sh) => {
+      access[sh.id] = await Promise.race([
+        sheetInfo(sh.sheetId).then(() => 'ok' as const, () => 'not_shared' as const),
+        new Promise<'not_shared'>((r) => setTimeout(() => r('not_shared'), 5000)),
+      ]);
+    }));
+  }
+
   return (
     <>
       <Header user={user} current={dept.id} />
@@ -33,7 +45,8 @@ export default async function SheetsPage({ params, searchParams }: { params: { d
           mainAccount={mainAccount()}
           approved={(await listApproved()).map((a) => ({ email: a.email, note: a.note }))}
           tasks={tasks.map((t) => ({ id: t.id, title: t.title, owner: t.ownerId === user.id ? null : personById(t.ownerId)?.name.split(/\s+/)[0] ?? null }))}
-          initial={sheets.map((s) => ({ ...s, ownerName: personById(s.owner)?.name ?? s.owner }))}
+          initial={sheets.map((s) => ({ ...s, ownerName: personById(s.owner)?.name ?? s.owner, access: access[s.id] }))}
+          robotEmail={sheetsConfigured() ? serviceAccountEmail() : null}
           preselect={tasks.some((t) => t.id === searchParams.task) ? searchParams.task : undefined}
         />
       </div>

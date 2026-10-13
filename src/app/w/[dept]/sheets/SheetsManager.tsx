@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { SheetEntry } from '@/lib/sheets';
 
-type Sheet = SheetEntry & { ownerName: string };
+type Sheet = SheetEntry & { ownerName: string; access?: 'ok' | 'not_shared' };
 interface Task { id: string; title: string; owner: string | null }
 interface Approved { email: string; note?: string }
 
@@ -11,13 +11,14 @@ interface Props {
   admin: boolean;
   deptName: string;
   mainAccount: string;
+  robotEmail: string | null;
   approved: Approved[];
   tasks: Task[];
   initial: Sheet[];
   preselect?: string;
 }
 
-export function SheetsManager({ admin, deptName, mainAccount, approved: approvedInit, tasks, initial, preselect }: Props) {
+export function SheetsManager({ admin, deptName, mainAccount, robotEmail, approved: approvedInit, tasks, initial, preselect }: Props) {
   const [sheets, setSheets] = useState(initial);
   const [approved, setApproved] = useState(approvedInit);
   const [name, setName] = useState('');
@@ -78,6 +79,9 @@ export function SheetsManager({ admin, deptName, mainAccount, approved: approved
       <div className="ws-page-h">
         <h1>{admin ? `${deptName} spreadsheets` : 'My spreadsheets'}</h1>
         <p>List every spreadsheet you use for your tasks so the hub can connect them. Spreadsheets need to be in the marketing Gmail, <b>{mainAccount}</b>, or another account Miguel has approved.</p>
+        {robotEmail && (
+          <p className="share-hint">So the assistant can read a sheet, open it in Google Sheets → <b>Share</b> → add <code>{robotEmail}</code> as <b>Viewer</b>. <button className="linkish" onClick={() => navigator.clipboard?.writeText(robotEmail).catch(() => undefined)}>Copy email</button></p>
+        )}
       </div>
 
       <section className="card">
@@ -133,7 +137,7 @@ export function SheetsManager({ admin, deptName, mainAccount, approved: approved
                 {sheets.map((s) => (
                   <tr key={s.id}>
                     <td><a href={s.url} target="_blank" rel="noreferrer"><b>{s.name}</b></a>{s.note && <div className="muted small">{s.note}</div>}</td>
-                    <td className="small">{s.account}</td>
+                    <td className="small">{s.account}{s.access === 'ok' && <div className="acc ok">✓ Hub can read it</div>}{s.access === 'not_shared' && <div className="acc no">Not shared with the hub yet</div>}</td>
                     <td className="small">{s.taskIds.length ? s.taskIds.map(taskTitle).join(', ') : <span className="muted">—</span>}</td>
                     {admin && <td className="small">{s.ownerName}</td>}
                     <td style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>

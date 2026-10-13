@@ -4,10 +4,11 @@ import { keapConfigured } from './keap/client';
 import { buildiumConfigured } from './buildium/client';
 import { zapierHooks } from './zapier';
 import { eventbriteConfigured } from './eventbrite/client';
+import { sheetsConfigured } from './google/sheets';
 import type { IntegrationId, IntegrationInfo } from './types';
 
 const PLANNED: Record<string, string> = {
-  gmail: 'Gmail', 'google-sheets': 'Google Sheets', 'google-calendar': 'Google Calendar', slack: 'Slack',
+  gmail: 'Gmail', 'google-calendar': 'Google Calendar', slack: 'Slack',
   prospectboss: 'ProspectBoss', meta: 'Meta (Facebook / Instagram)', canva: 'Canva', timedoctor: 'Time Doctor',
   wise: 'Wise', aws: 'AWS', outlook: 'Outlook & Microsoft Calendar', turbodial: 'Turbo Dial', zoom: 'Zoom',
 };
@@ -35,6 +36,11 @@ export function builtinIntegrations(): IntegrationInfo[] {
       status: eventbriteConfigured() ? 'connected' : 'not_connected',
     },
     {
+      id: 'google-sheets', name: 'Google Sheets', kind: 'builtin', envKeys: ['GOOGLE_SERVICE_ACCOUNT_JSON'],
+      description: 'Read-only: the sheets people list under My spreadsheets, once shared with the hub.',
+      status: sheetsConfigured() ? 'connected' : 'not_connected',
+    },
+    {
       id: 'claude', name: 'Claude', kind: 'builtin', envKeys: ['ANTHROPIC_API_KEY'],
       description: 'Writing, summarizing, extracting and deciding steps inside automations.',
       status: process.env.ANTHROPIC_API_KEY ? 'connected' : 'not_connected',
@@ -50,4 +56,4 @@ export function plannedIntegrations(): IntegrationInfo[] {
 }
 
 export const integrationName = (id: IntegrationId | string) =>
-  ({ keap: 'Keap', buildium: 'Buildium', eventbrite: 'Eventbrite', zapier: 'Zapier', claude: 'Claude' } as Record<string, string>)[id] ?? PLANNED[id] ?? id;
+  ({ keap: 'Keap', buildium: 'Buildium', eventbrite: 'Eventbrite', 'google-sheets': 'Google Sheets', zapier: 'Zapier', claude: 'Claude' } as Record<string, string>)[id] ?? PLANNED[id] ?? id;

@@ -763,3 +763,35 @@ a.chip:hover { border-color: #0c3f7a; color: #0c3f7a; }
 .wp-graphic img { width: 180px; height: 180px; border-radius: 10px; object-fit: cover; border: 1px solid var(--line); display: block; }
 .wp-making { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; color: var(--ink-2); }
 .wp .ws-mh > b { flex: none; }
+
+/* Referral prospecting (Social Media, task #8) */
+.rf-add { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.rf-add-h { width: 100%; border: 0; background: none; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; text-align: left; cursor: pointer; font: inherit; color: var(--ink); }
+.rf-add-b { border-top: 1px solid var(--line); padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; }
+.rf-add-b textarea { font-size: 13px; line-height: 1.5; }
+.rf-batch { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); background: var(--surface-2); border-radius: 8px; padding: 8px 12px; }
+.rf-batch.err { background: var(--warn-tint); color: var(--warn); }
+.rf-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: space-between; }
+.rf-bar select { width: auto; padding: 5px 8px; font-size: 12.5px; }
+.rf-bar .chip-btn.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+.rf-bar .chip-btn.on .wp-n { background: rgba(255, 255, 255, .2); color: #fff; }
+.rf-card { border: 1px solid var(--line); border-left: 3px solid #0891b2; border-radius: 12px; background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 9px; }
+.rf-card.st-texted { border-left-color: #1d4ed8; }
+.rf-card.st-won { border-left-color: #047857; }
+.rf-card.st-closed { border-left-color: var(--line-strong); opacity: .75; }
+.rf-top { display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; }
+.rf-need { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.rf-need b { font-size: 14.5px; }
+.rf-st { width: auto; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 8px; border: 0; background: var(--muted-tint); }
+.rf-st.st-texted { background: #e3edfb; color: #1d4ed8; }
+.rf-st.st-won { background: #dcf3e6; color: #047857; }
+.rf-quote { margin: 0; border-left: 3px solid var(--line-strong); padding: 6px 10px; font-size: 13px; color: var(--ink-2); background: var(--surface-2); border-radius: 0 8px 8px 0; white-space: pre-wrap; }
+.rf-match { display: flex; flex-direction: column; gap: 3px; }
+.rf-card textarea { font-size: 13px; line-height: 1.5; }
+.rf-card .row .btn { padding: 6px 11px; font-size: 13px; text-decoration: none; color: var(--ink); }
+.rf-card .row .btn.primary { color: #fff; }
+.rf-table { font-size: 13px; }
+.rf-table td small { display: block; color: var(--muted); }
+.rf-table input:not([type="checkbox"]) { padding: 4px 8px; font-size: 12.5px; min-width: 160px; }
+.rf-table input[type="checkbox"] { width: auto; }
+.rf-table tr.paused { opacity: .55; }

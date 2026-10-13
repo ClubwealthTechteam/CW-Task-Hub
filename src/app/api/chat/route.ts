@@ -7,6 +7,7 @@ import { keapContext } from '@/lib/chat/keap-context';
 import { eventbriteContext } from '@/lib/chat/eventbrite-context';
 import { calendarContext } from '@/lib/chat/calendar-context';
 import { welcomeContext } from '@/lib/chat/welcome-context';
+import { referralsContext } from '@/lib/chat/referrals-context';
 import { zapierContext } from '@/lib/chat/zapier-context';
 import { sheetsContext } from '@/lib/chat/sheets-context';
 import { storeIsPersistent } from '@/lib/store';
@@ -86,16 +87,17 @@ export async function POST(req: Request) {
 
   try {
     const contact = task ? cleanContact(body.contact) : undefined;
-    const [keapBlock, eventsBlock, zapBlock, sheetsBlock, calendarBlock, welcomeBlock] = await Promise.all([
+    const [keapBlock, eventsBlock, zapBlock, sheetsBlock, calendarBlock, welcomeBlock, referralsBlock] = await Promise.all([
       keapContext(user, text, contact?.id),
       eventbriteContext(user, text, Boolean(task && (task.department === 'events' || task.integrations.includes('eventbrite')))),
       zapierContext(user, text),
       sheetsContext(user, text, task?.id),
       calendarContext(task?.id).catch(() => ''),
       welcomeContext(task?.id).catch(() => ''),
+      referralsContext(task?.id).catch(() => ''),
     ]);
     const filesBlock = await filesContext(conv, canUseFiles(user));
-    await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, eventsBlock + zapBlock + sheetsBlock + calendarBlock + welcomeBlock + filesBlock));
+    await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, eventsBlock + zapBlock + sheetsBlock + calendarBlock + welcomeBlock + referralsBlock + filesBlock));
   } catch (e) {
     reply.status = 'error';
     reply.text = (e as Error).message;

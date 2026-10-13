@@ -924,3 +924,50 @@ a.chip:hover { border-color: #0c3f7a; color: #0c3f7a; }
 .ar-orders th { font-size: 11.5px; color: var(--muted); font-weight: 600; }
 .ar-orders td:nth-child(n+3), .ar-orders th:nth-child(n+3) { text-align: right; font-variant-numeric: tabular-nums; }
 @media (max-width: 760px) { .ar-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ar-search { width: 100%; } }
+
+/* Home: departments at a glance */
+.ov { gap: 18px; padding: 22px 24px; }
+.ov-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.ov-head p { margin: 4px 0 0; }
+.ov-legend { list-style: none; margin: 0; padding: 0; display: flex; gap: 14px; font-size: 12.5px; color: var(--ink-2); }
+.ov-legend li { display: flex; align-items: center; gap: 6px; }
+.ov-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.seg-live { background: var(--ok); }
+.seg-building { background: var(--gold); }
+.seg-planned { background: #cfd6e3; }
+.ov-top { display: flex; align-items: center; gap: 28px; padding: 6px 0 18px; border-bottom: 1px solid var(--line); }
+.ov-ring { width: 128px; height: 128px; flex: none; }
+.ov-ring-bg { fill: none; stroke: var(--muted-tint); stroke-width: 12; }
+.ov-ring-fg { fill: none; stroke: var(--ok); stroke-width: 12; stroke-linecap: round; }
+.ov-ring-n { font-size: 26px; font-weight: 800; fill: var(--ink); font-variant-numeric: tabular-nums; }
+.ov-ring-l { font-size: 11px; fill: var(--muted); text-transform: uppercase; letter-spacing: .12em; font-weight: 600; }
+.ov-kpis { margin: 0; flex: 1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.ov-kpis > div { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ov-kpis dt { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+.ov-kpis dd { margin: 0; font-size: 24px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+.ov-kpis .k-live { background: var(--ok-tint); border-color: color-mix(in srgb, var(--ok) 25%, var(--line)); }
+.ov-kpis .k-live dd { color: var(--ok); }
+.ov-chart { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.ov-row { display: grid; grid-template-columns: 230px minmax(0, 1fr) 110px 16px; align-items: center; gap: 16px; padding: 10px 12px; border-radius: 10px; text-decoration: none; color: inherit; }
+.ov-row:hover, .ov-row:focus-visible { background: var(--surface-2); }
+.ov-row:hover .ov-go { color: var(--gold); transform: translateX(2px); }
+.ov-name { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.ov-name b { font-size: 15px; }
+.ov-people { display: flex; margin-left: auto; }
+.ov-people span { width: 24px; height: 24px; border-radius: 50%; background: #e9dcc0; color: var(--navy); font-size: 9.5px; font-weight: 800; display: grid; place-items: center; border: 2px solid var(--surface); margin-left: -6px; }
+.ov-track { height: 14px; border-radius: 999px; }
+.ov-bar { display: flex; height: 100%; min-width: 6px; border-radius: 999px; overflow: hidden; }
+.ov-bar > span { display: block; height: 100%; }
+.ov-bar > span + span { box-shadow: inset 2px 0 0 var(--surface); }
+.ov-count { display: flex; align-items: baseline; gap: 4px; justify-content: flex-end; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ov-count b { font-size: 18px; }
+.ov-count span { font-size: 12.5px; color: var(--muted); }
+.ov-go { font-size: 20px; color: var(--line-strong); transition: transform .15s, color .15s; }
+@media (max-width: 900px) {
+  .ov-top { flex-direction: column; align-items: stretch; }
+  .ov-ring { align-self: center; }
+  .ov-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ov-row { grid-template-columns: minmax(0, 1fr) auto 16px; row-gap: 8px; }
+  .ov-track { grid-column: 1 / -1; grid-row: 2; }
+}
+@media (max-width: 520px) { .ov-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ov-kpis > div:first-child { grid-column: 1 / -1; } .ov-people { display: none; } .ov { padding: 18px 16px; } }

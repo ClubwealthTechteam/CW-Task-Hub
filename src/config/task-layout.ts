@@ -24,3 +24,11 @@ export const LIVE_IN_HUB: Record<string, string | null> = {
 
 /** People whose list shows only their Workflow Process Form tasks (their AI Audit tasks are hidden). */
 export const FORM_ONLY: string[] = ['jizel'];
+
+/** Built in the hub and being tried out by their owner (shown as In progress until confirmed live). */
+export const IN_PROGRESS: string[] = [
+  'jizel-form-exporting-accounts-receivable-ar',
+  'jowee-form-group-coaching-scheduling-and-wellness-calls', 'jowee-4',
+  'andrea-form-minutes-of-the-meeting', 'andrea-2',
+  'andrea-form-coaches-outreach', 'andrea-9',
+];

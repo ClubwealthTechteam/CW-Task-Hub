@@ -5,13 +5,13 @@ import { StagePill } from '@/components/Bits';
 import { requireUser } from '@/lib/auth/current-user';
 import { visibleDepartments, isSuperAdmin } from '@/lib/access';
 import { allAutomations } from '@/data/catalog';
-import { peopleIn } from '@/config/people';
 import { listRuns } from '@/lib/automations/runner';
 import { PEOPLE, personById } from '@/config/people';
 import { DEPARTMENTS } from '@/config/departments';
 import { announcementsFor, toView } from '@/lib/announcements';
 import { getViewer } from '@/lib/auth/current-user';
 import { Announcements } from '@/components/Announcements';
+import { DeptOverview } from '@/components/DeptOverview';
 import { listReports } from '@/lib/council/store';
 
 export const dynamic = 'force-dynamic';
@@ -48,27 +48,13 @@ export default async function Home() {
           </Link>
         )}
 
+        <DeptOverview depts={depts} all={all} />
+
         <section className="card" aria-labelledby="updates-title">
           <div className="spread"><h2 id="updates-title">Updates &amp; announcements</h2><span className="muted small">Team members see these at the top of their workspace</span></div>
           <Announcements items={updates} admin limit={5} preview={preview} departments={DEPARTMENTS.filter((d) => !d.hidden).map((d) => ({ id: d.id, name: d.name }))} />
         </section>
 
-        <section className="grid" aria-label="Departments">
-          {depts.map((d) => {
-            const list = all.filter((a) => a.department === d.id);
-            return (
-              <Link key={d.id} href={`/w/${d.id}`} className="card">
-                <div className="spread"><h2>{d.name}</h2>{d.hidden && <span className="pill gold">Admins only</span>}</div>
-                <p className="muted small" style={{ margin: 0 }}>{d.blurb}</p>
-                <div className="stats">
-                  <div className="stat"><b>{list.length}</b><span>automations</span></div>
-                  <div className="stat"><b>{list.filter((a) => a.stage === 'live').length}</b><span>live</span></div>
-                  <div className="stat"><b>{peopleIn(d.id).length}</b><span>people</span></div>
-                </div>
-              </Link>
-            );
-          })}
-        </section>
 
         {mine.length > 0 && (
           <section className="card">

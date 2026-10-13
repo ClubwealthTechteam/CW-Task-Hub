@@ -3,7 +3,7 @@ import { integrationName } from '@/lib/integrations/registry';
 
 export function StagePill({ a }: { a: Automation }) {
   if (a.stage === 'live') return <span className="pill live">Live</span>;
-  if (a.stage === 'building') return <span className="pill gold">Building</span>;
+  if (a.stage === 'building') return <span className="pill gold">In progress</span>;
   return <span className="pill">Skeleton</span>;
 }
 

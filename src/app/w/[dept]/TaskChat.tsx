@@ -26,6 +26,21 @@ function parts(text: string) {
   return out.filter((p) => p.text.trim());
 }
 
+interface Mail { to: string; subject: string; body: string; isEmail: boolean }
+
+/** A draft that starts with "Subject: …" is an email; the rest is its body. The recipient is the picked Keap contact. */
+function asEmail(draft: string, to: string): Mail {
+  const m = draft.match(/^\s*\**subject:?\**\s*:?\s*(.+)\n+([\s\S]*)$/i);
+  const subject = m ? m[1].replace(/\*+/g, '').trim() : '';
+  const body = (m ? m[2] : draft).trim();
+  return { to, subject, body, isEmail: Boolean(subject) || /^(hi|hello|dear|good (morning|afternoon|evening))\b/i.test(body) };
+}
+
+const MAX_URL_BODY = 1800;
+const enc = encodeURIComponent;
+const outlookLink = (m: Mail) => `https://outlook.office.com/mail/deeplink/compose?to=${enc(m.to)}&subject=${enc(m.subject)}&body=${enc(m.body.slice(0, MAX_URL_BODY))}`;
+const gmailLink = (m: Mail) => `https://mail.google.com/mail/?view=cm&fs=1&to=${enc(m.to)}&su=${enc(m.subject)}&body=${enc(m.body.slice(0, MAX_URL_BODY))}`;
+
 interface Props {
   taskId: string;
   title: string;
@@ -108,18 +123,27 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
 
   function draftCard(m: ChatMessage, draft: string, i: number) {
     const key = `${m.id}-${i}`;
+    const mail = asEmail(draft, contact?.email ?? '');
     return (
       <div key={key} className="ws-draft">
         <span className="lab">Draft · ready for your review</span>
-        <Markdown text={draft} />
+        {mail.subject && <p className="ws-subj"><b>Subject:</b> {mail.subject}</p>}
+        <Markdown text={mail.body} />
         <div className="acts">
           <button className="btn pri" disabled title={approveTool ? `Sending through ${approveTool} switches on when this task is built` : 'Approving switches on when this task is built'}>
             {approveTool ? `Approve: send via ${approveTool}` : 'Approve'}
           </button>
           <button className="btn" disabled={pending || busy} onClick={() => { setText(`Update the draft to this:\n${draft}`); inputRef.current?.focus(); }}>Edit</button>
           <button className="btn" disabled={pending || busy} onClick={() => send('Make the draft shorter.')}>Shorter</button>
-          <button className="btn" onClick={() => copy(key, draft)}>{copied === key ? 'Copied' : 'Copy'}</button>
+          <button className="btn" onClick={() => copy(key, mail.subject ? `${mail.subject}\n\n${mail.body}` : mail.body)}>{copied === key ? 'Copied' : 'Copy'}</button>
+          {mail.isEmail && (
+            <>
+              <a className="btn" href={outlookLink(mail)} target="_blank" rel="noreferrer" onClick={() => copy(key, mail.body)} title="Opens a new Outlook email with this draft. Review it and press Send there.">Open in Outlook</a>
+              <a className="btn" href={gmailLink(mail)} target="_blank" rel="noreferrer" onClick={() => copy(key, mail.body)} title="Opens a new Gmail email with this draft. Review it and press Send there.">Open in Gmail</a>
+            </>
+          )}
         </div>
+        {mail.isEmail && <small className="muted">Opens a new email with the draft filled in{mail.to ? ` to ${mail.to}` : ''}. Nothing is sent until you press Send there. The text is also copied, in case it’s too long to fill in.</small>}
       </div>
     );
   }

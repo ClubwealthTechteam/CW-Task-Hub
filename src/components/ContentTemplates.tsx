@@ -1,13 +1,12 @@
 'use client';
 
-// Prompt templates for Social Media content creation, in the right panel. "Copy" puts a template on the
+// Prompt templates for the task assistant, in the right panel. "Copy" puts a template on the
 // clipboard; "Use in chat" fills the task assistant's message box so [brackets] can be filled in there.
 
 import { useMemo, useState } from 'react';
-import { CONTENT_TEMPLATES, templatesFor, type ContentTemplate } from '@/config/content-templates';
+import { templatesFor, type ContentTemplate } from '@/config/content-templates';
 
 const ASK_EVENT = 'cw-ask-assistant';
-const GROUPS = ['All', ...Array.from(new Set(CONTENT_TEMPLATES.map((t) => t.group)))];
 
 /** Shows [placeholders] highlighted so it's clear what to fill in. */
 function Prompt({ text }: { text: string }) {
@@ -18,12 +17,13 @@ function Prompt({ text }: { text: string }) {
   );
 }
 
-export function ContentTemplates({ taskId }: { taskId: string }) {
+export function ContentTemplates({ taskId, dept = 'social-media' }: { taskId: string; dept?: string }) {
   const [group, setGroup] = useState('All');
   const [browsing, setBrowsing] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
-  const { mine } = useMemo(() => templatesFor(taskId), [taskId]);
+  const { all: deptAll, mine } = useMemo(() => templatesFor(taskId, dept), [taskId, dept]);
+  const groups = useMemo(() => ['All', ...Array.from(new Set(deptAll.map((t) => t.group)))], [deptAll]);
   const pick = (list: ContentTemplate[]) => (group === 'All' ? list : list.filter((t) => t.group === group));
 
   async function copy(t: ContentTemplate) {
@@ -55,20 +55,20 @@ export function ContentTemplates({ taskId }: { taskId: string }) {
   );
 
   const shortlist = mine.slice(0, 3);
-  const all = pick(CONTENT_TEMPLATES.filter((t) => !shortlist.includes(t)));
+  const all = pick(deptAll.filter((t) => !shortlist.includes(t)));
   return (
     <div className="tpls">
       <p className="muted small" style={{ margin: 0 }}>Ready-made prompts. <b>Use</b> puts one in the chat box; fill in the <mark>[highlighted]</mark> parts, then send.</p>
       {shortlist.length > 0 && <><h5>For this task</h5><ul className="tpl-list">{shortlist.map(card)}</ul></>}
       <button className="tpl-browse" onClick={() => setBrowsing(!browsing)} aria-expanded={browsing}>
         <span>{browsing ? 'Hide templates' : shortlist.length ? 'Browse all templates' : 'Show all templates'}</span>
-        <span className="wp-n">{CONTENT_TEMPLATES.length - shortlist.length}</span>
+        <span className="wp-n">{deptAll.length - shortlist.length}</span>
         <span aria-hidden="true">{browsing ? '▴' : '▾'}</span>
       </button>
       {browsing && (
         <>
           <div className="tpl-groups" role="group" aria-label="Template type">
-            {GROUPS.map((g) => <button key={g} className={`chip-btn${group === g ? ' on' : ''}`} aria-pressed={group === g} onClick={() => setGroup(g)}>{g}</button>)}
+            {groups.map((g) => <button key={g} className={`chip-btn${group === g ? ' on' : ''}`} aria-pressed={group === g} onClick={() => setGroup(g)}>{g}</button>)}
           </div>
           <ul className="tpl-list">{all.map(card)}</ul>
         </>

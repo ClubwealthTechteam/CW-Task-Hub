@@ -1,13 +1,15 @@
-// Ready-to-use prompts for the Social Media team's assistant (content creation). Words in [brackets] are
-// for the person to fill in. `tasks` lists the tasks a template suits best; those show first on that task.
+// Ready-to-use prompts for the task assistants (Social Media content creation, Events, Client Care). Words in
+// [brackets] are for the person to fill in. `tasks` lists the tasks a template suits best; those show first on
+// that task. `dept` is the department whose workspace shows the template (Social Media when left out).
 
 export interface ContentTemplate {
   id: string;
-  group: 'Captions' | 'Graphics' | 'Threads' | 'Repurpose' | 'Events' | 'Clients' | 'Planning';
+  group: 'Captions' | 'Graphics' | 'Threads' | 'Repurpose' | 'Events' | 'Clients' | 'Planning' | 'Meetings' | 'Outreach' | 'Calls';
   title: string;
   hint: string;
   prompt: string;
   tasks?: string[];
+  dept?: string;
 }
 
 export const CONTENT_TEMPLATES: ContentTemplate[] = [
@@ -185,8 +187,83 @@ Group them into: tips, stories, questions, myths vs facts, and behind the scenes
   },
 ];
 
-/** Templates for a task: the ones made for it first, then the rest. */
-export function templatesFor(taskId: string) {
-  const mine = CONTENT_TEMPLATES.filter((t) => t.tasks?.includes(taskId));
-  return { mine, rest: CONTENT_TEMPLATES.filter((t) => !mine.includes(t)) };
+// ---- Events (Andrea) ----
+const MINUTES_TASKS = ['andrea-form-minutes-of-the-meeting', 'andrea-2'];
+const COACH_TASKS = ['andrea-form-coaches-outreach', 'andrea-9'];
+// ---- Client Care (Jowelyn) ----
+const CALL_TASKS = ['jowee-form-group-coaching-scheduling-and-wellness-calls', 'jowee-4'];
+
+export const TEAM_TEMPLATES: ContentTemplate[] = [
+  {
+    id: 'minutes-for-tara', dept: 'events', group: 'Meetings', tasks: MINUTES_TASKS,
+    title: 'Minutes for Tara', hint: 'Transcript or notes → minutes ready to send',
+    prompt: `Write the minutes of this events meeting so I can send them to Tara.
+Meeting: [topic, e.g. Half-Day tour planning] · date: [date] · attendees: [names]
+
+[paste the Zoom transcript or my rough notes here]`,
+  },
+  {
+    id: 'minutes-changes', dept: 'events', group: 'Meetings', tasks: MINUTES_TASKS,
+    title: 'Only what changed', hint: 'Decisions and changes since the last plan',
+    prompt: `From these notes, list only what CHANGED for our events (dates, cities, venues, prices, speakers, promo codes, deadlines). For each: before → after, and who needs to know.
+
+[paste the transcript or notes here]`,
+  },
+  {
+    id: 'minutes-actions', dept: 'events', group: 'Meetings', tasks: MINUTES_TASKS,
+    title: 'Action items by person', hint: 'Who does what, by when',
+    prompt: `Pull every action item out of this meeting and group them by person, with a due date when one was said (write "no date given" otherwise).
+
+[paste the transcript or notes here]`,
+  },
+  {
+    id: 'coach-first-ask', dept: 'events', group: 'Outreach', tasks: COACH_TASKS,
+    title: 'First ask to a coach', hint: 'Available that week + willing to promote?',
+    prompt: `Write a short email to Coach [coach name] asking two things:
+1. Are they available during the week of our [event name] in [city, state] on [date]?
+2. Would they promote it to their contacts? If yes, we'll make them their own promo code.
+Event link: [Eventbrite link]
+Keep it friendly and under 120 words. Sign it from Andrea, Club Wealth Events.`,
+  },
+  {
+    id: 'coach-follow-up', dept: 'events', group: 'Outreach', tasks: COACH_TASKS,
+    title: 'Every-other-week follow-up', hint: 'Coach hasn’t replied yet',
+    prompt: `Write a short, friendly follow-up to Coach [coach name], who hasn't replied about promoting our [event name] in [city, state] on [date]. This is follow-up number [1/2/3]. Mention it's [X] weeks away. Under 80 words, one clear question.`,
+  },
+  {
+    id: 'coach-promo', dept: 'events', group: 'Outreach', tasks: COACH_TASKS,
+    title: 'Promo code + links', hint: 'Coach said yes: send their code',
+    prompt: `Coach [coach name] agreed to promote our [event name] in [city, state] on [date]. Write the email that sends them:
+- their promo code: [CODE]
+- the event link: [Eventbrite link]
+- a ready-to-paste text and a short social post they can share with their contacts.
+Thank them and keep it short.`,
+  },
+  {
+    id: 'call-note-rough', dept: 'client-care', group: 'Calls', tasks: CALL_TASKS,
+    title: 'Note from my rough notes', hint: 'Shorthand → clean Keap note',
+    prompt: `Turn my shorthand into a clean Keap note for this call. Keep it to 1–3 short sentences, start with the outcome ("Spoke with client." / "No answer."), and end with the next step and date if there is one.
+Call type: [onboarding scheduling / wellness / BSM]
+My notes: [e.g. spoke w/ client, onboarding thu 2pm EST, wants Ron as coach]`,
+  },
+  {
+    id: 'call-wellness-script', dept: 'client-care', group: 'Calls', tasks: CALL_TASKS,
+    title: 'Wellness call script', hint: 'Friendly check-in with questions',
+    prompt: `Give me a short wellness-call script for [client first name], a [Group Coaching / 1-on-1] member who joined [when]. Include an opener, 3 check-in questions (calls attended, coach fit, anything stuck), and a voicemail version under 20 seconds.`,
+  },
+  {
+    id: 'call-bsm', dept: 'client-care', group: 'Calls', tasks: CALL_TASKS,
+    title: 'BSM confirmation text', hint: 'After the call or after a voicemail',
+    prompt: `Write a short text to [client first name] about BSM [year] on [dates] in [city]. [They confirmed attendance / I left a voicemail]. Ask them to reply with the name and company they want on their badge. Under 50 words.`,
+  },
+];
+
+/** Every template a department's workspace shows. */
+export const deptTemplates = (dept: string) => [...CONTENT_TEMPLATES, ...TEAM_TEMPLATES].filter((t) => (t.dept ?? 'social-media') === dept);
+
+/** Templates for a task: the ones made for it first, then the rest of its department's. */
+export function templatesFor(taskId: string, dept = 'social-media') {
+  const all = deptTemplates(dept);
+  const mine = all.filter((t) => t.tasks?.includes(taskId));
+  return { all, mine, rest: all.filter((t) => !mine.includes(t)) };
 }

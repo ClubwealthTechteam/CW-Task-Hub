@@ -902,3 +902,11 @@ a.chip:hover { border-color: #0c3f7a; color: #0c3f7a; }
 .hot-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; font-size: 13px; }
 .tag-hot { font-size: 10.5px; font-weight: 700; color: #b42318; background: #fde2e2; border-radius: 999px; padding: 1px 7px; white-space: nowrap; }
 .tag-att { font-size: 10.5px; font-weight: 700; color: #9a5b00; background: #fdf0d9; border-radius: 999px; padding: 1px 7px; white-space: nowrap; }
+
+/* Call notes (Client Care) */
+.cn-form .field > span { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.cn-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end; }
+.cn-outcomes { flex-wrap: wrap; }
+.cn-form .chip-btn.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+.cn-note { margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 13px; line-height: 1.55; background: var(--surface-2, #f6f7fb); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+@media (max-width: 760px) { .cn-top { grid-template-columns: 1fr; } }

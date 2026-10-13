@@ -62,7 +62,9 @@ export function matchPerson(name: string): Person | undefined {
   const n = norm(name);
   const squashed = n.replace(/[^a-z]/g, '');
   const first = n.split(/[\s\-()]+/)[0];
-  return PEOPLE.find((p) => squashed.startsWith(p.id) || norm(p.name).split(/[\s\-()]+/)[0] === first);
+  // Also matches a name in brackets, e.g. "Jowee (Jowelyn)" for "Jowelyn Masangya".
+  return PEOPLE.find((p) => squashed.startsWith(p.id) || norm(p.name).split(/[\s\-()]+/)[0] === first)
+    ?? PEOPLE.find((p) => (norm(p.name).match(/\(([^)]+)\)/)?.[1] ?? '').split(/\s+/).includes(first));
 }
 
 const isTest = (name: string, email: string) => /^test\b/i.test(name.trim()) || /^test[.@]/i.test(email.trim());

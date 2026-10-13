@@ -28,6 +28,11 @@ import { todayPacific } from '@/lib/calendar-dates';
 import { canUseFiles } from '@/lib/chat/files';
 import { CANVA_TASK, canUseCanva } from '@/lib/canva/client';
 import { ContentTemplates } from '@/components/ContentTemplates';
+import { deptTemplates } from '@/config/content-templates';
+import { CallNotes } from '@/components/calls/CallNotes';
+import { canUseCallNotes } from '@/lib/calls/store';
+
+const CALL_NOTE_TASKS = ['jowee-form-group-coaching-scheduling-and-wellness-calls', 'jowee-4'];
 import { WelcomePosts } from '@/components/welcome/WelcomePosts';
 import { ReferralBoard } from '@/components/referrals/ReferralBoard';
 import { canUseWelcome } from '@/lib/welcome/access';
@@ -70,7 +75,9 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
   const welcome = selected?.id === 'jaymar-1' && dept.id === 'social-media' && canUseWelcome(user);
   // Jay's task #8: the referral prospecting board.
   const referrals = selected?.id === 'jaymar-8' && dept.id === 'social-media' && canUseWelcome(user);
-  const toolInMiddle = Boolean(calendarDept || welcome || referrals);
+  // Jowelyn's calls: the call-notes tool in the middle.
+  const callNotes = Boolean(selected && CALL_NOTE_TASKS.includes(selected.id) && canUseCallNotes(user));
+  const toolInMiddle = Boolean(calendarDept || welcome || referrals || callNotes);
   const chat = selected ? (
     <TaskChat
       key={selected.id}
@@ -86,8 +93,8 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
       canva={selected.id === CANVA_TASK && canUseCanva(user)}
     />
   ) : null;
-  // Social Media: ready-made content prompts beside the assistant.
-  const templates = selected && dept.id === 'social-media' ? <ContentTemplates taskId={selected.id} /> : null;
+  // Ready-made prompts beside the assistant, for departments that have them (Social Media, Events, Client Care).
+  const templates = selected && deptTemplates(dept.id).length ? <ContentTemplates taskId={selected.id} dept={dept.id} /> : null;
   const details = selected ? (
     <>
       <section>
@@ -179,6 +186,8 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
           <WelcomePosts taskId={selected.id} readOnly={preview} />
         ) : selected && referrals ? (
           <ReferralBoard readOnly={preview} />
+        ) : selected && callNotes ? (
+          <CallNotes taskId={selected.id} readOnly={preview} />
         ) : selected ? chat : <main className="ws-main" />}
 
         {selected && (

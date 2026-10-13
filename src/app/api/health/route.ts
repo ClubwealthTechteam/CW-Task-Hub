@@ -5,7 +5,7 @@ import { keapConfigured } from '@/lib/integrations/keap/client';
 import { eventbriteConfigured } from '@/lib/integrations/eventbrite/client';
 import { signInMode } from '@/lib/auth/access-codes';
 import { inboxConfigured } from '@/lib/integrations/zapier-feed';
-import { sheetsConfigured } from '@/lib/integrations/google/sheets';
+import { sheetsConfigured, sheetsKeyState } from '@/lib/integrations/google/sheets';
 import { zapierHooks } from '@/lib/integrations/zapier';
 
 export const dynamic = 'force-dynamic';
@@ -21,5 +21,6 @@ export const GET = () => NextResponse.json({
   eventbrite: eventbriteConfigured(),
   zapierInbox: inboxConfigured(),
   googleSheets: sheetsConfigured(),
+  googleSheetsKey: sheetsKeyState(),
   zapsToStart: Object.keys(zapierHooks()).length,
 });

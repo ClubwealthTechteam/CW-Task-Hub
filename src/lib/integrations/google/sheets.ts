@@ -20,6 +20,9 @@ function account(): ServiceAccount | null {
 }
 
 export const sheetsConfigured = () => Boolean(account());
+
+/** For the health check: whether the key is missing, unreadable, or fine. Never the key itself. */
+export const sheetsKeyState = () => (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON?.trim() ? 'missing' : account() ? 'ok' : 'invalid');
 export const serviceAccountEmail = () => account()?.client_email ?? null;
 
 const b64url = (b: Buffer | string) => Buffer.from(b).toString('base64url');

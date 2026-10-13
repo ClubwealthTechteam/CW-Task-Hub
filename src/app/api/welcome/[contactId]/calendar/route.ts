@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/lib/auth/current-user';
 import { canUseWelcome, WELCOME_DEPT } from '@/lib/welcome/access';
 import { listRecords, saveRecord } from '@/lib/welcome/store';
 import { addPost, listPosts, updatePost, type CalendarPost } from '@/lib/calendar';
+import { CALENDAR_STATUS } from '@/lib/welcome/auto';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,10 +23,10 @@ export async function POST(req: Request, { params }: { params: { contactId: stri
   const notes = [rec?.pageCaption && `FACEBOOK PAGE:\n${rec.pageCaption}`, rec?.groupCaption && `FACEBOOK GROUP:\n${rec.groupCaption}`].filter(Boolean).join('\n\n') || undefined;
   const fields: Omit<CalendarPost, 'id' | 'by' | 'at'> = {
     title: `Welcome: ${name || 'new client'}`, date, time: /^([01]\d|2[0-3]):[0-5]\d$/.test(time) ? time : undefined,
-    type: 'welcome', platforms: ['fb-page', 'fb-group'], status: 'scheduled', assignee: user.id, notes, repeat: 'none',
+    type: 'welcome', platforms: ['fb-page', 'fb-group'], status: CALENDAR_STATUS[rec?.status ?? 'ready'] ?? 'drafting', assignee: user.id, notes, repeat: 'none',
   };
   const existing = rec?.calendarPostId && (await listPosts(WELCOME_DEPT)).some((p) => p.id === rec.calendarPostId);
   const post = existing ? await updatePost(WELCOME_DEPT, rec!.calendarPostId!, fields) : await addPost(WELCOME_DEPT, fields, user.id);
-  const record = await saveRecord(id, { calendarPostId: post!.id, scheduledFor: date, status: 'scheduled' }, user.id);
+  const record = await saveRecord(id, { calendarPostId: post!.id, scheduledFor: date }, user.id);
   return NextResponse.json({ record, post });
 }

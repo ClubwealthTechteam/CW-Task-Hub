@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/lib/auth/current-user';
 import { canUseWelcome, WELCOME_DEPT } from '@/lib/welcome/access';
 import { saveRecord, WELCOME_STATUSES, type WelcomeRecord } from '@/lib/welcome/store';
 import { fileMeta, updateFileMeta } from '@/lib/chat/files';
+import { syncCalendar } from '@/lib/welcome/auto';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,5 +37,7 @@ export async function PATCH(req: Request, { params }: { params: { contactId: str
       patch.noPhoto = false;
     } else patch.photoFileId = undefined;
   }
-  return NextResponse.json({ record: await saveRecord(id, patch, user.id) });
+  const record = await saveRecord(id, patch, user.id);
+  if (patch.status) await syncCalendar(record); // keep the content calendar's status in step
+  return NextResponse.json({ record });
 }

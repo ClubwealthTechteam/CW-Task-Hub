@@ -43,6 +43,9 @@ export async function POST(req: Request) {
     days: [7, 14, 30, 60, 90].includes(Number(b.days)) ? Number(b.days) : 14,
     coachField,
     coachFieldLabel: coachField === 'owner' ? undefined : String(b.coachFieldLabel ?? '').slice(0, 80),
+    auto: b.auto !== false,
+    perDay: [1, 2, 3, 4, 5].includes(Number(b.perDay)) ? Number(b.perDay) : 2,
+    time: /^([01]\d|2[0-3]):[0-5]\d$/.test(String(b.time)) ? String(b.time) : '10:00',
   };
   await saveSettings(settings);
   clearClientCache();

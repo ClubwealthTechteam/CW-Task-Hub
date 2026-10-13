@@ -46,15 +46,22 @@ export function WelcomePosts({ taskId, readOnly }: { taskId: string; readOnly?: 
   const [showSettings, setShowSettings] = useState(false);
 
   const load = useCallback(async (refresh = false) => {
-    setLoading(true);
+    if (refresh || !clients.length) setLoading(true);
     const res = await fetch(`/api/welcome${refresh ? '?refresh=1' : ''}`, { cache: 'no-store' });
     const body = await res.json().catch(() => ({}));
     if (res.ok) {
       setClients(body.clients); setRecords(body.records); setSettings(body.settings); setKeap(body.keap); setError(body.error ?? '');
     } else setError(body.error || 'Couldn’t load new clients');
     setLoading(false);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, [load]);
+  // While the assistant is making graphics, check back every 20 seconds.
+  const making = Object.values(records).some((r) => r.graphic?.status === 'pending');
+  useEffect(() => {
+    if (!making) return;
+    const t = setInterval(() => load(), 20_000);
+    return () => clearInterval(t);
+  }, [making, load]);
 
   const statusOf = (c: NewClient): WelcomeStatus => records[c.contactId]?.status ?? 'new';
   const counts = useMemo(() => {
@@ -80,7 +87,7 @@ export function WelcomePosts({ taskId, readOnly }: { taskId: string; readOnly?: 
       <div className="ws-mh">
         <span className="ws-bot wp-bot" aria-hidden="true">👋</span>
         <b>New client welcome posts</b>
-        <span className="muted small wp-from">{settings?.tagNames.length ? `From Keap · ${settings.tagNames.join(', ')} · last ${settings.days} days` : 'From Keap'}</span>
+        <span className="muted small wp-from">{settings?.tagNames.length ? `From Keap · ${settings.tagNames.join(', ')} · last ${settings.days} days${settings.auto ? ' · auto-prepare on' : ''}` : 'From Keap'}</span>
         <span style={{ flex: 1 }} />
         <button className="linkbtn" onClick={() => load(true)} disabled={loading}>{loading ? 'Loading…' : 'Refresh'}</button>
         {!readOnly && <button className="linkbtn" onClick={() => setShowSettings(true)}>Settings</button>}
@@ -165,6 +172,12 @@ function ClientCard({ c, rec, open, readOnly, taskId, onToggle, onSave, onRecord
   const ask = (text: string, withPhoto = false) => window.dispatchEvent(new CustomEvent(ASK_EVENT, {
     detail: { taskId, text, files: withPhoto && rec?.photoFileId ? [{ id: rec.photoFileId, name: `${facts.first}-photo.jpg`, type: 'image/jpeg', size: 0 }] : undefined },
   }));
+  const makeGraphic = async () => {
+    const res = await fetch(`/api/welcome/${c.contactId}/graphic`, { method: 'POST' });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return body.error || 'Couldn’t start the graphic';
+    onRecord(body.record);
+  };
   const factLine = [`Name: ${facts.full}`, facts.business && `Business: ${facts.business}`, facts.city && `City: ${facts.city}`, facts.coach && `Coach: ${facts.coach}`].filter(Boolean).join('\n');
 
   return (
@@ -253,12 +266,26 @@ function ClientCard({ c, rec, open, readOnly, taskId, onToggle, onSave, onRecord
 
           <fieldset disabled={readOnly} className="wp-step">
             <legend>4 · Welcome graphic</legend>
-            <div className="row">
-              <button className="btn" onClick={() => ask(`Make a square 1080x1080 welcome graphic for a new Club Wealth client.\n${factLine}\n${rec?.photoFileId ? 'Use the attached photo as a circular headshot.' : 'There’s no photo: use the branded no-photo layout (initials or a Club Wealth mark instead of a headshot).'}\nHeadline: "Welcome to Club Wealth, ${facts.first}!" Include the business and city under the name if given.`, true)}>
-                ✦ Make the graphic with the assistant
-              </button>
-              <span className="muted small">It appears in the assistant’s chat with a Download button{rec?.photoFileId ? ', using the photo above' : ''}.</span>
-            </div>
+            {rec?.graphic?.status === 'done' && rec.graphic.fileId ? (
+              <div className="wp-graphic">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <a href={`/api/chat/files/${rec.graphic.fileId}`} target="_blank" rel="noreferrer"><img src={`/api/chat/files/${rec.graphic.fileId}`} alt={`Welcome graphic for ${facts.full}`} /></a>
+                <div className="wp-photo-acts">
+                  <a className="btn" href={`/api/chat/files/${rec.graphic.fileId}?download=1`}>Download</a>
+                  <button className="btn" onClick={() => run('gfx', makeGraphic)}>{busy === 'gfx' ? 'Starting…' : 'Make a new one'}</button>
+                  <button className="btn" onClick={() => ask(`Change the welcome graphic for ${facts.full}: [what to change]. Keep the same size and Club Wealth look.\n${factLine}`, true)}>✦ Change it with the assistant</button>
+                  <span className="muted small">{rec.graphic.withPhoto ? 'With their photo' : 'No-photo version'}</span>
+                </div>
+              </div>
+            ) : rec?.graphic?.status === 'pending' ? (
+              <p className="wp-making"><span className="cf-spin" aria-hidden="true" /> The assistant is making the graphic{rec.graphic.withPhoto ? ' with their photo' : ' (no-photo version)'}. It usually takes 1–3 minutes and shows up here.</p>
+            ) : (
+              <div className="row">
+                {rec?.graphic?.status === 'error' && <span className="wp-warn small">The last try didn’t work.</span>}
+                <button className="btn" disabled={!!busy} onClick={() => run('gfx', makeGraphic)}>{busy === 'gfx' ? 'Starting…' : rec?.graphic ? 'Try again' : 'Make it now'}</button>
+                <span className="muted small">Made automatically once there’s a photo, or when you choose the no-photo version.</span>
+              </div>
+            )}
           </fieldset>
 
           <fieldset disabled={readOnly} className="wp-step">
@@ -277,15 +304,15 @@ function ClientCard({ c, rec, open, readOnly, taskId, onToggle, onSave, onRecord
                 const body = await res.json().catch(() => ({}));
                 if (!res.ok) return body.error || 'Couldn’t add it';
                 onRecord(body.record);
-                setMsg('Added to the content calendar as Scheduled.');
-              })}>{rec?.calendarPostId ? 'Update on content calendar' : 'Add to content calendar'}</button>
+                setMsg('Added to the content calendar.');
+              })}>{rec?.calendarPostId ? 'Move on the calendar' : 'Add to content calendar'}</button>
               <label className="field"><span>Status</span>
                 <select value={status} onChange={(e) => onSave({ status: e.target.value })}>
                   {(Object.keys(STATUS_LABEL) as WelcomeStatus[]).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
                 </select>
               </label>
             </div>
-            <p className="muted small" style={{ margin: 0 }}>The hub doesn’t post anything: schedule it in Meta Business Suite, then mark it Scheduled or Posted here.</p>
+            <p className="muted small" style={{ margin: 0 }}>{rec?.scheduledFor ? `On the content calendar for ${day(`${rec.scheduledFor}T12:00:00`)}. ` : ''}The hub doesn’t post anything: schedule it in Meta Business Suite, then mark it Scheduled or Posted here (the calendar follows).</p>
           </fieldset>
           {msg && <p className={`note${msg.startsWith('Added') ? ' ok' : ''}`} role="status" style={{ margin: 0 }}>{msg}</p>}
         </div>

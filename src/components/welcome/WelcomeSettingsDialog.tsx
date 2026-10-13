@@ -13,6 +13,9 @@ export function WelcomeSettingsDialog({ settings, onClose, onSaved }: { settings
   const [found, setFound] = useState<Tag[] | null>(null);
   const [days, setDays] = useState(settings.days);
   const [coach, setCoach] = useState<string>(settings.coachField);
+  const [auto, setAuto] = useState(settings.auto);
+  const [perDay, setPerDay] = useState(settings.perDay);
+  const [time, setTime] = useState(settings.time);
   const [fields, setFields] = useState<{ id: number; label: string }[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -36,7 +39,7 @@ export function WelcomeSettingsDialog({ settings, onClose, onSaved }: { settings
     setBusy(true);
     const res = await fetch('/api/welcome/settings', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tags, days, coachField: coach, coachFieldLabel: fields.find((f) => `custom:${f.id}` === coach)?.label }),
+      body: JSON.stringify({ tags, days, auto, perDay, time, coachField: coach, coachFieldLabel: fields.find((f) => `custom:${f.id}` === coach)?.label }),
     });
     const body = await res.json().catch(() => ({}));
     setBusy(false);
@@ -76,6 +79,19 @@ export function WelcomeSettingsDialog({ settings, onClose, onSaved }: { settings
               {fields.map((f) => <option key={f.id} value={`custom:${f.id}`}>Custom field: {f.label}</option>)}
             </select>
           </label>
+        </div>
+
+        <div className="field">
+          <label className="wp-check"><input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} /> <b>Prepare posts automatically</b></label>
+          <span className="muted small">For each new client: write the Page and Group captions, put the post on the content calendar, and make the welcome graphic once there’s a photo (or the no-photo version). Posting stays with you.</span>
+          {auto && (
+            <div className="cc-grid3">
+              <label className="field"><span className="cc-lab">Welcome posts per weekday</span>
+                <select value={perDay} onChange={(e) => setPerDay(Number(e.target.value))}>{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}</select>
+              </label>
+              <label className="field"><span className="cc-lab">Post time</span><input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></label>
+            </div>
+          )}
         </div>
 
         <p className="muted small" style={{ margin: 0 }}>The hub only reads Keap. Changing these settings doesn’t change anything in Keap.</p>

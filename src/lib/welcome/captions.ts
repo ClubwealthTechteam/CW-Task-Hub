@@ -21,3 +21,14 @@ export const GROUP_CAPTIONS: ((f: ClientFacts) => string)[] = [
 
 export const photoRequest = (f: ClientFacts) =>
   `Hi ${f.first}! Welcome to Club Wealth 🎉 We’d love to give you a shout-out on our Facebook Page and in our members’ Group. Could you send us a photo of yourself (a clear headshot works best) in the next couple of days? If you’d rather we didn’t use a photo, no problem at all, just let us know!`;
+
+/** The instructions the assistant gets for a welcome graphic. */
+export const graphicPrompt = (f: ClientFacts, withPhoto: boolean) => [
+  'Make a square 1080x1080 welcome graphic for a new Club Wealth client (a background request from the welcome posts board: reply briefly, the graphic is what matters).',
+  `Name: ${f.full}`, f.business && `Business: ${f.business}`, f.city && `City: ${f.city}`,
+  withPhoto ? 'Use the attached photo as a large circular headshot.' : 'There’s no photo: use the branded no-photo layout (the client’s initials in a gold-ringed navy circle instead of a headshot).',
+  `Headline: "Welcome to Club Wealth, ${f.first}!" Put the full name below it, then the business and city if given.`,
+].filter(Boolean).join('\n');
+
+/** Picks a caption version per client, so a week of welcome posts doesn't all read the same. */
+export const versionFor = (contactId: number, offset = 0) => (contactId + offset) % 3;

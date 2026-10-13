@@ -23,6 +23,8 @@ export interface Conversation {
   title: string;
   /** Set when the chat belongs to one task's assistant in a department workspace. */
   automationId?: string;
+  /** Made by a tool in the background (e.g. a welcome graphic): kept out of the person's chat list. */
+  background?: boolean;
   created: number;
   updated: number;
   messages: ChatMessage[];
@@ -64,6 +66,7 @@ export async function listConversations(uid: string): Promise<ConversationSummar
 }
 
 export async function touchIndex(conv: Conversation) {
+  if (conv.background) return;
   const list = (await listConversations(conv.owner)).filter((c) => c.id !== conv.id);
   list.unshift({ id: conv.id, title: conv.title, updated: conv.updated, automationId: conv.automationId });
   await setJSON(userKey(conv.owner), list.slice(0, MAX_CONVERSATIONS));

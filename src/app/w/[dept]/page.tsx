@@ -31,6 +31,8 @@ import { ContentTemplates } from '@/components/ContentTemplates';
 import { deptTemplates } from '@/config/content-templates';
 import { CallNotes } from '@/components/calls/CallNotes';
 import { canUseCallNotes } from '@/lib/calls/store';
+import { ArBoard } from '@/components/billing/ArBoard';
+import { AR_TASKS, canUseAr } from '@/lib/billing/ar';
 
 const CALL_NOTE_TASKS = ['jowee-form-group-coaching-scheduling-and-wellness-calls', 'jowee-4'];
 import { WelcomePosts } from '@/components/welcome/WelcomePosts';
@@ -77,7 +79,9 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
   const referrals = selected?.id === 'jaymar-8' && dept.id === 'social-media' && canUseWelcome(user);
   // Jowelyn's calls: the call-notes tool in the middle.
   const callNotes = Boolean(selected && CALL_NOTE_TASKS.includes(selected.id) && canUseCallNotes(user));
-  const toolInMiddle = Boolean(calendarDept || welcome || referrals || callNotes);
+  // Jizel's accounts receivable: the overdue-balances board.
+  const arBoard = Boolean(selected && AR_TASKS.includes(selected.id) && canUseAr(user));
+  const toolInMiddle = Boolean(calendarDept || welcome || referrals || callNotes || arBoard);
   const chat = selected ? (
     <TaskChat
       key={selected.id}
@@ -188,6 +192,8 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
           <ReferralBoard readOnly={preview} />
         ) : selected && callNotes ? (
           <CallNotes taskId={selected.id} readOnly={preview} />
+        ) : selected && arBoard ? (
+          <ArBoard taskId={selected.id} />
         ) : selected ? chat : <main className="ws-main" />}
 
         {selected && (

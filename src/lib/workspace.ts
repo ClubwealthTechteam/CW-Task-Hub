@@ -2,6 +2,7 @@
 // and which tool does each one. Real actions replace these as each automation is built.
 
 import type { Automation } from '@/data/automations';
+import { AR_TASKS } from '@/lib/billing/ar';
 import { builtinIntegrations, integrationName } from '@/lib/integrations/registry';
 
 export interface ApproveStep { title: string; detail: string; connected: boolean }
@@ -44,6 +45,7 @@ export function starters(a: Automation): string[] {
   const t = a.title.toLowerCase();
   if (/^andrea-(form-minutes|2$)/.test(a.id)) return ['Write minutes from my notes', 'List only what changed', 'Action items by person'];
   if (/^andrea-(form-coaches|9$)/.test(a.id)) return ['Draft the first ask to a coach', 'Draft a follow-up', 'Plan follow-up dates'];
+  if (AR_TASKS.includes(a.id)) return ['Who should I call first today?', 'Draft a payment reminder', 'Summarize what changed'];
   if (/^jowee-(form-group-coaching|4$)/.test(a.id)) return ['Clean up my call notes', 'Wellness call script', 'BSM confirmation text'];
   if (a.id === 'jaymar-8') return ['Which referrals are still open?', 'Rewrite this SMS shorter', 'Tips to find more referral posts'];
   if (a.id === 'jaymar-1') return ['Who still needs a welcome post?', 'Write 3 Page captions', 'Make a welcome graphic'];

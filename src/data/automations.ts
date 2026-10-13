@@ -2,6 +2,7 @@
 // owned by a person and filed under their department. Most are skeletons until they are built.
 
 import audit from './audit.json';
+import { LIVE_IN_HUB } from '@/config/task-layout';
 import { PEOPLE } from '@/config/people';
 import type { DepartmentId } from '@/config/departments';
 import type { IntegrationId } from '@/lib/integrations/types';
@@ -95,7 +96,8 @@ const fromAudit: Automation[] = PEOPLE.flatMap((person) => {
     recommendation: item.recommendation,
     requested: /^yes$/i.test(item.requested),
     auditStatus: item.status || 'No status yet',
-    stage: 'skeleton',
+    stage: `${person.id}-${item.n}` in LIVE_IN_HUB ? 'live' : 'skeleton',
+    ...(`${person.id}-${item.n}` in LIVE_IN_HUB && { runsIn: 'the AI Task Hub', ...(LIVE_IN_HUB[`${person.id}-${item.n}`] && { recommendation: `Live. ${LIVE_IN_HUB[`${person.id}-${item.n}`]}` }) }),
     source: 'audit',
   }));
 });

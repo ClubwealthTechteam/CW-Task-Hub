@@ -910,3 +910,17 @@ a.chip:hover { border-color: #0c3f7a; color: #0c3f7a; }
 .cn-form .chip-btn.on { background: var(--navy); color: #fff; border-color: var(--navy); }
 .cn-note { margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 13px; line-height: 1.55; background: var(--surface-2, #f6f7fb); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
 @media (max-width: 760px) { .cn-top { grid-template-columns: 1fr; } }
+
+/* Overdue balances (Client Care) */
+.ar-sum { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border-bottom: 1px solid var(--line); }
+.ar-sum > div { background: var(--surface); padding: 10px 22px; display: flex; flex-direction: column; gap: 2px; }
+.ar-sum b { font-size: 18px; font-variant-numeric: tabular-nums; }
+.ar-search { margin-left: auto; width: 240px; max-width: 100%; padding: 5px 10px; font-size: 13px; }
+.ar-age { font-size: 12.5px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ar-age.late { color: #b45309; font-weight: 700; }
+.ar-due { min-width: 96px; text-align: right; font-variant-numeric: tabular-nums; }
+.ar-orders { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ar-orders th, .ar-orders td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); }
+.ar-orders th { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.ar-orders td:nth-child(n+3), .ar-orders th:nth-child(n+3) { text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) { .ar-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ar-search { width: 100%; } }

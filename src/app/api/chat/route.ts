@@ -15,6 +15,7 @@ import { canUseFiles, fileMeta, MAX_FILES_PER_MESSAGE, toRef, updateFileMeta } f
 import { filesContext } from '@/lib/chat/files-context';
 import { judgeContext } from '@/lib/council/judge-context';
 import { taskGuide } from '@/lib/chat/task-guides';
+import { arContext, canUseAr } from '@/lib/billing/ar';
 import { CANVA_TASK, canUseCanva, canvaConfigured, status as canvaStatus } from '@/lib/canva/client';
 import { countMessage, usageFor } from '@/lib/chat/usage';
 import { chatIsConfigured, buildPayload, fireChatRoutine } from '@/lib/chat/routine';
@@ -99,7 +100,7 @@ export async function POST(req: Request) {
       await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, undefined, '', await judgeContext()));
     } else {
       const contact = task ? cleanContact(body.contact) : undefined;
-      const [keapBlock, eventsBlock, zapBlock, sheetsBlock, calendarBlock, welcomeBlock, referralsBlock] = await Promise.all([
+      const [keapBlock, eventsBlock, zapBlock, sheetsBlock, calendarBlock, welcomeBlock, referralsBlock, arBlock] = await Promise.all([
         keapContext(user, text, contact?.id),
         eventbriteContext(user, text, Boolean(task && (task.department === 'events' || task.integrations.includes('eventbrite')))),
         zapierContext(user, text),
@@ -107,10 +108,11 @@ export async function POST(req: Request) {
         calendarContext(task?.id).catch(() => ''),
         welcomeContext(task?.id).catch(() => ''),
         referralsContext(task?.id).catch(() => ''),
+        canUseAr(user) ? arContext(task?.id).catch(() => '') : Promise.resolve(''),
       ]);
       const canvaOn = task?.id === CANVA_TASK && canvaConfigured() && canUseCanva(user) && (await canvaStatus(user.id)).connected;
       const filesBlock = await filesContext(conv, canUseFiles(user), canvaOn);
-      await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, eventsBlock + zapBlock + sheetsBlock + calendarBlock + welcomeBlock + referralsBlock + taskGuide(task?.id) + filesBlock));
+      await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, eventsBlock + zapBlock + sheetsBlock + calendarBlock + welcomeBlock + referralsBlock + arBlock + taskGuide(task?.id) + filesBlock));
     }
   } catch (e) {
     reply.status = 'error';

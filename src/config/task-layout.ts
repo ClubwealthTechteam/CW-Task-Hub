@@ -9,3 +9,16 @@ export const TASK_GROUPS: { id: string; title: string; taskIds: string[] }[] = [
 export const HANDLED_ELSEWHERE: Record<string, string> = {
   'jaymar-2': 'Birthday posts are handled by CW Assistant in Slack',
 };
+
+/** Tasks that are working in the hub now (shown as Live), with anything still to finish. */
+export const LIVE_IN_HUB: Record<string, string | null> = {
+  'jaymar-1': null,
+  'jaymar-3': 'Lead source tracking still needs the lead sources list from Jay.',
+  'jaymar-4': null,
+  'jaymar-5': null,
+  'jaymar-6': 'Sending designs to Canva still needs the Canva setup.',
+  'jaymar-7': null,
+  'jaymar-8': null,
+  'jaymar-9': null,
+  'jaymar-10': null,
+};

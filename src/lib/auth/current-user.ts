@@ -5,11 +5,29 @@ import { redirect, notFound } from 'next/navigation';
 import { personById, type Person } from '@/config/people';
 import { canViewDepartment } from '@/lib/access';
 import type { DepartmentId } from '@/config/departments';
-import { SESSION_COOKIE, verifySession } from './session';
+import { PREVIEW_COOKIE, SESSION_COOKIE, signValue, verifySession } from './session';
 
-export async function getCurrentUser(): Promise<Person | null> {
+/** "Preview as": a super admin sees the hub exactly as one team member does (read-only; writes are blocked). */
+export const previewSignature = (realId: string, asId: string) => signValue(`preview:${realId}:${asId}`);
+
+export interface Viewer { user: Person; real: Person; preview: boolean }
+
+export async function getViewer(): Promise<Viewer | null> {
   const session = await verifySession(cookies().get(SESSION_COOKIE)?.value);
-  return session ? personById(session.uid) ?? null : null;
+  const real = session ? personById(session.uid) : undefined;
+  if (!real) return null;
+  const raw = cookies().get(PREVIEW_COOKIE)?.value;
+  if (raw && real.role === 'super_admin') {
+    const [asId, sig] = raw.split('.');
+    const as = personById(asId);
+    if (as && sig && sig === (await previewSignature(real.id, as.id))) return { user: as, real, preview: true };
+  }
+  return { user: real, real, preview: false };
+}
+
+/** The person the hub is showing: the signed-in person, or the team member a super admin is previewing. */
+export async function getCurrentUser(): Promise<Person | null> {
+  return (await getViewer())?.user ?? null;
 }
 
 /** For pages: sends signed-out people to /login. */

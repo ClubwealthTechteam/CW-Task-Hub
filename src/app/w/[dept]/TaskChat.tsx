@@ -48,9 +48,11 @@ interface Props {
   starters: string[];
   firstName: string;
   ready: boolean;
+  /** A super admin previewing this person: their chats stay private. */
+  preview?: boolean;
 }
 
-export function TaskChat({ taskId, title, approveTool, starters, firstName, ready }: Props) {
+export function TaskChat({ taskId, title, approveTool, starters, firstName, ready, preview }: Props) {
   const [conv, setConv] = useState<Conversation | null>(null);
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState('');
@@ -82,6 +84,7 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
 
   // Pick up this task's latest chat.
   useEffect(() => {
+    if (preview) { setLoading(false); return; }
     (async () => {
       const res = await fetch('/api/chat', { cache: 'no-store' });
       if (res.ok) {
@@ -92,7 +95,7 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
       }
       setLoading(false);
     })();
-  }, [taskId, open]);
+  }, [taskId, open, preview]);
 
   useEffect(() => {
     if (!pending || !conv) return;
@@ -158,6 +161,7 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
       </div>
 
       <div className="ws-msgs" aria-live="polite">
+        {preview && <p className="note" style={{ margin: 0 }}>This person’s chats with the assistant are private, so they’re hidden in preview. Everything else on this page is exactly what they see.</p>}
         {!ready && <p className="note" style={{ margin: 0 }}>CW Assistant isn&apos;t switched on yet. Miguel is finishing the setup.</p>}
         {!loading && !conv?.messages.length && (
           <div className="ws-hello">

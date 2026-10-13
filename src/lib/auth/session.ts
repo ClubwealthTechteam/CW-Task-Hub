@@ -3,6 +3,7 @@
 // file and the login route change: everything else reads the user from getCurrentUser().
 
 export const SESSION_COOKIE = 'cwth_session';
+export const PREVIEW_COOKIE = 'cwth_preview';
 export const SESSION_DAYS = 7;
 
 export interface SessionPayload { uid: string; exp: number }

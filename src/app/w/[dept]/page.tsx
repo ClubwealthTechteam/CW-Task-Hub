@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Icon } from '@/components/Icon';
 import { StagePill } from '@/components/Bits';
-import { requireDepartment } from '@/lib/auth/current-user';
+import { getViewer, requireDepartment } from '@/lib/auth/current-user';
 import { departmentById, type DepartmentId } from '@/config/departments';
 import { personById } from '@/config/people';
 import { automationsInDept } from '@/data/catalog';
@@ -31,6 +31,7 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
   if (!dept) notFound();
   const user = await requireDepartment(dept.id as DepartmentId);
   const first = user.name.split(/\s+/)[0];
+  const preview = Boolean((await getViewer())?.preview);
 
   // Team members only see their own tasks; super admins see everyone's, grouped by person.
   const all = (await automationsInDept(dept.id as DepartmentId)).filter((a) => canViewAutomation(user, a));
@@ -62,6 +63,7 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
             starters={starters(selected)}
             firstName={first}
             ready={chatIsConfigured() && storeIsPersistent()}
+            preview={preview}
           />
         ) : <main className="ws-main" />}
 

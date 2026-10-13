@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { getCurrentUser } from '@/lib/auth/current-user';
+import { getViewer } from '@/lib/auth/current-user';
 import { ChatWidget } from '@/components/chat/ChatWidget';
 
 export const metadata: Metadata = {
@@ -9,7 +9,8 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const user = await getCurrentUser();
+  const viewer = await getViewer();
+  const user = viewer?.user;
   return (
     <html lang="en">
       <head>
@@ -17,8 +18,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&display=swap" />
       </head>
       <body>
+        {viewer?.preview && (
+          <div className="preview-bar" role="status">
+            <span>Previewing as <b>{viewer.user.name}</b> · read-only, chats are hidden</span>
+            <a href="/api/preview?exit=1">Exit preview</a>
+          </div>
+        )}
         {children}
-        {user && <ChatWidget firstName={user.name.split(/\s+/)[0]} />}
+        {user && !viewer?.preview && <ChatWidget firstName={user.name.split(/\s+/)[0]} />}
       </body>
     </html>
   );

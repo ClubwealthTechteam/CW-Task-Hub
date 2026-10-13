@@ -7,7 +7,7 @@ import { visibleDepartments, isSuperAdmin } from '@/lib/access';
 import { allAutomations } from '@/data/catalog';
 import { peopleIn } from '@/config/people';
 import { listRuns } from '@/lib/automations/runner';
-import { personById } from '@/config/people';
+import { PEOPLE, personById } from '@/config/people';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,6 +58,18 @@ export default async function Home() {
                   <div><h3>{a.title}</h3><p>{a.summary}</p></div>
                   <div className="side"><StagePill a={a} /></div>
                 </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {isSuperAdmin(user) && (
+          <section className="card">
+            <h2>Preview someone’s view</h2>
+            <p className="muted small" style={{ margin: 0 }}>See the hub exactly as a team member does, to check it before handing it over. Read-only: nothing can be sent or changed, and their chats stay hidden.</p>
+            <div className="row">
+              {PEOPLE.filter((p) => p.role !== 'super_admin').map((p) => (
+                <a key={p.id} className="chip" href={`/api/preview?as=${p.id}`}>{p.name}</a>
               ))}
             </div>
           </section>

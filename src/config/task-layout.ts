@@ -8,6 +8,10 @@ export const TASK_GROUPS: { id: string; title: string; taskIds: string[] }[] = [
 /** Tasks handled elsewhere, so the hub doesn't show them. */
 export const HANDLED_ELSEWHERE: Record<string, string> = {
   'jaymar-2': 'Birthday posts are handled by CW Assistant in Slack',
+  // Andrea is kept to 10 tasks: these duplicate her form tasks or Liz's venue pipeline.
+  'andrea-2': 'Same job as her process-form task “Minutes of the meeting”',
+  'andrea-9': 'Same job as her process-form task “Coaches Outreach”',
+  'andrea-10': 'Venue finding is Liz’s process-form pipeline',
 };
 
 /** Tasks that are working in the hub now (shown as Live), with anything still to finish.
@@ -23,12 +27,12 @@ export const LIVE_IN_HUB: Record<string, string | null> = {
 };
 
 /** People whose list shows only their Workflow Process Form tasks (their AI Audit tasks are hidden). */
-export const FORM_ONLY: string[] = ['jizel'];
+export const FORM_ONLY: string[] = ['jizel', 'liz'];
 
 /** Built in the hub and being tried out by their owner (shown as In progress until confirmed live). */
 export const IN_PROGRESS: string[] = [
   'jizel-form-exporting-accounts-receivable-ar',
   'jowee-form-group-coaching-scheduling-and-wellness-calls', 'jowee-4',
-  'andrea-form-minutes-of-the-meeting', 'andrea-2',
-  'andrea-form-coaches-outreach', 'andrea-9',
+  'andrea-form-minutes-of-the-meeting',
+  'andrea-form-coaches-outreach',
 ];

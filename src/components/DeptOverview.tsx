@@ -1,5 +1,5 @@
-// Home page overview: how far each department's automations have come, as charts. Server-rendered SVG and
-// CSS only (no chart library). Each department row opens its workspace.
+// Home dashboard: each department's automations as a stacked bar (live / in progress / planned), scaled to
+// the largest department. Each row opens the department's workspace. Server-rendered, no chart library.
 
 import Link from 'next/link';
 import type { Automation } from '@/data/automations';
@@ -8,56 +8,23 @@ import { peopleIn } from '@/config/people';
 
 const initials = (name: string) => name.replace(/\(.*?\)/g, '').trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
-function Ring({ pct }: { pct: number }) {
-  const r = 52, c = 2 * Math.PI * r;
-  return (
-    <svg className="ov-ring" viewBox="0 0 128 128" role="img" aria-label={`${pct}% of automations are live`}>
-      <circle cx="64" cy="64" r={r} className="ov-ring-bg" />
-      <circle cx="64" cy="64" r={r} className="ov-ring-fg" strokeDasharray={`${(pct / 100) * c} ${c}`} transform="rotate(-90 64 64)" />
-      <text x="64" y="62" textAnchor="middle" className="ov-ring-n">{pct}%</text>
-      <text x="64" y="82" textAnchor="middle" className="ov-ring-l">live</text>
-    </svg>
-  );
-}
+export const stageCounts = (list: Automation[]) => {
+  const live = list.filter((a) => a.stage === 'live').length;
+  const building = list.filter((a) => a.stage === 'building').length;
+  return { total: list.length, live, building, planned: list.length - live - building };
+};
 
 export function DeptOverview({ depts, all }: { depts: Department[]; all: Automation[] }) {
-  const rows = depts.map((d) => {
-    const list = all.filter((a) => a.department === d.id);
-    const live = list.filter((a) => a.stage === 'live').length;
-    const building = list.filter((a) => a.stage === 'building').length;
-    return { d, total: list.length, live, building, planned: list.length - live - building, people: peopleIn(d.id) };
-  });
-  const sum = (k: 'total' | 'live' | 'building' | 'planned') => rows.reduce((n, r) => n + r[k], 0);
-  const total = sum('total');
-  const pct = total ? Math.round((sum('live') / total) * 100) : 0;
+  const rows = depts.map((d) => ({ d, ...stageCounts(all.filter((a) => a.department === d.id)), people: peopleIn(d.id) }));
   const max = Math.max(1, ...rows.map((r) => r.total));
-  const people = new Set(rows.flatMap((r) => r.people.map((p) => p.id))).size;
-
   return (
-    <section className="card ov" aria-labelledby="ov-title">
-      <div className="ov-head">
-        <div>
-          <h2 id="ov-title">Departments at a glance</h2>
-          <p className="muted small">How many automations each department has, and how many are live. Select a department to open it.</p>
-        </div>
+    <section className="dcard" aria-labelledby="ov-title">
+      <div className="dcard-h">
+        <div><h2 id="ov-title">Departments</h2><p className="muted small">Automations per department. Select one to open it.</p></div>
         <ul className="ov-legend" aria-label="Legend">
-          <li><i className="seg-live" />Live</li>
-          <li><i className="seg-building" />In progress</li>
-          <li><i className="seg-planned" />Planned</li>
+          <li><i className="seg-live" />Live</li><li><i className="seg-building" />In progress</li><li><i className="seg-planned" />Planned</li>
         </ul>
       </div>
-
-      <div className="ov-top">
-        <Ring pct={pct} />
-        <dl className="ov-kpis">
-          <div><dt>Automations</dt><dd>{total}</dd></div>
-          <div className="k-live"><dt>Live</dt><dd>{sum('live')}</dd></div>
-          <div><dt>In progress</dt><dd>{sum('building')}</dd></div>
-          <div><dt>Planned</dt><dd>{sum('planned')}</dd></div>
-          <div><dt>People</dt><dd>{people}</dd></div>
-        </dl>
-      </div>
-
       <ol className="ov-chart" aria-label="Automations by department">
         {rows.map((r) => (
           <li key={r.d.id}>

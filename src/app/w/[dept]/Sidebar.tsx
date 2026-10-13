@@ -6,6 +6,7 @@ import type { Automation } from '@/data/automations';
 import { isSuperAdmin } from '@/lib/access';
 import { isConnected, taskIcon } from '@/lib/workspace';
 import { Icon } from '@/components/Icon';
+import { TASK_GROUPS } from '@/config/task-layout';
 
 interface Props {
   user: Person;
@@ -34,12 +35,35 @@ export function Sidebar({ user, dept, tasks, selectedId, sheetCount, formCount, 
     </Link>
   );
 
+  // Grouped tasks (e.g. Jay's "Content Creation tabs") fold into one dropdown where the first of them sits.
+  const renderList = (items: Automation[]) => {
+    const out: React.ReactNode[] = [];
+    const done = new Set<string>();
+    for (const a of items) {
+      const g = TASK_GROUPS.find((x) => x.taskIds.includes(a.id));
+      if (!g) { out.push(navItem(a)); continue; }
+      if (done.has(g.id)) continue;
+      done.add(g.id);
+      const members = g.taskIds.map((id) => items.find((x) => x.id === id)).filter(Boolean) as Automation[];
+      out.push(
+        <details key={g.id} className="ws-fold ws-subfold" open={members.some((m) => m.id === selectedId)}>
+          <summary className="ws-nav">
+            <span>{g.title}</span>
+            <span className="ws-count">{members.length}</span>
+          </summary>
+          <div className="ws-navs">{members.map(navItem)}</div>
+        </details>,
+      );
+    }
+    return out;
+  };
+
   return (
     <aside className="ws-side" aria-label={`${dept.name} tasks`}>
       <div className="ws-side-h"><b>{dept.name}</b><span>AI Task Hub · {user.name.split(/\s+/)[0]}</span></div>
       <nav className="ws-navs">
-        {mineForm.length > 0 && (<><div className="ws-group">From my process form</div>{mineForm.map(navItem)}</>)}
-        {mine.length > 0 && (<><div className="ws-group">My tasks</div>{mine.map(navItem)}</>)}
+        {mineForm.length > 0 && (<><div className="ws-group">From my process form</div>{renderList(mineForm)}</>)}
+        {mine.length > 0 && (<><div className="ws-group">My tasks</div>{renderList(mine)}</>)}
         {/* Super admins: each person's tasks fold into a dropdown; the one holding the open task starts open. */}
         {[...byOwner].map(([id, list]) => (
           <details key={id} className="ws-fold" open={list.some((a) => a.id === selectedId)}>
@@ -47,7 +71,7 @@ export function Sidebar({ user, dept, tasks, selectedId, sheetCount, formCount, 
               <span>{personById(id)?.name.split(/\s+/)[0] ?? id}&apos;s tasks</span>
               <span className="ws-count">{list.length}</span>
             </summary>
-            <div className="ws-navs">{list.map(navItem)}</div>
+            <div className="ws-navs">{renderList(list)}</div>
           </details>
         ))}
         {tasks.length === 0 && <p className="ws-empty">{isSuperAdmin(user) ? 'No tasks in this department yet.' : 'You don’t have any tasks yet. Fill in the Workflow Process Form and your processes show up here.'}</p>}

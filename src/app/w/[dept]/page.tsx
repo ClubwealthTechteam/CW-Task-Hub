@@ -22,6 +22,9 @@ import { Sidebar } from './Sidebar';
 import { KeapContact } from './KeapContact';
 import { SidePanel } from './SidePanel';
 import { Tour } from '@/components/Tour';
+import { ContentCalendar } from '@/components/calendar/ContentCalendar';
+import { calendarDeptForTask, calendarTeam, canUseCalendar } from '@/lib/calendar-access';
+import { todayPacific } from '@/lib/calendar-dates';
 import { UpdatesBanner } from '@/components/Announcements';
 import { announcementsFor, toView } from '@/lib/announcements';
 
@@ -52,6 +55,98 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
   const tool = selected ? primaryTool(selected) : null;
   const owner = selected ? personById(selected.ownerId) : null;
 
+  const calendarDept = selected && calendarDeptForTask(selected.id) && canUseCalendar(user, dept.id) ? dept.id : undefined;
+  const chat = selected ? (
+    <TaskChat
+      key={selected.id}
+      taskId={selected.id}
+      title={selected.title}
+      approveTool={tool}
+      starters={starters(selected)}
+      firstName={first}
+      ready={chatIsConfigured() && storeIsPersistent()}
+      preview={preview}
+      inPanel={Boolean(calendarDept)}
+    />
+  ) : null;
+  const details = selected ? (
+    <>
+      <section>
+        <h5>About this task</h5>
+        <p className="ws-sum">{selected.summary}</p>
+        <div className="row"><StagePill a={selected} />{owner && <span className="muted small">Owner: {owner.name}</span>}</div>
+      </section>
+
+      {selected.integrations.includes('keap') && (
+        <section>
+          <h5>Keap contact</h5>
+          {keapOn ? <KeapContact taskId={selected.id} /> : (
+            <div className="ws-contact off"><div className="ws-ava">K</div><div><b>Keap isn&apos;t connected yet</b><small>Once it is, the contact you&apos;re working on shows here with their tags</small></div></div>
+          )}
+        </section>
+      )}
+
+      <section>
+        <h5>Tools</h5>
+        <div className="row">
+          {selected.integrations.length === 0 && <span className="muted small">No tools needed</span>}
+          {selected.integrations.map((id) => (
+            <span key={id} className={`tag${isConnected(id) ? ' on' : ''}`} title={isConnected(id) ? 'Connected' : 'Not connected yet'}>{integrationName(id)}</span>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h5>Spreadsheets</h5>
+        {taskSheets.length === 0
+          ? <p className="muted small" style={{ margin: 0 }}>No spreadsheets linked to this task yet.</p>
+          : (
+            <ul className="ws-sheets">
+              {taskSheets.map((sh) => (
+                <li key={sh.id}><a href={sh.url} target="_blank" rel="noreferrer"><Icon name="table" size={14} /> {sh.name}</a><small>{sh.account}</small></li>
+              ))}
+            </ul>
+          )}
+        <Link href={`/w/${dept.id}/sheets?task=${selected.id}`} className="ws-more"><Icon name="plus" size={14} /> Add a spreadsheet</Link>
+      </section>
+
+      {selected.source === 'form' && selected.plan ? (
+        <section>
+          <h5>Build plan · from your process form</h5>
+          {selected.manualTime && <p className="muted small" style={{ margin: 0 }}>Takes about <b>{selected.manualTime}</b> by hand today.</p>}
+          <ol className="plan">
+            {selected.plan.map((p, i) => (
+              <li key={i}>
+                <span className={`plan-mode ${p.mode}`}>{PLAN_LABEL[p.mode]}</span>
+                <div><b>{p.tool}</b><span>{p.action}</span>{p.branches?.map((b) => <small key={b}>{b}</small>)}</div>
+              </li>
+            ))}
+          </ol>
+          {selected.ideal && <blockquote className="ideal"><b>Your ideal version</b>{selected.ideal}</blockquote>}
+          <p className="muted small" style={{ margin: 0 }}>Steps marked “Needs approval” change Keap or another system. They stay off until Miguel approves them; Keap is view-only for now.</p>
+        </section>
+      ) : (
+      <section>
+        <h5>When you approve{tool ? `, ${tool} will` : ', the hub will'}</h5>
+        <div className="kflow">
+          {steps.map((s, i) => (
+            <div key={s.title} className="kflow-item">
+              {i > 0 && <div className="kdown" aria-hidden="true">↓</div>}
+              <div className="kstep">
+                <span className="k">{i + 1}</span>
+                <div><b>{s.title}</b><small>{s.detail}</small>{!s.connected && <small className="wait">Not connected yet</small>}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="muted small" style={{ margin: 0 }}>Nothing is sent or changed until you press Approve.</p>
+      </section>
+      )}
+
+      <Link href={`/a/${selected.id}`} className="ws-more"><Icon name="info" size={14} /> Full task details</Link>
+    </>
+  ) : null;
+
   return (
     <>
       <Header user={user} current={dept.id} />
@@ -59,95 +154,14 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
         <UpdatesBanner items={updates} />
         <Sidebar user={user} dept={dept} tasks={all} selectedId={selected?.id} sheetCount={sheetCount} formCount={formCount} />
 
-        {selected ? (
-          <TaskChat
-            key={selected.id}
-            taskId={selected.id}
-            title={selected.title}
-            approveTool={tool}
-            starters={starters(selected)}
-            firstName={first}
-            ready={chatIsConfigured() && storeIsPersistent()}
-            preview={preview}
-          />
-        ) : <main className="ws-main" />}
+        {selected && calendarDept ? (
+          <ContentCalendar dept={calendarDept} taskId={selected.id} team={calendarTeam(calendarDept).map((p) => ({ id: p.id, name: p.name }))} today={todayPacific()} readOnly={preview} />
+        ) : selected ? chat : <main className="ws-main" />}
 
         {selected && (
-          <SidePanel>
-            <section>
-              <h5>About this task</h5>
-              <p className="ws-sum">{selected.summary}</p>
-              <div className="row"><StagePill a={selected} />{owner && <span className="muted small">Owner: {owner.name}</span>}</div>
-            </section>
-
-            {selected.integrations.includes('keap') && (
-              <section>
-                <h5>Keap contact</h5>
-                {keapOn ? <KeapContact taskId={selected.id} /> : (
-                  <div className="ws-contact off"><div className="ws-ava">K</div><div><b>Keap isn&apos;t connected yet</b><small>Once it is, the contact you&apos;re working on shows here with their tags</small></div></div>
-                )}
-              </section>
-            )}
-
-            <section>
-              <h5>Tools</h5>
-              <div className="row">
-                {selected.integrations.length === 0 && <span className="muted small">No tools needed</span>}
-                {selected.integrations.map((id) => (
-                  <span key={id} className={`tag${isConnected(id) ? ' on' : ''}`} title={isConnected(id) ? 'Connected' : 'Not connected yet'}>{integrationName(id)}</span>
-                ))}
-              </div>
-            </section>
-
-            <section>
-              <h5>Spreadsheets</h5>
-              {taskSheets.length === 0
-                ? <p className="muted small" style={{ margin: 0 }}>No spreadsheets linked to this task yet.</p>
-                : (
-                  <ul className="ws-sheets">
-                    {taskSheets.map((sh) => (
-                      <li key={sh.id}><a href={sh.url} target="_blank" rel="noreferrer"><Icon name="table" size={14} /> {sh.name}</a><small>{sh.account}</small></li>
-                    ))}
-                  </ul>
-                )}
-              <Link href={`/w/${dept.id}/sheets?task=${selected.id}`} className="ws-more"><Icon name="plus" size={14} /> Add a spreadsheet</Link>
-            </section>
-
-            {selected.source === 'form' && selected.plan ? (
-              <section>
-                <h5>Build plan · from your process form</h5>
-                {selected.manualTime && <p className="muted small" style={{ margin: 0 }}>Takes about <b>{selected.manualTime}</b> by hand today.</p>}
-                <ol className="plan">
-                  {selected.plan.map((p, i) => (
-                    <li key={i}>
-                      <span className={`plan-mode ${p.mode}`}>{PLAN_LABEL[p.mode]}</span>
-                      <div><b>{p.tool}</b><span>{p.action}</span>{p.branches?.map((b) => <small key={b}>{b}</small>)}</div>
-                    </li>
-                  ))}
-                </ol>
-                {selected.ideal && <blockquote className="ideal"><b>Your ideal version</b>{selected.ideal}</blockquote>}
-                <p className="muted small" style={{ margin: 0 }}>Steps marked “Needs approval” change Keap or another system. They stay off until Miguel approves them; Keap is view-only for now.</p>
-              </section>
-            ) : (
-            <section>
-              <h5>When you approve{tool ? `, ${tool} will` : ', the hub will'}</h5>
-              <div className="kflow">
-                {steps.map((s, i) => (
-                  <div key={s.title} className="kflow-item">
-                    {i > 0 && <div className="kdown" aria-hidden="true">↓</div>}
-                    <div className="kstep">
-                      <span className="k">{i + 1}</span>
-                      <div><b>{s.title}</b><small>{s.detail}</small>{!s.connected && <small className="wait">Not connected yet</small>}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <p className="muted small" style={{ margin: 0 }}>Nothing is sent or changed until you press Approve.</p>
-            </section>
-            )}
-
-            <Link href={`/a/${selected.id}`} className="ws-more"><Icon name="info" size={14} /> Full task details</Link>
-          </SidePanel>
+          calendarDept
+            ? <SidePanel label="Assistant & details" tabs={[{ id: 'assistant', label: 'Assistant', content: chat }, { id: 'details', label: 'Task details', content: details }]} />
+            : <SidePanel>{details}</SidePanel>
         )}
       </div>
       {!preview && <Tour />}

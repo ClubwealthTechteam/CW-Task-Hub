@@ -42,6 +42,7 @@ export function primaryTool(a: Automation) {
 /** Suggestion chips under the chat box for a task. */
 export function starters(a: Automation): string[] {
   const t = a.title.toLowerCase();
+  if (/calendar/.test(t)) return ['What’s due today?', 'Plan next week’s posts', 'Ideas for recurring posts'];
   const out = ['What will this task do?'];
   if (/email|message|reply|follow|communicat|reminder|outreach/.test(t)) out.push('Draft a message for me');
   if (/report|summary|tracker|data|stat/.test(t)) out.push('Help me summarize this week');

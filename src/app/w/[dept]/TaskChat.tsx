@@ -50,9 +50,13 @@ interface Props {
   ready: boolean;
   /** A super admin previewing this person: their chats stay private. */
   preview?: boolean;
+  /** Shown in the right panel (next to a tool like the content calendar) instead of the middle. */
+  inPanel?: boolean;
 }
 
-export function TaskChat({ taskId, title, approveTool, starters, firstName, ready, preview }: Props) {
+const ASK_EVENT = 'cw-ask-assistant';
+
+export function TaskChat({ taskId, title, approveTool, starters, firstName, ready, preview, inPanel }: Props) {
   const [conv, setConv] = useState<Conversation | null>(null);
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState('');
@@ -80,6 +84,18 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
     };
     window.addEventListener(CONTACT_EVENT, on);
     return () => window.removeEventListener(CONTACT_EVENT, on);
+  }, [taskId]);
+
+  // A tool on the page (e.g. the calendar's "Draft caption") can hand the assistant a message to send.
+  useEffect(() => {
+    const on = (e: Event) => {
+      const d = (e as CustomEvent<{ taskId: string; text: string }>).detail;
+      if (d.taskId !== taskId) return;
+      setText(d.text);
+      setTimeout(() => inputRef.current?.focus(), 50);
+    };
+    window.addEventListener(ASK_EVENT, on);
+    return () => window.removeEventListener(ASK_EVENT, on);
   }, [taskId]);
 
   // Pick up this task's latest chat.
@@ -151,8 +167,9 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
     );
   }
 
+  const Root = inPanel ? 'section' : 'main';
   return (
-    <main className="ws-main" aria-label={`${title} assistant`}>
+    <Root className={`ws-main${inPanel ? ' ws-chat-panel' : ''}`} aria-label={`${title} assistant`}>
       <div className="ws-mh">
         <span className="ws-bot"><Sparkle /></span>
         <b title={title}>{title}</b>
@@ -206,6 +223,6 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
       {usage?.limit != null && (
         <p className="ws-usage">{usage.left === 0 ? `You’ve used your ${usage.limit} messages for today. They reset at midnight (Pacific).` : `${usage.left} of ${usage.limit} CW Assistant messages left today`}</p>
       )}
-    </main>
+    </Root>
   );
 }

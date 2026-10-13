@@ -6,9 +6,10 @@ import type { DepartmentId } from '@/config/departments';
 import { AUTOMATIONS, type Automation } from './automations';
 import { getSubmissions } from '@/lib/forms/submissions';
 import { formAutomations } from '@/lib/forms/plan';
+import { HANDLED_ELSEWHERE } from '@/config/task-layout';
 
 export async function allAutomations(): Promise<Automation[]> {
-  return [...AUTOMATIONS, ...formAutomations(await getSubmissions())];
+  return [...AUTOMATIONS, ...formAutomations(await getSubmissions())].filter((a) => !HANDLED_ELSEWHERE[a.id]);
 }
 
 export const findAutomation = async (id: string) => (await allAutomations()).find((a) => a.id === id);

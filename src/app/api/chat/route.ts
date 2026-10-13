@@ -5,6 +5,7 @@ import { findAutomation } from '@/data/catalog';
 import { cleanContact } from '@/lib/chat/contact';
 import { keapContext } from '@/lib/chat/keap-context';
 import { eventbriteContext } from '@/lib/chat/eventbrite-context';
+import { calendarContext } from '@/lib/chat/calendar-context';
 import { zapierContext } from '@/lib/chat/zapier-context';
 import { sheetsContext } from '@/lib/chat/sheets-context';
 import { storeIsPersistent } from '@/lib/store';
@@ -71,13 +72,14 @@ export async function POST(req: Request) {
 
   try {
     const contact = task ? cleanContact(body.contact) : undefined;
-    const [keapBlock, eventsBlock, zapBlock, sheetsBlock] = await Promise.all([
+    const [keapBlock, eventsBlock, zapBlock, sheetsBlock, calendarBlock] = await Promise.all([
       keapContext(user, text, contact?.id),
       eventbriteContext(user, text, Boolean(task && (task.department === 'events' || task.integrations.includes('eventbrite')))),
       zapierContext(user, text),
       sheetsContext(user, text, task?.id),
+      calendarContext(task?.id).catch(() => ''),
     ]);
-    await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, eventsBlock + zapBlock + sheetsBlock));
+    await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, eventsBlock + zapBlock + sheetsBlock + calendarBlock));
   } catch (e) {
     reply.status = 'error';
     reply.text = (e as Error).message;

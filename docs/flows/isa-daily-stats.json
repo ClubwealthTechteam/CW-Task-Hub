@@ -1,0 +1,37 @@
+{
+  "name": "ISA Daily Stats · ProspectBoss + Time Doctor → Claude → Slack",
+  "view": { "x": 60, "y": 40, "k": 0.8 },
+  "nodes": [
+    { "id": "td", "type": "app", "app": "timedoctor", "x": 40, "y": 40, "title": "Omerson's TD script", "desc": "Time Doctor + CW University data, sent once a day", "status": "building" },
+    { "id": "zapA", "type": "app", "app": "zapier", "x": 250, "y": 40, "title": "Zap A · Catch Hook", "desc": "Receives the TD data and adds rows to the TD tab", "status": "idea" },
+    { "id": "sch", "type": "app", "app": "trigger", "x": 40, "y": 300, "title": "Weekdays 6:00 AM PT", "desc": "Schedule for Zap B", "status": "idea" },
+    { "id": "pb", "type": "app", "app": "prospect", "x": 250, "y": 300, "title": "ProspectBoss API", "desc": "Read-only key. Yesterday per caller: calls, connects, talk time, logins, breaks", "status": "idea" },
+    { "id": "zapB", "type": "app", "app": "zapier", "x": 460, "y": 300, "title": "Zap B · Pull PB stats", "desc": "Adds yesterday's rows to the PB tab", "status": "idea" },
+    { "id": "sheet", "type": "app", "app": "sheets", "x": 670, "y": 170, "title": "ISA Daily Stats sheet", "desc": "Tabs: PB · TD · Roster (usernames like bpond014 → ISA names)", "status": "idea" },
+    { "id": "sch2", "type": "app", "app": "trigger", "x": 880, "y": 400, "title": "Weekdays 7:00 AM PT", "desc": "Runs the daily report routine", "status": "idea" },
+    { "id": "rep", "type": "app", "app": "claude", "x": 880, "y": 170, "title": "Claude · Daily ISA report", "desc": "Per ISA: logged-in, breaks, active time, calls, connects, talk time. Flags long breaks, low active time, TD online but no PB calls", "status": "idea" },
+    { "id": "phase", "type": "decision", "x": 1090, "y": 172, "title": "Still testing?", "desc": "" },
+    { "id": "test", "type": "app", "app": "slack", "x": 1300, "y": 40, "title": "#isa-stats-test", "desc": "Phase 1 · private, Miguel only. Posted as Club Wealth Assistant", "status": "idea" },
+    { "id": "live", "type": "app", "app": "slack", "x": 1300, "y": 300, "title": "#isa-daily-stats", "desc": "Phase 2 · Tara. Posted as Club Wealth Assistant", "status": "idea" },
+    { "id": "ask", "type": "app", "app": "human", "x": 670, "y": 620, "title": "@Club Wealth Assistant", "desc": "Miguel (testing), then Tara asks: 'Who had the most active time this week?'", "status": "idea" },
+    { "id": "mention", "type": "app", "app": "claude", "x": 880, "y": 620, "title": "Claude · @mention routine", "desc": "Reads the ISA Daily Stats sheet and answers from it", "status": "idea" },
+    { "id": "reply", "type": "app", "app": "slack", "x": 1090, "y": 620, "title": "Reply in thread", "desc": "Same channel, only for the allowed person", "status": "idea" },
+    { "id": "rules", "type": "note", "x": 40, "y": 560, "title": "Rules", "desc": "Read-only toward ProspectBoss, Time Doctor and CWU.\nClaude posts only in its one channel.\nAPI key lives in the Zap / routine settings, never in Slack or chat." },
+    { "id": "wait", "type": "note", "x": 290, "y": 560, "title": "Waiting on", "desc": "Gary: API docs + key (to techteam@).\nOmerson: TD script → Zap A hook.\nMiguel: test channel + sheet + roster." }
+  ],
+  "edges": [
+    { "id": "e1", "from": "td", "to": "zapA", "port": "out" },
+    { "id": "e2", "from": "zapA", "to": "sheet", "port": "out" },
+    { "id": "e3", "from": "sch", "to": "pb", "port": "out" },
+    { "id": "e4", "from": "pb", "to": "zapB", "port": "out" },
+    { "id": "e5", "from": "zapB", "to": "sheet", "port": "out" },
+    { "id": "e6", "from": "sheet", "to": "rep", "port": "out" },
+    { "id": "e7", "from": "sch2", "to": "rep", "port": "out" },
+    { "id": "e8", "from": "rep", "to": "phase", "port": "out" },
+    { "id": "e9", "from": "phase", "to": "test", "port": "yes" },
+    { "id": "e10", "from": "phase", "to": "live", "port": "no" },
+    { "id": "e11", "from": "ask", "to": "mention", "port": "out" },
+    { "id": "e12", "from": "sheet", "to": "mention", "port": "out" },
+    { "id": "e13", "from": "mention", "to": "reply", "port": "out" }
+  ]
+}

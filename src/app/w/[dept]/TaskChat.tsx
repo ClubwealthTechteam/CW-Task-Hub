@@ -57,7 +57,7 @@ interface Props {
   inPanel?: boolean;
   /** Social Media (and super admins): attach PNG/JPEG/PDF files and ask for graphics. */
   canAttach?: boolean;
-  /** Marketing Graphics, for the people allowed to use Canva: connect Canva and send graphics there. */
+  /** For the people allowed to use Canva, on their Canva tasks: connect Canva and send graphics there. */
   canva?: boolean;
 }
 

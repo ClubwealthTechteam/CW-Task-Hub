@@ -87,5 +87,9 @@ export async function validFileToken(id: string, token: string) {
   return diff === 0;
 }
 
-/** Attaching files and making graphics is for the Social Media department (and super admins). */
-export const canUseFiles = (user: Person | null | undefined) => Boolean(user) && (isSuperAdmin(user) || user!.departments.includes('social-media'));
+/** People outside Social Media who also design (Events: Andrea and Liz edit graphics in Canva). */
+export const GRAPHICS_PEOPLE = ['andrea', 'liz'];
+
+/** Attaching files and making graphics: the Social Media department, GRAPHICS_PEOPLE and super admins. */
+export const canUseFiles = (user: Person | null | undefined) =>
+  Boolean(user) && (isSuperAdmin(user) || user!.departments.includes('social-media') || GRAPHICS_PEOPLE.includes(user!.id));

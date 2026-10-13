@@ -190,6 +190,7 @@ Group them into: tips, stories, questions, myths vs facts, and behind the scenes
 // ---- Events (Andrea) ----
 const MINUTES_TASKS = ['andrea-form-minutes-of-the-meeting', 'andrea-2'];
 const COACH_TASKS = ['andrea-form-coaches-outreach', 'andrea-9'];
+const EDIT_TASKS = ['andrea-form-canva-edit'];
 // ---- Client Care (Jowelyn) ----
 const CALL_TASKS = ['jowee-form-group-coaching-scheduling-and-wellness-calls', 'jowee-4'];
 
@@ -238,6 +239,47 @@ Keep it friendly and under 120 words. Sign it from Andrea, Club Wealth Events.`,
 - the event link: [Eventbrite link]
 - a ready-to-paste text and a short social post they can share with their contacts.
 Thank them and keep it short.`,
+  },
+  {
+    id: 'edit-locations', dept: 'events', group: 'Graphics', tasks: EDIT_TASKS,
+    title: 'New location on our event graphic', hint: 'Same design, new city, venue and date',
+    prompt: `I attached our event graphic. Make the same design with the new event details, keeping the layout, colors and fonts:
+City: [city, state]
+Venue: [venue name and address]
+Date and time: [date, time + time zone]
+Anything else to change: [e.g. speaker, price, link]
+Give me the PNG and put an editable copy in my Canva.`,
+  },
+  {
+    id: 'edit-text', dept: 'events', group: 'Graphics', tasks: EDIT_TASKS,
+    title: 'Change text on my graphic', hint: 'Attach it, say what to change',
+    prompt: `Edit the attached graphic. Change:
+- [old text] → [new text]
+- [old text] → [new text]
+Keep everything else exactly the same. Put the result in my Canva so I can tweak it.`,
+  },
+  {
+    id: 'edit-tour', dept: 'events', group: 'Graphics', tasks: EDIT_TASKS,
+    title: 'One graphic per tour stop', hint: 'Many cities from one template',
+    prompt: `Using the attached graphic as the template, make one version for each stop below (same design, only the details change). Put each one in my Canva.
+1. [city, state] · [venue] · [date, time]
+2. [city, state] · [venue] · [date, time]
+3. [city, state] · [venue] · [date, time]`,
+  },
+  {
+    id: 'edit-resize', dept: 'events', group: 'Graphics', tasks: EDIT_TASKS,
+    title: 'Resize for every channel', hint: 'Square, story, Eventbrite, Facebook event',
+    prompt: `Resize the attached graphic for: [square post 1080x1080 / story 1080x1920 / Eventbrite banner 2160x1080 / Facebook event cover 1920x1005]. Rearrange the layout so nothing is cut off and the text stays readable. Put them in my Canva.`,
+  },
+  {
+    id: 'edit-pdf', dept: 'events', group: 'Graphics', tasks: EDIT_TASKS,
+    title: 'PDF flyer → social graphic', hint: 'Turn an attached PDF into a post',
+    prompt: `I attached a PDF flyer. Turn it into a [square / story] social graphic with the key details only (event name, city, date, time, link). Put an editable copy in my Canva and write a short caption in a draft.`,
+  },
+  {
+    id: 'edit-check', dept: 'events', group: 'Graphics', tasks: EDIT_TASKS,
+    title: 'Check my graphic before posting', hint: 'Spelling, dates and details',
+    prompt: `Check the attached graphic before I post it. Look for spelling mistakes, a date that doesn't match the weekday, wrong or missing time zone, and anything that doesn't match these event details: [paste event details or Eventbrite link]. List each problem and how to fix it.`,
   },
   {
     id: 'call-note-rough', dept: 'client-care', group: 'Calls', tasks: CALL_TASKS,

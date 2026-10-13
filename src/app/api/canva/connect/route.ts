@@ -13,6 +13,6 @@ export async function GET(req: Request) {
   if (!canUseCanva(user)) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   if (!canvaConfigured()) return NextResponse.json({ error: 'Canva isn’t set up in the hub yet (CANVA_CLIENT_ID and CANVA_CLIENT_SECRET)' }, { status: 503 });
   const back = new URL(req.url).searchParams.get('return') ?? '';
-  const returnTo = back.startsWith('/w/') ? back : '/w/social-media?t=jaymar-6';
+  const returnTo = back.startsWith('/w/') ? back : `/w/${user.departments[0]}`;
   return NextResponse.redirect(await authorizeUrl(user.id, returnTo));
 }

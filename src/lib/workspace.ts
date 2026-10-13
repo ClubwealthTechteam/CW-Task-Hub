@@ -43,6 +43,7 @@ export function primaryTool(a: Automation) {
 /** Suggestion chips under the chat box for a task. */
 export function starters(a: Automation): string[] {
   const t = a.title.toLowerCase();
+  if (a.id === 'andrea-form-canva-edit') return ['Edit my attached graphic', 'New location on our graphic', 'Make it in Canva'];
   if (/^andrea-(form-minutes|2$)/.test(a.id)) return ['Write minutes from my notes', 'List only what changed', 'Action items by person'];
   if (/^andrea-(form-coaches|9$)/.test(a.id)) return ['Draft the first ask to a coach', 'Draft a follow-up', 'Plan follow-up dates'];
   if (AR_TASKS.includes(a.id)) return ['Who should I call first today?', 'Draft a payment reminder', 'Summarize what changed'];

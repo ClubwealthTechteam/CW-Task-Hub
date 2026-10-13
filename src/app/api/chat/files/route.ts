@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
-  if (!canUseFiles(user)) return NextResponse.json({ error: 'Attaching files is for the Social Media team' }, { status: 403 });
+  if (!canUseFiles(user)) return NextResponse.json({ error: 'Attaching files isn’t turned on for you' }, { status: 403 });
   if (!storeIsPersistent()) return NextResponse.json({ error: 'Storage isn’t connected yet' }, { status: 503 });
   const form = await req.formData().catch(() => null);
   const file = form?.get('file');

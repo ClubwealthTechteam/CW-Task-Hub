@@ -13,8 +13,8 @@ export async function filesContext(conv: Conversation, canMakeGraphics: boolean,
   const out: string[] = [];
   if (lines.length) out.push('', '', 'FILES IN THIS CHAT (newest last; download with curl to read them):', ...lines);
   out.push('', '', canMakeGraphics
-    ? 'GRAPHICS: allowed. This person is on the Social Media team: if they ask for an image, graphic or post visual, make it (see GRAPHICS in your instructions).'
-    : 'GRAPHICS: not available for this person. If they ask for an image, say graphics are only available to the Social Media team.');
+    ? 'GRAPHICS: allowed. This person makes graphics (Social Media team, or Andrea/Liz in Events): if they ask for an image, graphic, flyer or post visual, make it (see GRAPHICS in your instructions).'
+    : 'GRAPHICS: not available for this person. If they ask for an image, say graphics aren’t turned on for them yet and Tara can enable it.');
   if (canvaConnected) out.push('', 'CANVA: connected. This person connected their Canva account: if they ask for it in Canva (or editable in Canva), also put it in their Canva (see CANVA in your instructions).');
   return out.join('\n');
 }

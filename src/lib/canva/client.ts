@@ -1,5 +1,5 @@
-// Canva Connect (REST API), per person, through OAuth with PKCE. For now only Jay Mar uses it (CANVA_USERS),
-// in the Marketing Graphics task. Tokens are kept encrypted in the hub's store and never reach the browser.
+// Canva Connect (REST API), per person, through OAuth with PKCE. Jay Mar (Marketing Graphics task) and
+// Andrea and Liz (all their Events tasks) can connect their Canva (CANVA_USERS). Tokens are kept encrypted in the hub's store and never reach the browser.
 // The hub only creates designs (from a graphic or a PDF) and reads them; it never edits or deletes anything
 // already in Canva.
 
@@ -14,8 +14,14 @@ export const CANVA_TASK = 'jaymar-6'; // Marketing Graphics
 export const redirectUri = () => `${process.env.HUB_URL || 'https://cw-ai-task-hub.vercel.app'}/api/canva/callback`;
 
 export const canvaConfigured = () => Boolean(process.env.CANVA_CLIENT_ID && process.env.CANVA_CLIENT_SECRET);
-const allowedIds = () => (process.env.CANVA_USERS || 'jaymar').split(',').map((s) => s.trim()).filter(Boolean);
+const allowedIds = () => (process.env.CANVA_USERS || 'jaymar,andrea,liz').split(',').map((s) => s.trim()).filter(Boolean);
 export const canUseCanva = (user: Person | null | undefined) => Boolean(user) && allowedIds().includes(user!.id);
+
+/** Where Canva shows: Jay only in Marketing Graphics; everyone else allowed in any task they own. */
+export function canvaOnTask(user: Person | null | undefined, task?: { id: string; ownerId: string }) {
+  if (!user || !task || !canUseCanva(user)) return false;
+  return user.id === 'jaymar' ? task.id === CANVA_TASK : task.ownerId === user.id;
+}
 
 export class CanvaError extends Error { constructor(message: string, public status = 500) { super(message); } }
 

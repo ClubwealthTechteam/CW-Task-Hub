@@ -1,7 +1,7 @@
-# Canva setup (Jay · Marketing Graphics)
+# Canva setup (Jay, Andrea and Liz)
 
-Lets Jay connect a Canva account to the CW AI Task Hub so the assistant can put designs into Canva.
-Only Jay can use it (`CANVA_USERS`, default `jaymar`), and only in the **Marketing Graphics** task.
+Lets Jay, Andrea and Liz connect a Canva account to the CW AI Task Hub so the assistant can put designs into Canva.
+Allowed people: `CANVA_USERS` (default `jaymar,andrea,liz`). Jay sees it in the **Marketing Graphics** task; Andrea and Liz in all of their Events tasks (Andrea's **Canva Edit** task has edit templates).
 
 ## 1. Create the Canva integration (about 10 minutes)
 Do this signed in with the Canva account the designs should go to (Jay's own, or the company account).

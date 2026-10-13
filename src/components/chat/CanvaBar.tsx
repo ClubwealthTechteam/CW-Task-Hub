@@ -1,6 +1,6 @@
 'use client';
 
-// Canva connection for the Marketing Graphics chat (only for the people allowed to use Canva).
+// Canva connection in a task chat (Jay: Marketing Graphics; Andrea and Liz: their Events tasks).
 
 import { useEffect, useState } from 'react';
 

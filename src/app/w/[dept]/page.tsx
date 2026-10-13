@@ -25,8 +25,8 @@ import { Tour } from '@/components/Tour';
 import { ContentCalendar } from '@/components/calendar/ContentCalendar';
 import { calendarDeptForTask, calendarTeam, canUseCalendar } from '@/lib/calendar-access';
 import { todayPacific } from '@/lib/calendar-dates';
-import { canUseFiles } from '@/lib/chat/files';
-import { CANVA_TASK, canUseCanva } from '@/lib/canva/client';
+import { canUseFiles, GRAPHICS_PEOPLE } from '@/lib/chat/files';
+import { canvaOnTask } from '@/lib/canva/client';
 import { ContentTemplates } from '@/components/ContentTemplates';
 import { deptTemplates } from '@/config/content-templates';
 import { CallNotes } from '@/components/calls/CallNotes';
@@ -93,8 +93,8 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
       ready={chatIsConfigured() && storeIsPersistent()}
       preview={preview}
       inPanel={toolInMiddle}
-      canAttach={dept.id === 'social-media' && canUseFiles(user) && !preview}
-      canva={selected.id === CANVA_TASK && canUseCanva(user)}
+      canAttach={(dept.id === 'social-media' || GRAPHICS_PEOPLE.includes(user.id)) && canUseFiles(user) && !preview}
+      canva={canvaOnTask(user, selected)}
     />
   ) : null;
   // Ready-made prompts beside the assistant, for departments that have them (Social Media, Events, Client Care).

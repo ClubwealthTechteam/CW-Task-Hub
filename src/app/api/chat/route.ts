@@ -16,7 +16,7 @@ import { filesContext } from '@/lib/chat/files-context';
 import { judgeContext } from '@/lib/council/judge-context';
 import { taskGuide } from '@/lib/chat/task-guides';
 import { arContext, canUseAr } from '@/lib/billing/ar';
-import { CANVA_TASK, canUseCanva, canvaConfigured, status as canvaStatus } from '@/lib/canva/client';
+import { canvaOnTask, canvaConfigured, status as canvaStatus } from '@/lib/canva/client';
 import { countMessage, usageFor } from '@/lib/chat/usage';
 import { chatIsConfigured, buildPayload, fireChatRoutine } from '@/lib/chat/routine';
 import {
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
   }
   // Attached files: only the sender's own, not yet sent in another chat.
   const ids: string[] = !judge && Array.isArray(body.attachments) ? body.attachments.map(String) : [];
-  if (ids.length && !canUseFiles(user)) return NextResponse.json({ error: 'Attaching files is for the Social Media team' }, { status: 403 });
+  if (ids.length && !canUseFiles(user)) return NextResponse.json({ error: 'Attaching files isn’t turned on for you' }, { status: 403 });
   if (ids.length > MAX_FILES_PER_MESSAGE) return NextResponse.json({ error: `Attach up to ${MAX_FILES_PER_MESSAGE} files per message` }, { status: 400 });
   const attached = await Promise.all(ids.map(fileMeta));
   if (attached.some((f) => !f || f.owner !== user.id || f.source !== 'upload' || (f.conversationId && f.conversationId !== conv?.id))) {
@@ -110,7 +110,7 @@ export async function POST(req: Request) {
         referralsContext(task?.id).catch(() => ''),
         canUseAr(user) ? arContext(task?.id).catch(() => '') : Promise.resolve(''),
       ]);
-      const canvaOn = task?.id === CANVA_TASK && canvaConfigured() && canUseCanva(user) && (await canvaStatus(user.id)).connected;
+      const canvaOn = canvaOnTask(user, task) && canvaConfigured() && (await canvaStatus(user.id)).connected;
       const filesBlock = await filesContext(conv, canUseFiles(user), canvaOn);
       await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, eventsBlock + zapBlock + sheetsBlock + calendarBlock + welcomeBlock + referralsBlock + arBlock + taskGuide(task?.id) + filesBlock));
     }

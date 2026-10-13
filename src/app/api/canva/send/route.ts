@@ -1,4 +1,4 @@
-// "Send to Canva" on a graphic in the Marketing Graphics chat: the image becomes a Canva design in the
+// "Send to Canva" on a graphic in a Canva task chat: the image becomes a Canva design in the
 // person's account, and the chat remembers the "Open in Canva" link.
 
 import { NextResponse } from 'next/server';

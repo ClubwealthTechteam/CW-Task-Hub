@@ -26,6 +26,7 @@ import { ContentCalendar } from '@/components/calendar/ContentCalendar';
 import { calendarDeptForTask, calendarTeam, canUseCalendar } from '@/lib/calendar-access';
 import { todayPacific } from '@/lib/calendar-dates';
 import { canUseFiles } from '@/lib/chat/files';
+import { ContentTemplates } from '@/components/ContentTemplates';
 import { UpdatesBanner } from '@/components/Announcements';
 import { announcementsFor, toView } from '@/lib/announcements';
 
@@ -71,6 +72,8 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
       canAttach={dept.id === 'social-media' && canUseFiles(user) && !preview}
     />
   ) : null;
+  // Social Media: ready-made content prompts beside the assistant.
+  const templates = selected && dept.id === 'social-media' ? <ContentTemplates taskId={selected.id} /> : null;
   const details = selected ? (
     <>
       <section>
@@ -162,8 +165,14 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
 
         {selected && (
           calendarDept
-            ? <SidePanel label="Assistant & details" tabs={[{ id: 'assistant', label: 'Assistant', content: chat }, { id: 'details', label: 'Task details', content: details }]} />
-            : <SidePanel>{details}</SidePanel>
+            ? <SidePanel label="Assistant & details" tabs={[
+                { id: 'assistant', label: 'Assistant', content: chat },
+                ...(templates ? [{ id: 'templates', label: 'Templates', content: templates }] : []),
+                { id: 'details', label: 'Task details', content: details },
+              ]} />
+            : templates
+              ? <SidePanel label="Templates & details" tabs={[{ id: 'templates', label: 'Templates', content: templates }, { id: 'details', label: 'Task details', content: details }]} />
+              : <SidePanel>{details}</SidePanel>
         )}
       </div>
       {!preview && <Tour />}

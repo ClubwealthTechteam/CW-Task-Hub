@@ -671,3 +671,20 @@ a.chip:hover { border-color: #0c3f7a; color: #0c3f7a; }
 .cf-made figcaption { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; font-size: 12.5px; color: var(--ink-2); }
 .cf-made figcaption span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .cf-made .btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; font-size: 12.5px; text-decoration: none; color: var(--ink); white-space: nowrap; }
+
+/* Content templates (Social Media, right panel) */
+.tpls { display: flex; flex-direction: column; gap: 12px; }
+.tpls mark, .tpl-text mark { background: color-mix(in srgb, var(--gold) 22%, transparent); color: var(--ink); border-radius: 3px; padding: 0 2px; }
+.tpl-groups { display: flex; flex-wrap: wrap; gap: 5px; }
+.tpl-groups .chip-btn { padding: 3px 10px; font-size: 12px; }
+.tpl-groups .chip-btn.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+.tpl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.tpl { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; background: var(--surface); }
+.tpl.open { border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); }
+.tpl-h { border: 0; background: none; padding: 0; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
+.tpl-title { font-weight: 700; font-size: 13.5px; color: var(--ink); }
+.tpl-hint { font-size: 12px; color: var(--muted); }
+.tpl-text { margin: 0; white-space: pre-wrap; font: inherit; font-size: 12.5px; line-height: 1.5; color: var(--ink-2); background: var(--surface-2); border-radius: 8px; padding: 10px; max-height: 260px; overflow-y: auto; }
+.tpl-acts { display: flex; align-items: center; gap: 6px; }
+.tpl-acts .btn { padding: 4px 10px; font-size: 12.5px; }
+.tpl-peek { margin-left: auto; }

@@ -1,7 +1,6 @@
 // The list of integrations shown on the Integrations page and used by automations.
 
 import { keapConfigured } from './keap/client';
-import { buildiumConfigured } from './buildium/client';
 import { zapierHooks } from './zapier';
 import { eventbriteConfigured } from './eventbrite/client';
 import { sheetsConfigured } from './google/sheets';
@@ -19,11 +18,6 @@ export function builtinIntegrations(): IntegrationInfo[] {
       id: 'keap', name: 'Keap', kind: 'builtin', envKeys: ['KEAP_API_KEY'],
       description: 'Contacts, tags, campaigns and API goals, emails, notes, tasks, sales records and webhooks.',
       status: keapConfigured() ? 'connected' : 'not_connected',
-    },
-    {
-      id: 'buildium', name: 'Buildium', kind: 'builtin', envKeys: ['BUILDIUM_CLIENT_ID', 'BUILDIUM_CLIENT_SECRET'],
-      description: 'Properties, units, work orders, resident requests, contractors (vendors), bills and leases.',
-      status: buildiumConfigured() ? 'connected' : 'not_connected',
     },
     {
       id: 'zapier', name: 'Zapier', kind: 'builtin', envKeys: ['ZAPIER_HOOKS'],
@@ -56,4 +50,4 @@ export function plannedIntegrations(): IntegrationInfo[] {
 }
 
 export const integrationName = (id: IntegrationId | string) =>
-  ({ keap: 'Keap', buildium: 'Buildium', eventbrite: 'Eventbrite', 'google-sheets': 'Google Sheets', zapier: 'Zapier', claude: 'Claude' } as Record<string, string>)[id] ?? PLANNED[id] ?? id;
+  ({ keap: 'Keap', eventbrite: 'Eventbrite', 'google-sheets': 'Google Sheets', zapier: 'Zapier', claude: 'Claude' } as Record<string, string>)[id] ?? PLANNED[id] ?? id;

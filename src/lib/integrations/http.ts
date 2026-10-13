@@ -1,4 +1,4 @@
-// Shared request builder for allowlisted REST actions (Keap, Buildium, and future built-ins).
+// Shared request builder for allowlisted REST actions (Keap and future built-ins).
 
 import type { HttpMethod } from './keap/capabilities';
 

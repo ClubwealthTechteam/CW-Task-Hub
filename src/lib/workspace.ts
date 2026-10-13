@@ -11,7 +11,6 @@ const ACTION: Record<string, [string, string]> = {
   gmail: ['Send the email', 'From your Gmail, after you approve the draft'],
   'google-sheets': ['Update the tracker', 'Write the result into the Google Sheet'],
   'google-calendar': ['Update the calendar', 'Add or change the Google Calendar event'],
-  buildium: ['Update Buildium', 'Update the property, work order or contractor record'],
   eventbrite: ['Check Eventbrite', 'Read the event, tickets and attendees (view-only)'],
   zapier: ['Run the Zap', 'Start the matching Zapier workflow'],
   slack: ['Post in Slack', 'Share the update in the right channel'],
@@ -63,7 +62,7 @@ export function taskIcon(a: Automation): TaskIcon {
   if (/client|contact|lead|recruit|people|staff/.test(t)) return 'person';
   if (/knowledge|sop|guide|training|course/.test(t)) return 'book';
   if (/report|tracker|sheet|data|stat|list/.test(t)) return 'table';
-  if (/propert|tenant|maintenance|contractor|buildium/.test(t)) return 'home';
+  if (/propert|tenant|maintenance|contractor/.test(t)) return 'home';
   if (/update|internal/.test(t)) return 'grid';
   return 'spark';
 }

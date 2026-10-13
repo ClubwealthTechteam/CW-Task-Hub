@@ -63,7 +63,6 @@ export const TOOL_HINTS: [RegExp, IntegrationId][] = [
   [/calendar/i, 'google-calendar'],
   [/prospect ?boss|\bPB\b/, 'prospectboss'],
   [/slack/i, 'slack'],
-  [/buildium|propert(y|ies)|contractor|maintenance|tenant/i, 'buildium'],
   [/facebook|meta\b|instagram|threads|social/i, 'meta'],
   [/canva|graphic/i, 'canva'],
   [/time doctor|payroll/i, 'timedoctor'],

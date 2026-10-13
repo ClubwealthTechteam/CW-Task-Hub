@@ -110,7 +110,7 @@ export default async function HelpPage() {
             <ul>
               <li><b>Overview</b> (<Link href="/">home</Link>): every department, recent runs, and <b>Preview someone’s view</b> to check exactly what a team member sees (read-only; their chats stay hidden).</li>
               <li><b>Departments</b> in the top bar: each person’s tasks fold into a dropdown in the sidebar.</li>
-              <li><b>Integrations ▾</b>: Keap and Eventbrite (view-only tabs), Zapier (live feed of Zap updates, starting approved Zaps), Google Sheets, Buildium, and <b>Manage integrations</b>.</li>
+              <li><b>Integrations ▾</b>: Keap and Eventbrite (view-only tabs), Zapier (live feed of Zap updates, starting approved Zaps), Google Sheets, and <b>Manage integrations</b>.</li>
               <li><b>Spreadsheets</b> page in any department: everyone’s sheets there, and <b>Approved accounts</b> for sheets outside the marketing Gmail.</li>
               <li>You have no daily message limit. Team members get {dailyLimit()} a day.</li>
               <li>Access codes, the assistant, and integrations are set in Vercel (see the README).</li>

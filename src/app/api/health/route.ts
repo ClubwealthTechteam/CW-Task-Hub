@@ -6,7 +6,6 @@ import { eventbriteConfigured } from '@/lib/integrations/eventbrite/client';
 import { signInMode } from '@/lib/auth/access-codes';
 import { inboxConfigured } from '@/lib/integrations/zapier-feed';
 import { sheetsConfigured } from '@/lib/integrations/google/sheets';
-import { buildiumConfigured } from '@/lib/integrations/buildium/client';
 import { zapierHooks } from '@/lib/integrations/zapier';
 
 export const dynamic = 'force-dynamic';
@@ -22,6 +21,5 @@ export const GET = () => NextResponse.json({
   eventbrite: eventbriteConfigured(),
   zapierInbox: inboxConfigured(),
   googleSheets: sheetsConfigured(),
-  buildium: buildiumConfigured(),
   zapsToStart: Object.keys(zapierHooks()).length,
 });

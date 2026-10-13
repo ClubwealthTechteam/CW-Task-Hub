@@ -19,7 +19,6 @@ export function Header({ user, current }: { user: Person; current?: string }) {
   const apps: MenuApp[] = [
     admin && { id: 'keap', name: 'Keap', note: 'Club Wealth’s database · view-only', href: '/keap', connected: status.keap },
     canViewEventbrite(user) && { id: 'eventbrite', name: 'Eventbrite', note: 'Events, tickets and attendees · view-only', href: '/eventbrite', connected: status.eventbrite },
-    admin && { id: 'buildium', name: 'Buildium', note: 'Properties, work orders, contractors', href: '/integrations#buildium-title', connected: status.buildium },
     admin && { id: 'google-sheets', name: 'Google Sheets', note: 'Read the sheets people list · view-only', href: '/integrations', connected: status['google-sheets'] },
     admin && { id: 'zapier', name: 'Zapier', note: 'Updates from Zaps, and starting Zaps', href: '/zapier', connected: status.zapier || Boolean(process.env.ZAPIER_INBOUND_SECRET) },
     admin && { id: 'claude', name: 'Claude', note: 'AI inside automations', href: '/integrations', connected: status.claude },

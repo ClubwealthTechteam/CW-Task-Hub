@@ -50,7 +50,7 @@ export function CustomIntegrations({ initial }: { initial: PublicCustomIntegrati
         </div>
       )}
       <form onSubmit={add} style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-        <div className="field"><label htmlFor="ci-name">Name</label><input id="ci-name" name="name" required placeholder="e.g. Buildium, ProspectBoss, a Zap" /></div>
+        <div className="field"><label htmlFor="ci-name">Name</label><input id="ci-name" name="name" required placeholder="e.g. ProspectBoss, a Zap" /></div>
         <div className="field"><label htmlFor="ci-type">Type</label>
           <select id="ci-type" name="type" defaultValue="webhook"><option value="webhook">Webhook (Zapier, Make, n8n…)</option><option value="rest_api">REST API</option></select>
         </div>

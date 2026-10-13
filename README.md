@@ -2,7 +2,7 @@
 
 The Club Wealth AI Task Hub: one web app where each admin team opens its department, runs its automations, and (for super admins) connects the tools those automations use. It is built to sit inside **CW University** later as a tab (web-extension page), so it is a standalone site that can be framed by `learning.clubwealth.com`.
 
-Stack: **Next.js 14 (App Router) + TypeScript**, deployed on **Vercel**. The backend is the `src/app/api/` routes, which run as server functions on Vercel: every call to Keap, Buildium, Zapier or a custom integration goes through them, so API keys stay on the server and access rules are checked before anything runs. No database is required to start; runtime data (custom integrations, run log) goes to Upstash Redis when connected.
+Stack: **Next.js 14 (App Router) + TypeScript**, deployed on **Vercel**. The backend is the `src/app/api/` routes, which run as server functions on Vercel: every call to Keap, Eventbrite, Zapier or a custom integration goes through them, so API keys stay on the server and access rules are checked before anything runs. No database is required to start; runtime data (custom integrations, run log) goes to Upstash Redis when connected.
 
 ## Departments and access
 
@@ -20,7 +20,7 @@ Stack: **Next.js 14 (App Router) + TypeScript**, deployed on **Vercel**. The bac
 
 ## Automations
 
-Every request from the **CW AI AUDIT** sheet (10 per person) is an automation, filed under its owner's department (`src/data/audit.json` → `src/data/automations.ts`). Each one lists the tools it needs (Keap, Sheets, ProspectBoss, Buildium, …) detected from the audit text.
+Every request from the **CW AI AUDIT** sheet (10 per person) is an automation, filed under its owner's department (`src/data/audit.json` → `src/data/automations.ts`). Each one lists the tools it needs (Keap, Sheets, ProspectBoss, …) detected from the audit text.
 
 - **Skeleton** (default): the page shows the request, recommendation and difficulty; **Show the plan** returns a dry-run of the steps and which tools still need connecting. Nothing is changed anywhere.
 - **Live**: already runs elsewhere (e.g. the Half-Day attendance automation, run by a Claude routine + Zapier).
@@ -33,9 +33,8 @@ Joshua and JP have no audit requests yet; their sections fill in once their data
 - **Keap** (`src/lib/integrations/keap/`): Club Wealth's database and the source of truth for client data. **The hub is view-only for Keap**: `callKeap` refuses anything but GET, so nothing in Keap is created, changed, deleted, sent or started from here (writes are listed in the allowlist for later, but blocked until approved). Super admins browse everything in the **Keap** tab (contacts with tags/emails/notes/tasks/orders, tags, campaigns with goals and sequences, v2 automations, emails, sales, users, webhooks). Team members search contacts in their Keap tasks' panel. Before each assistant message, the hub reads the picked contact and any contact whose email is in the message and attaches it (`src/lib/chat/keap-context.ts`). Needs `KEAP_API_KEY` (a Service Account Key or Personal Access Token).
 - **Eventbrite** (`src/lib/integrations/eventbrite/`): **view-only** with a private token (`EVENTBRITE_TOKEN`; `EVENTBRITE_ORG_ID` optional). The client refuses anything but GET. The **Eventbrite** tab (Events team and super admins) shows upcoming/past events, tickets sold, ticket types, attendees with check-in, and orders. For event questions, the assistant gets the upcoming events and tickets sold (`src/lib/chat/eventbrite-context.ts`).
 - **Google Sheets** (`src/lib/integrations/google/sheets.ts`): **read-only** through a service account (`GOOGLE_SERVICE_ACCOUNT_JSON`, scope spreadsheets.readonly). A sheet is readable once it's shared with the service account's email as Viewer; My spreadsheets shows which ones the hub can read. The assistant gets the first rows of the sheets linked to the task being chatted about (`src/lib/chat/sheets-context.ts`).
-- **Buildium** (`src/lib/integrations/buildium/`): **view-only** like Keap (the client refuses anything but GET). Properties, units, work orders, resident requests, vendors (contractors), bills, leases and applicants, for Amrissa's automations. Needs `BUILDIUM_CLIENT_ID` and `BUILDIUM_CLIENT_SECRET`; set `BUILDIUM_BASE_URL` to the sandbox while testing.
 - **Zapier** (`src/lib/integrations/zapier.ts`): starts a Zap by posting to its Catch Hook URL. Zaps are listed in `ZAPIER_HOOKS`.
-- **Add an integration** (`src/lib/integrations/custom.ts`): super admins add any webhook or REST API in the app (name, URL, optional auth header and key). Keys stay on the server and are never sent back to the browser. Use it for Buildium, ProspectBoss, Make, n8n, etc.
+- **Add an integration** (`src/lib/integrations/custom.ts`): super admins add any webhook or REST API in the app (name, URL, optional auth header and key). Keys stay on the server and are never sent back to the browser. Use it for ProspectBoss, Make, n8n, etc.
 - Planned integrations needed by the audit requests are listed on the page.
 
 ## Workflow Process Form → tasks
@@ -61,7 +60,7 @@ src/
     auth/        session.ts, current-user.ts   ← signed cookie, page guards
     automations/ runner.ts                     ← dry-run plans, handlers, run log
     integrations/ registry.ts, types.ts, http.ts, zapier.ts, custom.ts,
-                  keap/{client,capabilities}.ts, buildium/{client,capabilities}.ts
+                  keap/{client,capabilities}.ts
     store.ts                                   ← Upstash Redis or in-memory
   middleware.ts                                ← sign-in required everywhere except /login
   app/           pages (/, /d/[dept], /a/[id], /integrations, /login) and api/ routes
@@ -80,7 +79,7 @@ npm run typecheck && npm run build
 ## Deploy on Vercel
 
 1. Vercel → **Add New → Project** → import this GitHub repo (framework: Next.js, defaults are fine).
-2. **Environment Variables**: `SESSION_SECRET` (long random string), `HUB_ACCESS_CODE`, and when ready `KEAP_API_KEY`, `BUILDIUM_CLIENT_ID`, `BUILDIUM_CLIENT_SECRET`, `ZAPIER_HOOKS`, `ANTHROPIC_API_KEY`.
+2. **Environment Variables**: `SESSION_SECRET` (long random string), `HUB_ACCESS_CODE`, and when ready `KEAP_API_KEY`, `ZAPIER_HOOKS`, `ANTHROPIC_API_KEY`.
 3. **Storage → Upstash for Redis** → connect to the project with the prefix `KV` (adds `KV_REST_API_URL` / `KV_REST_API_TOKEN`) so chats, added integrations and the run log persist.
 4. For CW Assistant: generate an API token on the routine "CW Assistant → Task Hub chat replies" (claude.ai/code → Routines) and add it as `CLAUDE_CHAT_ROUTINE_TOKEN`.
 5. Deploy.
@@ -93,6 +92,6 @@ The site sends `Content-Security-Policy: frame-ancestors 'self' https://learning
 
 When the Task Hub is finished, write the user documentation before rolling it out to the team:
 
-- **SOP: How to use the CW AI Task Hub.** Signing in with your own access code, your workspace and tasks, the task assistant and drafts (Approve / Edit / Shorter), the Keap contact panel, My spreadsheets, My process forms, the CW Assistant chat bubble, and what "Needs approval" means. Add a short section for super admins: the overview page, Integrations (Keap, Eventbrite, Zapier, Buildium), approving spreadsheet accounts, and access codes.
+- **SOP: How to use the CW AI Task Hub.** Signing in with your own access code, your workspace and tasks, the task assistant and drafts (Approve / Edit / Shorter), the Keap contact panel, My spreadsheets, My process forms, the CW Assistant chat bubble, and what "Needs approval" means. Add a short section for super admins: the overview page, Integrations (Keap, Eventbrite, Zapier), approving spreadsheet accounts, and access codes.
 - **Tutorials:** short step-by-step guides with screenshots for each main job (for example: sign in for the first time, work a task with the assistant, add a spreadsheet, look up a Keap contact, read your process form flowchart), plus an in-app guided tour like the Workflow Process Form's.
 - Keep both in plain, non-technical language, and update them whenever a feature changes.

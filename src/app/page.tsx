@@ -8,6 +8,10 @@ import { allAutomations } from '@/data/catalog';
 import { peopleIn } from '@/config/people';
 import { listRuns } from '@/lib/automations/runner';
 import { PEOPLE, personById } from '@/config/people';
+import { DEPARTMENTS } from '@/config/departments';
+import { announcementsFor, toView } from '@/lib/announcements';
+import { getViewer } from '@/lib/auth/current-user';
+import { Announcements } from '@/components/Announcements';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +24,8 @@ export default async function Home() {
   const mine = all.filter((a) => a.ownerId === user.id);
   const runs = isSuperAdmin(user) ? (await listRuns()).slice(0, 8) : [];
   const first = user.name.split(' ')[0];
+  const updates = (await announcementsFor(user)).map(toView);
+  const preview = Boolean((await getViewer())?.preview);
 
   return (
     <>
@@ -29,6 +35,11 @@ export default async function Home() {
           <span className="eyebrow">AI Task Hub</span>
           <h1>Hi {first}, here are your automations</h1>
           <p>{isSuperAdmin(user) ? 'You can see every department and manage integrations.' : 'Open your department to run your tools. Each one shows its plan and what it still needs.'}</p>
+        </section>
+
+        <section className="card" aria-labelledby="updates-title">
+          <div className="spread"><h2 id="updates-title">Updates &amp; announcements</h2><span className="muted small">Team members see these at the top of their workspace</span></div>
+          <Announcements items={updates} admin limit={5} preview={preview} departments={DEPARTMENTS.filter((d) => !d.hidden).map((d) => ({ id: d.id, name: d.name }))} />
         </section>
 
         <section className="grid" aria-label="Departments">

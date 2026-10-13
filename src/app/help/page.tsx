@@ -109,6 +109,7 @@ export default async function HelpPage() {
             <h2>For super admins (Miguel, Camille, Omerson)</h2>
             <ul>
               <li><b>Overview</b> (<Link href="/">home</Link>): every department, recent runs, and <b>Preview someone’s view</b> to check exactly what a team member sees (read-only; their chats stay hidden).</li>
+              <li><b>Updates &amp; announcements</b> (home page): post news for everyone or one department, and pin what matters. Team members see the newest one as a banner at the top of their workspace until they read it; all of them are on the <Link href="/updates">Updates</Link> page.</li>
               <li><b>Departments</b> in the top bar: each person’s tasks fold into a dropdown in the sidebar.</li>
               <li><b>Integrations ▾</b>: Keap and Eventbrite (view-only tabs), Zapier (live feed of Zap updates, starting approved Zaps), Google Sheets, and <b>Manage integrations</b>.</li>
               <li><b>Spreadsheets</b> page in any department: everyone’s sheets there, and <b>Approved accounts</b> for sheets outside the marketing Gmail.</li>

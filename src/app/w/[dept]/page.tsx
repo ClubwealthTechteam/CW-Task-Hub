@@ -22,6 +22,8 @@ import { Sidebar } from './Sidebar';
 import { KeapContact } from './KeapContact';
 import { SidePanel } from './SidePanel';
 import { Tour } from '@/components/Tour';
+import { UpdatesBanner } from '@/components/Announcements';
+import { announcementsFor, toView } from '@/lib/announcements';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,6 +41,7 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
   const mine = all.filter((a) => a.ownerId === user.id);
   const selected = all.find((a) => a.id === searchParams.t) ?? mine[0] ?? all[0];
 
+  const updates = (await announcementsFor(user)).map(toView);
   const keapOn = isConnected('keap');
   // Spreadsheets: your own (super admins: everyone's in this department) and the ones linked to this task.
   const sheets = (await listSheets()).filter((sh) => (isSuperAdmin(user) ? personById(sh.owner)?.departments.includes(dept.id as DepartmentId) || sh.owner === user.id : sh.owner === user.id));
@@ -52,7 +55,8 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
   return (
     <>
       <Header user={user} current={dept.id} />
-      <div className="ws">
+      <div className="ws with-updates">
+        <UpdatesBanner items={updates} />
         <Sidebar user={user} dept={dept} tasks={all} selectedId={selected?.id} sheetCount={sheetCount} formCount={formCount} />
 
         {selected ? (

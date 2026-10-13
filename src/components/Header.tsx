@@ -4,6 +4,7 @@ import { visibleDepartments, canManageIntegrations, isSuperAdmin } from '@/lib/a
 import { canViewEventbrite } from '@/lib/integrations/eventbrite/access';
 import { builtinIntegrations } from '@/lib/integrations/registry';
 import { IntegrationsMenu, type MenuApp } from './IntegrationsMenu';
+import { DepartmentsMenu } from './DepartmentsMenu';
 
 // White top bar in the CW University style. Team members see their workspace; super admins also get
 // every department and Integrations.
@@ -32,9 +33,9 @@ export function Header({ user, current }: { user: Person; current?: string }) {
         </Link>
         <nav className="nav" aria-label="AI Task Hub">
           <Link href={home} className="hub" aria-current={cur(admin ? 'home' : user.departments[0])}>AI Task Hub <em>NEW</em></Link>
-          {(admin || depts.length > 1) && depts.map((d) => (
-            <Link key={d.id} href={`/w/${d.id}`} aria-current={cur(d.id)}>{d.name}</Link>
-          ))}
+          {(admin || depts.length > 1) && (
+            <DepartmentsMenu depts={depts.map((d) => ({ id: d.id, name: d.name, blurb: d.blurb, adminsOnly: d.hidden }))} current={current} />
+          )}
           {admin && <Link href="/council" aria-current={cur('council')}>Council</Link>}
           <Link href="/updates" aria-current={cur('updates')}>Updates</Link>
           <Link href="/help" aria-current={cur('help')}>Help</Link>

@@ -871,3 +871,6 @@ a.chip:hover { border-color: #0c3f7a; color: #0c3f7a; }
 .council-alert.lvl-b-fail { background: #fef2f2; border-color: #fca5a5; }
 .council-alert.lvl-b-warn { background: #fffbeb; border-color: #fcd34d; }
 .council-alert span:nth-child(2) { flex: 1; min-width: 0; }
+.nav .im-item[aria-current="page"] { background: #eef3fb; border: 0; }
+.nav .im-item[aria-current="page"] b { color: #0c3f7a; }
+.dm-tag { margin-left: 6px; font-size: 10.5px; font-weight: 700; color: var(--gold); background: color-mix(in srgb, var(--gold) 15%, transparent); border-radius: 999px; padding: 1px 7px; vertical-align: 1px; }

@@ -8,6 +8,7 @@ import { inboxConfigured } from '@/lib/integrations/zapier-feed';
 import { sheetsConfigured, sheetsKeyState } from '@/lib/integrations/google/sheets';
 import { zapierHooks } from '@/lib/integrations/zapier';
 import { canvaConfigured } from '@/lib/canva/client';
+import { councilConfigured } from '@/lib/council/run';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,5 +25,7 @@ export const GET = () => NextResponse.json({
   googleSheets: sheetsConfigured(),
   googleSheetsKey: sheetsKeyState(),
   canva: canvaConfigured(),
+  council: councilConfigured(),
+  councilSchedule: Boolean(process.env.CRON_SECRET),
   zapsToStart: Object.keys(zapierHooks()).length,
 });

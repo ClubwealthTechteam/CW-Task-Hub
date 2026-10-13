@@ -44,19 +44,20 @@ export function WelcomePosts({ taskId, readOnly }: { taskId: string; readOnly?: 
   const [filter, setFilter] = useState<Filter>('todo');
   const [open, setOpen] = useState<number | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [finding, setFinding] = useState<{ status: 'thinking' | 'done' | 'error'; at: number; looked: number; count: number; error?: string } | null>(null);
 
-  const load = useCallback(async (refresh = false) => {
+  const load = useCallback(async (refresh = false, find = false) => {
     if (refresh || !clients.length) setLoading(true);
-    const res = await fetch(`/api/welcome${refresh ? '?refresh=1' : ''}`, { cache: 'no-store' });
+    const res = await fetch(`/api/welcome${find ? '?refresh=1&find=1' : refresh ? '?refresh=1' : ''}`, { cache: 'no-store' });
     const body = await res.json().catch(() => ({}));
     if (res.ok) {
-      setClients(body.clients); setRecords(body.records); setSettings(body.settings); setKeap(body.keap); setError(body.error ?? '');
+      setClients(body.clients); setRecords(body.records); setSettings(body.settings); setKeap(body.keap); setError(body.error ?? ''); setFinding(body.finding ?? null);
     } else setError(body.error || 'Couldn’t load new clients');
     setLoading(false);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, [load]);
   // While the assistant is making graphics, check back every 20 seconds.
-  const making = Object.values(records).some((r) => r.graphic?.status === 'pending');
+  const making = Object.values(records).some((r) => r.graphic?.status === 'pending') || finding?.status === 'thinking';
   useEffect(() => {
     if (!making) return;
     const t = setInterval(() => load(), 20_000);
@@ -80,16 +81,18 @@ export function WelcomePosts({ taskId, readOnly }: { taskId: string; readOnly?: 
     return res.ok ? null : body.error || 'Couldn’t save';
   }
 
-  const needsSetup = settings && !settings.tagIds.length;
+  const needsSetup = settings && settings.find === 'tag' && !settings.tagIds.length;
 
   return (
     <main className="ws-main wp" aria-label="New client welcome posts">
       <div className="ws-mh">
         <span className="ws-bot wp-bot" aria-hidden="true">👋</span>
         <b>New client welcome posts</b>
-        <span className="muted small wp-from">{settings?.tagNames.length ? `From Keap · ${settings.tagNames.join(', ')} · last ${settings.days} days${settings.auto ? ' · auto-prepare on' : ''}` : 'From Keap'}</span>
+        <span className="muted small wp-from">{settings ? `${settings.find === 'tag' ? `From Keap · ${settings.tagNames.join(', ') || 'no tag chosen'}` : 'Found by Claude in Keap'} · last ${settings.days} days${settings.auto ? ' · auto-prepare on' : ''}` : 'From Keap'}</span>
         <span style={{ flex: 1 }} />
-        <button className="linkbtn" onClick={() => load(true)} disabled={loading}>{loading ? 'Loading…' : 'Refresh'}</button>
+        {settings?.find === 'claude' && !readOnly
+          ? <button className="linkbtn" onClick={() => load(true, true)} disabled={loading || finding?.status === 'thinking'}>{finding?.status === 'thinking' ? 'Claude is looking…' : 'Find new clients'}</button>
+          : <button className="linkbtn" onClick={() => load(true)} disabled={loading}>{loading ? 'Loading…' : 'Refresh'}</button>}
         {!readOnly && <button className="linkbtn" onClick={() => setShowSettings(true)}>Settings</button>}
       </div>
 
@@ -101,6 +104,13 @@ export function WelcomePosts({ taskId, readOnly }: { taskId: string; readOnly?: 
         </div>
       )}
 
+      {settings?.find === 'claude' && keap && finding && (
+        <p className={`wp-finding${finding.status === 'error' ? ' err' : ''}`} role="status">
+          {finding.status === 'thinking' ? <><span className="cf-spin" aria-hidden="true" /> Claude is looking through Keap’s recent orders and tags for new clients{finding.looked ? ` (${finding.looked} people to check)` : ''}. This takes 1–3 minutes.</>
+            : finding.status === 'error' ? <>Couldn’t finish looking for new clients{finding.error ? `: ${finding.error}` : ''}. Press “Find new clients” to try again.</>
+              : <>✦ Claude checked {finding.looked} people in Keap and found <b>{finding.count} new client{finding.count === 1 ? '' : 's'}</b> · {new Date(finding.at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}. It looks again every 12 hours.</>}
+        </p>
+      )}
       <div className="wp-body">
         {!keap ? <p className="note">Keap isn’t connected, so new clients can’t be pulled in yet.</p>
           : needsSetup ? (
@@ -111,7 +121,7 @@ export function WelcomePosts({ taskId, readOnly }: { taskId: string; readOnly?: 
             </div>
           ) : error ? <p className="note" role="alert">{error}</p>
             : loading && !clients.length ? <p className="muted small">Pulling new clients from Keap…</p>
-              : !shown.length ? <p className="muted small">{filter === 'todo' ? 'All caught up: no welcome posts to prepare.' : 'Nobody here.'}</p>
+              : !shown.length ? <p className="muted small">{finding?.status === 'thinking' && !clients.length ? 'New clients will show here as soon as Claude is done.' : filter === 'todo' ? 'All caught up: no welcome posts to prepare.' : 'Nobody here.'}</p>
                 : Object.entries(groups).map(([label, list]) => (
                   <section key={label} className="wp-group">
                     <h4>{label} <span className="wp-n">{list.length}</span></h4>
@@ -199,6 +209,7 @@ function ClientCard({ c, rec, open, readOnly, taskId, onToggle, onSave, onRecord
         <div className="wp-steps">
           <fieldset disabled={readOnly} className="wp-step">
             <legend>1 · Details <span className="muted small">from Keap · you can correct them here (Keap isn’t changed)</span></legend>
+            {c.why && <p className="small wp-why">✦ Why Claude picked {facts.first}: {c.why}</p>}
             <div className="wp-grid3">
               {(['business', 'city', 'coach'] as const).map((k) => (
                 <label key={k} className="field">

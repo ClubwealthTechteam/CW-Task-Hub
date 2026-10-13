@@ -3,6 +3,7 @@
 
 import { callKeap } from '@/lib/integrations/keap/client';
 import type { WelcomeSettings } from './store';
+import { getFinding } from './finder';
 
 export interface NewClient {
   contactId: number;
@@ -13,8 +14,10 @@ export interface NewClient {
   city?: string;
   coach?: string;
   facebook?: string;
-  signedUp: string;          // when the tag was applied (ISO)
+  signedUp: string;          // when the tag was applied, or when Claude says they signed up (ISO)
   tag: string;
+  /** Claude's reason for counting them as a new client. */
+  why?: string;
 }
 
 type Row = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -54,12 +57,16 @@ async function inBatches<T, R>(items: T[], size: number, fn: (t: T) => Promise<R
 }
 
 export async function newClients(settings: WelcomeSettings): Promise<NewClient[]> {
-  if (!settings.tagIds.length) return [];
-  const key = JSON.stringify([settings.tagIds, settings.days, settings.coachField]);
+  const finding = settings.find === 'tag' ? null : await getFinding();
+  if (settings.find === 'tag' ? !settings.tagIds.length : !finding?.clients.length) return [];
+  const key = JSON.stringify([settings.find, settings.tagIds, settings.days, settings.coachField, finding?.at]);
   if (cache && cache.key === key && Date.now() - cache.at < TTL) return cache.clients;
 
   const since = Date.now() - settings.days * 24 * 60 * 60 * 1000;
-  const tagged = (await Promise.all(settings.tagIds.map(async (id, i) => (await taggedSince(id, since)).map((c) => ({ ...c, tag: settings.tagNames[i] ?? String(id) }))))).flat();
+  const why = new Map((finding?.clients ?? []).map((c) => [c.id, c.why]));
+  const tagged = finding
+    ? finding.clients.map((c) => ({ id: c.id, first: c.first, last: c.last, email: c.email, applied: c.signedUp, tag: 'Found by Claude' }))
+    : (await Promise.all(settings.tagIds.map(async (id, i) => (await taggedSince(id, since)).map((c) => ({ ...c, tag: settings.tagNames[i] ?? String(id) }))))).flat();
   // One row per person, keeping the earliest tag date.
   const byId = new Map<number, (typeof tagged)[number]>();
   for (const c of tagged) if (!byId.has(c.id) || c.applied < byId.get(c.id)!.applied) byId.set(c.id, c);
@@ -83,6 +90,7 @@ export async function newClients(settings: WelcomeSettings): Promise<NewClient[]
       facebook: fb?.name ? (String(fb.name).startsWith('http') ? fb.name : `https://www.facebook.com/${fb.name}`) : undefined,
       signedUp: c.applied,
       tag: c.tag,
+      why: why.get(c.id),
     };
   });
   cache = { key, at: Date.now(), clients };

@@ -40,6 +40,7 @@ export async function POST(req: Request) {
   const tags: { id: number; name: string }[] = Array.isArray(b.tags) ? b.tags.filter((t: { id: unknown }) => Number.isInteger(Number(t?.id))).slice(0, 5) : [];
   const industryField = Number.isInteger(Number(b.industryField)) && Number(b.industryField) > 0 ? Number(b.industryField) : undefined;
   const settings: ReferralSettings = {
+    find: b.find === 'tag' ? 'tag' : 'claude',
     tagIds: tags.map((t) => Number(t.id)),
     tagNames: tags.map((t) => String(t.name ?? t.id).slice(0, 80)),
     industryField,

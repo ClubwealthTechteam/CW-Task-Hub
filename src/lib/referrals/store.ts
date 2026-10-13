@@ -46,6 +46,8 @@ export interface Batch {
 export interface MemberNote { services?: string; paused?: boolean }
 
 export interface ReferralSettings {
+  /** 'claude': Claude works out which Keap tag marks current members. 'tag': the tags chosen here. */
+  find: 'claude' | 'tag';
   tagIds: number[];            // Keap tags that mark a Club Wealth member
   tagNames: string[];
   industryField?: number;      // a Keap custom field with the member's industry, if there is one
@@ -59,7 +61,7 @@ const NOTES = 'referral:member-notes';
 const SETTINGS = 'referral:settings';
 const MAX_OPPS = 1500;
 
-export const DEFAULT_REFERRAL_SETTINGS: ReferralSettings = { tagIds: [], tagNames: [], sender: 'Jay from Club Wealth' };
+export const DEFAULT_REFERRAL_SETTINGS: ReferralSettings = { find: 'claude', tagIds: [], tagNames: [], sender: 'Jay from Club Wealth' };
 
 export const listOpps = () => getJSON<Opportunity[]>(OPPS, []);
 export const saveOpps = (list: Opportunity[]) => setJSON(OPPS, list.slice(0, MAX_OPPS));

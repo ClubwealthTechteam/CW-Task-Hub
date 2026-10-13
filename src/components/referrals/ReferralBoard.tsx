@@ -35,20 +35,21 @@ export function ReferralBoard({ readOnly }: { readOnly?: boolean }) {
   const [filter, setFilter] = useState<Filter>('new');
   const [loc, setLoc] = useState('all');
   const [showSettings, setShowSettings] = useState(false);
+  const [source, setSource] = useState<{ by: 'claude' | 'tag'; status?: string; tags: string[]; why?: string } | null>(null);
 
   const load = useCallback(async (sync = false) => {
     const res = await fetch(`/api/referrals${sync ? '?sync=1' : ''}`, { cache: 'no-store' });
     const b = await res.json().catch(() => ({}));
     if (res.ok) {
       setOpps(b.opps); setBatches(b.batches); setMembers(b.members); setNotes(b.notes); setSettings(b.settings);
-      setTotal(b.total); setPending(b.pending); setKeap(b.keap); setError(b.error ?? '');
+      setTotal(b.total); setPending(b.pending); setKeap(b.keap); setError(b.error ?? ''); setSource(b.memberSource ?? null);
     } else setError(b.error || 'Couldn’t load referrals');
     setLoading(false);
   }, []);
   useEffect(() => { load(); }, [load]);
 
   // Keep loading the member directory until it's complete, and check on posts being read.
-  const reading = batches.some((b) => b.status === 'reading');
+  const reading = batches.some((b) => b.status === 'reading') || source?.status === 'thinking';
   useEffect(() => {
     if (!pending && !reading) return;
     const t = setTimeout(() => load(), pending ? 1500 : 15_000);
@@ -79,7 +80,7 @@ export function ReferralBoard({ readOnly }: { readOnly?: boolean }) {
     await fetch(`/api/referrals/members/${id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(n) });
   }
 
-  const needsSetup = settings && !settings.tagIds.length;
+  const needsSetup = settings && settings.find === 'tag' && !settings.tagIds.length;
 
   return (
     <main className="ws-main rf" aria-label="Referral prospecting">
@@ -95,6 +96,13 @@ export function ReferralBoard({ readOnly }: { readOnly?: boolean }) {
         {!readOnly && <button className="linkbtn" onClick={() => setShowSettings(true)}>Settings</button>}
       </div>
 
+      {source?.by === 'claude' && keap && (
+        <p className={`wp-finding${source.status === 'error' ? ' err' : ''}`} role="status">
+          {source.status === 'thinking' ? <><span className="cf-spin" aria-hidden="true" /> Claude is working out which Keap contacts are current Club Wealth members. This takes 1–3 minutes.</>
+            : source.tags.length ? <>✦ Members are everyone tagged <b>{source.tags.join(' or ')}</b> in Keap{source.why ? ` (Claude: ${source.why})` : ''}. Change it in Settings.</>
+              : <>Claude couldn’t tell which Keap tag marks members. Choose one in Settings.</>}
+        </p>
+      )}
       <div className="wp-body">
         {!keap ? <p className="note">Keap isn’t connected, so the member directory can’t load yet.</p>
           : needsSetup ? (

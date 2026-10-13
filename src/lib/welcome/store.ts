@@ -29,6 +29,8 @@ export interface WelcomeRecord {
 }
 
 export interface WelcomeSettings {
+  /** 'claude': Claude finds new clients from Keap orders and tags. 'tag': everyone who got the chosen tag. */
+  find: 'claude' | 'tag';
   tagIds: number[];          // Keap tags that mark a new client
   tagNames: string[];
   days: number;              // how far back to look
@@ -42,7 +44,7 @@ export interface WelcomeSettings {
 
 const RECORDS = 'welcome:records';
 const SETTINGS = 'welcome:settings';
-export const DEFAULT_SETTINGS: WelcomeSettings = { tagIds: [], tagNames: [], days: 14, coachField: 'owner', auto: true, perDay: 2, time: '10:00' };
+export const DEFAULT_SETTINGS: WelcomeSettings = { find: 'claude', tagIds: [], tagNames: [], days: 14, coachField: 'owner', auto: true, perDay: 2, time: '10:00' };
 
 export const listRecords = () => getJSON<Record<string, WelcomeRecord>>(RECORDS, {});
 export const getSettings = async () => ({ ...DEFAULT_SETTINGS, ...(await getJSON<Partial<WelcomeSettings>>(SETTINGS, {})) });

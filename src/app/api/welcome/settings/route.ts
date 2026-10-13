@@ -38,6 +38,7 @@ export async function POST(req: Request) {
   const tags: { id: number; name: string }[] = Array.isArray(b.tags) ? b.tags.filter((t: { id: unknown }) => Number.isInteger(Number(t?.id))).slice(0, 5) : [];
   const coachField = b.coachField === 'owner' || /^custom:\d+$/.test(String(b.coachField)) ? b.coachField : 'owner';
   const settings: WelcomeSettings = {
+    find: b.find === 'tag' ? 'tag' : 'claude',
     tagIds: tags.map((t) => Number(t.id)),
     tagNames: tags.map((t) => String(t.name ?? t.id).slice(0, 80)),
     days: [7, 14, 30, 60, 90].includes(Number(b.days)) ? Number(b.days) : 14,

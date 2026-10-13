@@ -19,10 +19,14 @@ const KEY = 'zapier:feed';
 const MAX = 300;
 const MAX_DATA = 8000;
 
-export const inboxConfigured = () => Boolean(process.env.ZAPIER_INBOUND_SECRET);
+// Trimmed: a key copied from a file often brings a trailing line break or space with it.
+const inboxSecret = () => process.env.ZAPIER_INBOUND_SECRET?.trim() || '';
 
-export function inboxKeyValid(given: string | null) {
-  const secret = process.env.ZAPIER_INBOUND_SECRET;
+export const inboxConfigured = () => Boolean(inboxSecret());
+
+export function inboxKeyValid(raw: string | null) {
+  const secret = inboxSecret();
+  const given = raw?.trim();
   if (!secret || !given) return false;
   const a = crypto.createHash('sha256').update(given).digest();
   const b = crypto.createHash('sha256').update(secret).digest();

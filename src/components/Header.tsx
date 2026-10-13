@@ -36,6 +36,7 @@ export function Header({ user, current }: { user: Person; current?: string }) {
           {(admin || depts.length > 1) && depts.map((d) => (
             <Link key={d.id} href={`/w/${d.id}`} aria-current={cur(d.id)}>{d.name}</Link>
           ))}
+          <Link href="/help" aria-current={cur('help')}>Help</Link>
           {apps.length > 0 && <IntegrationsMenu apps={apps} manage={canManageIntegrations(user)} active={['keap', 'eventbrite', 'zapier', 'integrations'].includes(current ?? '')} />}
         </nav>
         <div className="who">

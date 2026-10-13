@@ -21,6 +21,7 @@ import { TaskChat } from './TaskChat';
 import { Sidebar } from './Sidebar';
 import { KeapContact } from './KeapContact';
 import { SidePanel } from './SidePanel';
+import { Tour } from '@/components/Tour';
 
 export const dynamic = 'force-dynamic';
 
@@ -145,6 +146,7 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
           </SidePanel>
         )}
       </div>
+      {!preview && <Tour />}
     </>
   );
 }

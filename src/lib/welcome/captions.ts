@@ -3,6 +3,16 @@
 
 export interface ClientFacts { first: string; full: string; business?: string; city?: string; coach?: string }
 
+// Keap fields often hold a placeholder instead of being left empty ("N/A", "none", "-"). Those must never reach a caption.
+const PLACEHOLDER = /^(n\/?a|none|null|unknown|tbd|tba|-+|\.+|\?+|x+)$/i;
+export const realValue = (v?: string | null) => {
+  const t = (v ?? '').trim();
+  return t && !PLACEHOLDER.test(t) ? t : undefined;
+};
+/** Removes placeholder pieces from text written earlier, e.g. "from N/A, NJ" becomes "from NJ". */
+export const dropPlaceholders = (text: string) =>
+  text.replace(/\b(?:N\/A|n\/a)\b,\s*/g, '').replace(/,\s*\b(?:N\/A|n\/a)\b/g, '');
+
 const of = (f: ClientFacts) => (f.business ? ` of ${f.business}` : '');
 const from = (f: ClientFacts) => (f.city ? ` from ${f.city}` : '');
 const coach = (f: ClientFacts, s: string) => (f.coach ? s.replace('{coach}', f.coach) : '');

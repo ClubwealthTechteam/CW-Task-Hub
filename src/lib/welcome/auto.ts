@@ -4,14 +4,14 @@
 // graphic in a background chat. Getting the photo and posting stay with Jay.
 
 import type { Person } from '@/config/people';
-import { addPost, listPosts, setStatus as setPostStatus, type PostStatus } from '@/lib/calendar';
+import { addPost, listPosts, updatePost, setStatus as setPostStatus, type PostStatus } from '@/lib/calendar';
 import { addDays, todayPacific, weekday } from '@/lib/calendar-dates';
 import { buildPayload, chatIsConfigured, fireChatRoutine } from '@/lib/chat/routine';
 import { createConversation, getConversation, newId, saveConversation, type ChatMessage } from '@/lib/chat/store';
 import { fileMeta, toRef, updateFileMeta } from '@/lib/chat/files';
 import { filesContext } from '@/lib/chat/files-context';
 import { storeIsPersistent } from '@/lib/store';
-import { GROUP_CAPTIONS, PAGE_CAPTIONS, graphicPrompt, versionFor, type ClientFacts } from './captions';
+import { GROUP_CAPTIONS, PAGE_CAPTIONS, dropPlaceholders, graphicPrompt, realValue, versionFor, type ClientFacts } from './captions';
 import type { NewClient } from './keap-clients';
 import { saveRecords, type WelcomeRecord, type WelcomeSettings, type WelcomeStatus } from './store';
 import { WELCOME_DEPT } from './access';
@@ -23,9 +23,9 @@ const OPEN: WelcomeStatus[] = ['new', 'photo', 'ready', 'review', 'scheduled'];
 export const factsOf = (c: NewClient, r?: WelcomeRecord): ClientFacts => ({
   first: c.first || 'there',
   full: [c.first, c.last].filter(Boolean).join(' ') || 'our newest member',
-  business: (r?.business ?? c.business) || undefined,
-  city: (r?.city ?? c.city) || undefined,
-  coach: (r?.coach ?? c.coach) || undefined,
+  business: realValue(r?.business ?? c.business),
+  city: realValue(r?.city ?? c.city),
+  coach: realValue(r?.coach ?? c.coach),
 });
 
 const captionNotes = (page?: string, group?: string) =>
@@ -120,6 +120,17 @@ export async function runWelcomeAutomation(clients: NewClient[], records: Record
       }
       patches[c.contactId] = { ...patches[c.contactId], pageCaption: page, groupCaption: group, calendarPostId, scheduledFor, autoPrepared: true, status: r?.status && r.status !== 'new' ? r.status : 'ready' };
     }
+  }
+
+  // 1b. Captions written before placeholders were filtered ("from N/A, NJ"): clean them and the calendar notes.
+  for (const c of clients) {
+    const r = merged(c.contactId);
+    if (!r?.pageCaption && !r?.groupCaption) continue;
+    const page = r.pageCaption && dropPlaceholders(r.pageCaption);
+    const group = r.groupCaption && dropPlaceholders(r.groupCaption);
+    if (page === r.pageCaption && group === r.groupCaption) continue;
+    patches[c.contactId] = { ...patches[c.contactId], pageCaption: page, groupCaption: group };
+    if (r.calendarPostId) await updatePost(WELCOME_DEPT, r.calendarPostId, { notes: captionNotes(page, group) } as Parameters<typeof updatePost>[2]).catch(() => null);
   }
 
   // 2. Photo request unanswered for 2 days → switch to the no-photo version.

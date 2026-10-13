@@ -4,6 +4,7 @@
 import { callKeap } from '@/lib/integrations/keap/client';
 import type { WelcomeSettings } from './store';
 import { getFinding } from './finder';
+import { realValue } from './captions';
 
 export interface NewClient {
   contactId: number;
@@ -84,9 +85,9 @@ export async function newClients(settings: WelcomeSettings): Promise<NewClient[]
       first: d?.given_name ?? c.first,
       last: d?.family_name ?? c.last,
       email: d?.email_addresses?.[0]?.email ?? c.email,
-      business: d?.company?.company_name || d?.company_name || undefined,
-      city: addr ? [addr.locality, addr.region].filter(Boolean).join(', ') : undefined,
-      coach: coachValue ? String(coachValue) : undefined,
+      business: realValue(d?.company?.company_name) ?? realValue(d?.company_name),
+      city: addr ? [realValue(addr.locality), realValue(addr.region)].filter(Boolean).join(', ') || undefined : undefined,
+      coach: realValue(coachValue == null ? undefined : String(coachValue)),
       facebook: fb?.name ? (String(fb.name).startsWith('http') ? fb.name : `https://www.facebook.com/${fb.name}`) : undefined,
       signedUp: c.applied,
       tag: c.tag,

@@ -8,7 +8,7 @@ import { keapConfigured } from '@/lib/integrations/keap/client';
 import { keapMessage } from '@/lib/integrations/keap/contacts';
 import { IntegrationError } from '@/lib/integrations/http';
 import { canUseWelcome } from '@/lib/welcome/access';
-import { clearClientCache, newClients } from '@/lib/welcome/keap-clients';
+import { newClients } from '@/lib/welcome/keap-clients';
 import { getSettings, listRecords } from '@/lib/welcome/store';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +20,6 @@ export async function GET(req: Request) {
   const settings = await getSettings();
   if (!keapConfigured()) return NextResponse.json({ keap: false, settings, clients: [], records: {} });
   const q = new URL(req.url).searchParams;
-  if (q.has('refresh')) clearClientCache();
   const preview = Boolean((await getViewer())?.preview);
   try {
     // Claude finds the new clients: on first visit, every 12 hours, or when asked to look again.
@@ -29,7 +28,7 @@ export async function GET(req: Request) {
       && (!finding || q.has('find') || finding.days !== settings.days || Date.now() - finding.at > REFIND_MS)) {
       finding = await startFinding(user, settings.days);
     }
-    const [clients, saved] = await Promise.all([newClients(settings), listRecords()]);
+    const [clients, saved] = await Promise.all([newClients(settings, q.has('refresh')), listRecords()]);
     // Fill in captions, calendar slots and graphics automatically (not while previewing someone).
     const records = preview ? saved : await runWelcomeAutomation(clients, saved, settings, user);
     const found = finding && { status: finding.status, at: finding.at, looked: finding.looked, count: finding.clients.length, error: finding.error };

@@ -19,7 +19,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .topbar { background: var(--surface); color: var(--ink); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; }
 .topbar-inner { max-width: none; margin: 0 auto; padding-inline: 28px; height: 64px; display: flex; align-items: center; gap: 34px; }
 .brand { display: flex; flex-direction: column; align-items: center; text-decoration: none; line-height: 1; color: var(--ink); }
-.brand b { font-family: "Anton", Impact, "Arial Narrow Bold", sans-serif; font-weight: 400; font-size: 25px; letter-spacing: .01em; }
+.brand b { font-family: var(--font-anton), "Anton", Impact, "Arial Narrow Bold", sans-serif; font-weight: 400; font-size: 25px; letter-spacing: .01em; }
 .brand span { font-family: Georgia, "Times New Roman", serif; font-size: 9.5px; letter-spacing: .42em; margin-top: 1px; padding-left: .42em; }
 .nav { display: flex; gap: 22px; flex: 1; align-items: center; min-width: 0; }
 .nav a { text-decoration: none; font-size: 15px; color: var(--ink); padding: 21px 0 19px; border-bottom: 3px solid transparent; white-space: nowrap; }

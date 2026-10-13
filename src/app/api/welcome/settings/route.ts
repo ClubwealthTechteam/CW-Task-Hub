@@ -49,6 +49,6 @@ export async function POST(req: Request) {
     time: /^([01]\d|2[0-3]):[0-5]\d$/.test(String(b.time)) ? String(b.time) : '10:00',
   };
   await saveSettings(settings);
-  clearClientCache();
+  await clearClientCache();
   return NextResponse.json({ settings });
 }

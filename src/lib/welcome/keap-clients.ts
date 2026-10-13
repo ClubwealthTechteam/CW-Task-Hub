@@ -2,6 +2,7 @@
 // few days, with their business, city, coach and Facebook profile when Keap has them.
 
 import { callKeap } from '@/lib/integrations/keap/client';
+import { cached, forget } from '@/lib/store';
 import type { WelcomeSettings } from './store';
 import { getFinding } from './finder';
 import { realValue } from './captions';
@@ -24,16 +25,15 @@ export interface NewClient {
 type Row = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 const MAX_CLIENTS = 60;
-const TTL = 5 * 60 * 1000;
-let cache: { key: string; at: number; clients: NewClient[] } | null = null;
-let usersCache: { at: number; byId: Map<number, string> } | null = null;
+const TTL_SECONDS = 5 * 60;
+const CACHE = 'welcome:clients';
 
 async function users() {
-  if (usersCache && Date.now() - usersCache.at < 60 * 60 * 1000) return usersCache.byId;
-  const body = (await callKeap('users.list', { limit: 200 }).catch(() => null)) as Row | null;
-  const byId = new Map<number, string>((body?.users ?? []).map((u: Row) => [Number(u.id), [u.given_name, u.family_name].filter(Boolean).join(' ') || u.email_address]));
-  usersCache = { at: Date.now(), byId };
-  return byId;
+  const list = await cached('keap:users', 60 * 60, async () => {
+    const body = (await callKeap('users.list', { limit: 200 }).catch(() => null)) as Row | null;
+    return (body?.users ?? []).map((u: Row) => [Number(u.id), [u.given_name, u.family_name].filter(Boolean).join(' ') || u.email_address] as [number, string]);
+  });
+  return new Map<number, string>(list);
 }
 
 /** Contacts tagged with `tagId` since `since`, newest first (pages through the tag's contacts). */
@@ -57,11 +57,19 @@ async function inBatches<T, R>(items: T[], size: number, fn: (t: T) => Promise<R
   return out;
 }
 
-export async function newClients(settings: WelcomeSettings): Promise<NewClient[]> {
+export async function newClients(settings: WelcomeSettings, fresh = false): Promise<NewClient[]> {
   const finding = settings.find === 'tag' ? null : await getFinding();
   if (settings.find === 'tag' ? !settings.tagIds.length : !finding?.clients.length) return [];
   const key = JSON.stringify([settings.find, settings.tagIds, settings.days, settings.coachField, finding?.at]);
-  if (cache && cache.key === key && Date.now() - cache.at < TTL) return cache.clients;
+  lastKey = `${CACHE}:${hash(key)}`;
+  if (fresh) await forget(lastKey);
+  return cached(lastKey, TTL_SECONDS, () => readClients(settings, finding));
+}
+
+const hash = (s: string) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
+let lastKey = '';
+
+async function readClients(settings: WelcomeSettings, finding: Awaited<ReturnType<typeof getFinding>>): Promise<NewClient[]> {
 
   const since = Date.now() - settings.days * 24 * 60 * 60 * 1000;
   const why = new Map((finding?.clients ?? []).map((c) => [c.id, c.why]));
@@ -94,11 +102,11 @@ export async function newClients(settings: WelcomeSettings): Promise<NewClient[]
       why: why.get(c.id),
     };
   });
-  cache = { key, at: Date.now(), clients };
   return clients;
 }
 
-export const clearClientCache = () => { cache = null; };
+/** Settings changed: the next read asks Keap again (the cache name also includes the settings). */
+export const clearClientCache = () => (lastKey ? forget(lastKey) : Promise.resolve());
 
 /** Keap tags whose name contains `q` (for choosing the "new client" tag). */
 export async function findTags(q: string) {

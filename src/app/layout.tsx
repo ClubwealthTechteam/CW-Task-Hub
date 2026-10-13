@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Anton } from 'next/font/google';
 import './globals.css';
 import { getViewer } from '@/lib/auth/current-user';
 import { ChatWidget } from '@/components/chat/ChatWidget';
@@ -8,15 +9,14 @@ export const metadata: Metadata = {
   description: 'Club Wealth AI Task Hub: department automations and integrations.',
 };
 
+// The logo font, served from the hub itself (no extra trip to Google before the page can show).
+const anton = Anton({ weight: '400', subsets: ['latin'], display: 'swap', variable: '--font-anton' });
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const viewer = await getViewer();
   const user = viewer?.user;
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&display=swap" />
-      </head>
+    <html lang="en" className={anton.variable}>
       <body>
         {viewer?.preview && (
           <div className="preview-bar" role="status">

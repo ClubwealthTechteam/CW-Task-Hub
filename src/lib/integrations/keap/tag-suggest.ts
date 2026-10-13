@@ -4,7 +4,7 @@
 
 import type { Person } from '@/config/people';
 import { callKeap } from './client';
-import { getJSON, setJSON } from '@/lib/store';
+import { cached, getJSON, setJSON } from '@/lib/store';
 import { buildPayload, chatIsConfigured, fireChatRoutine } from '@/lib/chat/routine';
 import { createConversation, getConversation, newId, saveConversation, type ChatMessage } from '@/lib/chat/store';
 
@@ -16,12 +16,13 @@ export interface ClaudePick { status: 'thinking' | 'done' | 'error'; picks?: { i
 type Row = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 const RECENT_DAYS = 30;
-let tagCache: { at: number; tags: KeapTag[] } | null = null;
 const statCache = new Map<number, { at: number; recent: number; total: number; sample: string[] }>();
 
 /** Every tag in Keap (cached 10 minutes). */
-export async function allTags(): Promise<KeapTag[]> {
-  if (tagCache && Date.now() - tagCache.at < 10 * 60 * 1000) return tagCache.tags;
+export function allTags(): Promise<KeapTag[]> {
+  return cached('keap:tags', 10 * 60, readAllTags);
+}
+async function readAllTags(): Promise<KeapTag[]> {
   const tags: KeapTag[] = [];
   for (let offset = 0; offset < 10000; offset += 1000) {
     const body = (await callKeap('tags.list', { limit: 1000, offset })) as Row;
@@ -29,7 +30,6 @@ export async function allTags(): Promise<KeapTag[]> {
     rows.forEach((t) => tags.push({ id: Number(t.id), name: String(t.name ?? t.id), category: t.category?.name || undefined }));
     if (rows.length < 1000) break;
   }
-  tagCache = { at: Date.now(), tags };
   return tags;
 }
 

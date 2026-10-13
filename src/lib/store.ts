@@ -59,3 +59,24 @@ export async function scanKeys(pattern: string, max = 5000): Promise<{ key: stri
   } while (cursor !== '0' && out.length < max);
   return out.slice(0, max);
 }
+
+/**
+ * Remembers a slow answer (usually from Keap) for `seconds`, shared by every server instance, so a fresh
+ * instance doesn't have to ask Keap again. Falls back to calling `load` when nothing is saved yet.
+ */
+const local = new Map<string, { until: number; value: unknown }>();
+export async function cached<T>(key: string, seconds: number, load: () => Promise<T>): Promise<T> {
+  const hit = local.get(key);
+  if (hit && hit.until > Date.now()) return hit.value as T;
+  const saved = await getJSON<{ until: number; value: T } | null>(`cache:${key}`, null).catch(() => null);
+  if (saved && saved.until > Date.now()) { local.set(key, saved); return saved.value; }
+  const value = await load();
+  const entry = { until: Date.now() + seconds * 1000, value };
+  local.set(key, entry);
+  await setJSONFor(`cache:${key}`, entry, seconds).catch(() => null);
+  return value;
+}
+export async function forget(key: string) {
+  local.delete(key);
+  await deleteKey(`cache:${key}`).catch(() => null);
+}

@@ -21,13 +21,14 @@ export default async function Home() {
   // Team members go straight to their department workspace; this overview is for super admins.
   if (!isSuperAdmin(user)) redirect(`/w/${user.departments[0]}`);
   const depts = visibleDepartments(user);
-  const all = await allAutomations();
+  // Read everything at the same time rather than one after another.
+  const [all, runList, announcements, reports, viewer] = await Promise.all([allAutomations(), listRuns(), announcementsFor(user), listReports(), getViewer()]);
   const mine = all.filter((a) => a.ownerId === user.id);
-  const runs = isSuperAdmin(user) ? (await listRuns()).slice(0, 8) : [];
+  const runs = runList.slice(0, 8);
   const first = user.name.split(' ')[0];
-  const updates = (await announcementsFor(user)).map(toView);
-  const council = (await listReports())[0];
-  const preview = Boolean((await getViewer())?.preview);
+  const updates = announcements.map(toView);
+  const council = reports[0];
+  const preview = Boolean(viewer?.preview);
 
   return (
     <>

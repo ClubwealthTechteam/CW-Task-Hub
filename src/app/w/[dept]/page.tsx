@@ -43,19 +43,23 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
   if (!dept) notFound();
   const user = await requireDepartment(dept.id as DepartmentId);
   const first = user.name.split(/\s+/)[0];
-  const preview = Boolean((await getViewer())?.preview);
+  // Everything this page reads from storage, fetched at the same time rather than one after another.
+  const [viewer, inDept, announcements, allSheets, submissions] = await Promise.all([
+    getViewer(), automationsInDept(dept.id as DepartmentId), announcementsFor(user), listSheets(), getSubmissions(),
+  ]);
+  const preview = Boolean(viewer?.preview);
 
   // Team members only see their own tasks; super admins see everyone's, grouped by person.
-  const all = (await automationsInDept(dept.id as DepartmentId)).filter((a) => canViewAutomation(user, a));
+  const all = inDept.filter((a) => canViewAutomation(user, a));
   const mine = all.filter((a) => a.ownerId === user.id);
   const selected = all.find((a) => a.id === searchParams.t) ?? mine[0] ?? all[0];
 
-  const updates = (await announcementsFor(user)).map(toView);
+  const updates = announcements.map(toView);
   const keapOn = isConnected('keap');
   // Spreadsheets: your own (super admins: everyone's in this department) and the ones linked to this task.
-  const sheets = (await listSheets()).filter((sh) => (isSuperAdmin(user) ? personById(sh.owner)?.departments.includes(dept.id as DepartmentId) || sh.owner === user.id : sh.owner === user.id));
+  const sheets = allSheets.filter((sh) => (isSuperAdmin(user) ? personById(sh.owner)?.departments.includes(dept.id as DepartmentId) || sh.owner === user.id : sh.owner === user.id));
   const sheetCount = sheets.length;
-  const formCount = (await getSubmissions()).filter((s) => (isSuperAdmin(user) ? personById(s.personId ?? '')?.departments.includes(dept.id as DepartmentId) : s.personId === user.id)).length;
+  const formCount = submissions.filter((s) => (isSuperAdmin(user) ? personById(s.personId ?? '')?.departments.includes(dept.id as DepartmentId) : s.personId === user.id)).length;
   const taskSheets = selected ? sheets.filter((sh) => sh.taskIds.includes(selected.id)) : [];
   const steps = selected ? approveSteps(selected) : [];
   const tool = selected ? primaryTool(selected) : null;

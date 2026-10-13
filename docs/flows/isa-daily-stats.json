@@ -1,105 +1,97 @@
 {
- "name": "ISA Daily Report + Questions · ProspectBoss + Time Doctor → Claude → Slack",
+ "name": "ISA Daily Report + Questions · Zapier (PB + TD APIs) → Claude → Slack",
  "view": {
   "x": 60,
-  "y": 40,
-  "k": 0.8
+  "y": 120,
+  "k": 0.75
  },
  "nodes": [
   {
    "id": "plan",
    "type": "note",
    "x": 40,
-   "y": -260,
+   "y": -300,
    "title": "Option 2 (Tara's choice)",
-   "desc": "Every weekday morning: daily ISA report with flags.\nAny time: Tara asks in the channel and Claude replies in the thread."
+   "desc": "Every weekday morning: daily ISA report with flags.\nAny time: Tara asks in the channel and Claude replies in the thread.\nZaps call the APIs; Claude does the thinking and the Slack reply."
   },
   {
-   "id": "sch",
+   "id": "tds",
+   "type": "app",
+   "app": "timedoctor",
+   "x": 40,
+   "y": -60,
+   "title": "Omerson's TD script",
+   "desc": "Time Doctor + CW University data, sent daily",
+   "status": "building"
+  },
+  {
+   "id": "z0",
+   "type": "app",
+   "app": "zapier",
+   "x": 250,
+   "y": -60,
+   "title": "Zap 0 · Catch Hook",
+   "desc": "Receives the TD data",
+   "status": "building"
+  },
+  {
+   "id": "z0s",
+   "type": "app",
+   "app": "zapier",
+   "x": 460,
+   "y": -60,
+   "title": "Zap 0 · Storage by Zapier",
+   "desc": "Keeps the latest TD data for Zaps 1 and 2",
+   "status": "building"
+  },
+  {
+   "id": "z1t",
    "type": "app",
    "app": "trigger",
    "x": 40,
-   "y": 40,
-   "title": "Weekdays 7:00 AM PT",
-   "desc": "Starts the morning report",
+   "y": 180,
+   "title": "Zap 1 · Schedule",
+   "desc": "Weekdays 7:00 AM PT",
+   "status": "building"
+  },
+  {
+   "id": "z1pb",
+   "type": "app",
+   "app": "prospect",
+   "x": 250,
+   "y": 180,
+   "title": "Zap 1 · ProspectBoss API",
+   "desc": "Webhooks GET (read-only key): yesterday's calls, connects, talk time, logins, breaks",
+   "status": "building"
+  },
+  {
+   "id": "z1td",
+   "type": "app",
+   "app": "zapier",
+   "x": 460,
+   "y": 180,
+   "title": "Zap 1 · Get TD data",
+   "desc": "Reads yesterday's TD data from Storage",
+   "status": "building"
+  },
+  {
+   "id": "z1c",
+   "type": "app",
+   "app": "webhook",
+   "x": 670,
+   "y": 180,
+   "title": "Zap 1 · Send to Claude",
+   "desc": "Webhooks POST: fires the Daily report routine with the PB + TD data",
    "status": "building"
   },
   {
    "id": "rep",
    "type": "app",
    "app": "claude",
-   "x": 250,
-   "y": 40,
-   "title": "Claude · Daily report routine",
-   "desc": "Pulls yesterday's numbers for every ISA",
-   "status": "building"
-  },
-  {
-   "id": "ask",
-   "type": "app",
-   "app": "slack",
-   "x": 40,
-   "y": 420,
-   "title": "Tara posts a request",
-   "desc": "Any message in the ISA channel, any time, no tag needed. e.g. 'Break times for bpond015 this week'",
-   "status": "building"
-  },
-  {
-   "id": "who",
-   "type": "decision",
-   "x": 250,
-   "y": 422,
-   "title": "From Tara? (Miguel while testing)",
-   "desc": ""
-  },
-  {
-   "id": "skip",
-   "type": "app",
-   "app": "human",
-   "x": 250,
-   "y": 660,
-   "title": "Ignore",
-   "desc": "No reply to anyone else",
-   "status": "building"
-  },
-  {
-   "id": "rt",
-   "type": "app",
-   "app": "claude",
-   "x": 460,
-   "y": 420,
-   "title": "Claude · Request routine",
-   "desc": "Works out what she needs: which ISAs, which days, which numbers",
-   "status": "building"
-  },
-  {
-   "id": "pb",
-   "type": "app",
-   "app": "prospect",
-   "x": 670,
-   "y": 110,
-   "title": "ProspectBoss API",
-   "desc": "Read-only: calls, connects, talk time, logins, breaks per caller",
-   "status": "building"
-  },
-  {
-   "id": "td",
-   "type": "app",
-   "app": "timedoctor",
-   "x": 670,
-   "y": 350,
-   "title": "Time Doctor",
-   "desc": "Read-only: tracked time and activity (connector or Omerson's Zap)",
-   "status": "building"
-  },
-  {
-   "id": "calc",
-   "type": "app",
-   "app": "claude",
    "x": 880,
-   "y": 230,
-   "title": "Claude works it out",
-   "desc": "Matches usernames to ISA names; breaks, active time; flags long breaks, low active time, TD online but no PB calls",
+   "y": 180,
+   "title": "Claude · Daily report",
+   "desc": "Matches usernames to ISA names; logged-in, breaks, active time, calls, connects, talk time; flags long breaks, low active time, TD online but no PB calls",
    "status": "building"
   },
   {
@@ -107,17 +99,85 @@
    "type": "app",
    "app": "slack",
    "x": 1090,
-   "y": 40,
+   "y": 180,
    "title": "Morning report post",
-   "desc": "Summary per ISA + flags, as Club Wealth Assistant",
+   "desc": "In the ISA channel, as Club Wealth Assistant",
+   "status": "building"
+  },
+  {
+   "id": "z2t",
+   "type": "app",
+   "app": "slack",
+   "x": 40,
+   "y": 480,
+   "title": "Zap 2 · New Slack message",
+   "desc": "Trigger: new message in the ISA channel (no tag needed)",
+   "status": "building"
+  },
+  {
+   "id": "who",
+   "type": "decision",
+   "x": 250,
+   "y": 482,
+   "title": "Zap 2 · Filter: from Tara? (Miguel while testing)",
+   "desc": ""
+  },
+  {
+   "id": "skip",
+   "type": "app",
+   "app": "human",
+   "x": 250,
+   "y": 720,
+   "title": "Stop",
+   "desc": "Anyone else: the Zap stops, no reply",
+   "status": "building"
+  },
+  {
+   "id": "z2pb",
+   "type": "app",
+   "app": "prospect",
+   "x": 460,
+   "y": 480,
+   "title": "Zap 2 · ProspectBoss API",
+   "desc": "Webhooks GET (read-only key): the last 7 days per caller",
+   "status": "building"
+  },
+  {
+   "id": "z2td",
+   "type": "app",
+   "app": "zapier",
+   "x": 670,
+   "y": 480,
+   "title": "Zap 2 · Get TD data",
+   "desc": "Reads the latest TD data from Storage",
+   "status": "building"
+  },
+  {
+   "id": "z2c",
+   "type": "app",
+   "app": "webhook",
+   "x": 880,
+   "y": 480,
+   "title": "Zap 2 · Send to Claude",
+   "desc": "Webhooks POST: fires the Request routine with Tara's message, its thread and the PB + TD data",
+   "status": "building"
+  },
+  {
+   "id": "rt",
+   "type": "app",
+   "app": "claude",
+   "x": 1090,
+   "y": 480,
+   "title": "Claude · Request routine",
+   "desc": "Answers exactly what Tara asked, from the data it was sent",
    "status": "building"
   },
   {
    "id": "reply",
    "type": "app",
    "app": "slack",
-   "x": 1090,
-   "y": 420,
+   "x": 1300,
+   "y": 480,
    "title": "Reply in thread",
    "desc": "Under Tara's message, as Club Wealth Assistant",
    "status": "building"
@@ -126,90 +186,114 @@
    "id": "rules",
    "type": "note",
    "x": 40,
-   "y": 860,
+   "y": 900,
    "title": "Rules",
-   "desc": "Read-only toward ProspectBoss and Time Doctor.\nPosts only in the ISA channel; answers only Tara (Miguel while testing).\nAPI key lives in the routine settings, never in Slack or chat."
+   "desc": "Zaps only READ from ProspectBoss and Time Doctor.\nThe API key lives in the Zap (Webhooks header), never in Slack or chat.\nClaude posts only in the ISA channel; answers only Tara (Miguel while testing)."
   },
   {
    "id": "wait",
    "type": "note",
    "x": 290,
-   "y": 860,
+   "y": 900,
    "title": "Waiting on",
-   "desc": "Gary: API docs + key (to techteam@).\nMiguel: #isa-stats-test with the bot invited.\nThen: test (Miguel) → hand over to Tara."
+   "desc": "Gary: API docs + key (to techteam@).\nOmerson: TD script → Zap 0 hook.\nMiguel: #isa-stats-test with the bot invited; build Zaps 0–2.\nThen: test (Miguel) → hand over to Tara."
   }
  ],
  "edges": [
   {
    "id": "e1",
-   "from": "sch",
-   "to": "rep",
+   "from": "tds",
+   "to": "z0",
    "port": "out"
   },
   {
    "id": "e2",
-   "from": "rep",
-   "to": "pb",
+   "from": "z0",
+   "to": "z0s",
    "port": "out"
   },
   {
    "id": "e3",
-   "from": "rep",
-   "to": "td",
+   "from": "z1t",
+   "to": "z1pb",
    "port": "out"
   },
   {
    "id": "e4",
-   "from": "ask",
-   "to": "who",
+   "from": "z1pb",
+   "to": "z1td",
    "port": "out"
   },
   {
    "id": "e5",
-   "from": "who",
-   "to": "rt",
-   "port": "yes"
+   "from": "z1td",
+   "to": "z1c",
+   "port": "out"
   },
   {
    "id": "e6",
+   "from": "z1c",
+   "to": "rep",
+   "port": "out"
+  },
+  {
+   "id": "e7",
+   "from": "rep",
+   "to": "post",
+   "port": "out"
+  },
+  {
+   "id": "e8",
+   "from": "z2t",
+   "to": "who",
+   "port": "out"
+  },
+  {
+   "id": "e9",
+   "from": "who",
+   "to": "z2pb",
+   "port": "yes"
+  },
+  {
+   "id": "e10",
    "from": "who",
    "to": "skip",
    "port": "no"
   },
   {
-   "id": "e7",
-   "from": "rt",
-   "to": "pb",
-   "port": "out"
-  },
-  {
-   "id": "e8",
-   "from": "rt",
-   "to": "td",
-   "port": "out"
-  },
-  {
-   "id": "e9",
-   "from": "pb",
-   "to": "calc",
-   "port": "out"
-  },
-  {
-   "id": "e10",
-   "from": "td",
-   "to": "calc",
-   "port": "out"
-  },
-  {
    "id": "e11",
-   "from": "calc",
-   "to": "post",
+   "from": "z2pb",
+   "to": "z2td",
    "port": "out"
   },
   {
    "id": "e12",
-   "from": "calc",
+   "from": "z2td",
+   "to": "z2c",
+   "port": "out"
+  },
+  {
+   "id": "e13",
+   "from": "z2c",
+   "to": "rt",
+   "port": "out"
+  },
+  {
+   "id": "e14",
+   "from": "rt",
    "to": "reply",
+   "port": "out"
+  },
+  {
+   "id": "e15",
+   "from": "z0s",
+   "to": "z1td",
+   "port": "out"
+  },
+  {
+   "id": "e16",
+   "from": "z0s",
+   "to": "z2td",
    "port": "out"
   }
  ]

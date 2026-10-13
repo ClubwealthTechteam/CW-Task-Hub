@@ -87,3 +87,11 @@ npm run typecheck && npm run build
 ## Putting it inside CW University
 
 The site sends `Content-Security-Policy: frame-ancestors 'self' https://learning.clubwealth.com https://*.clubwealth.com` (change with `FRAME_ANCESTORS`), and the session cookie is `SameSite=None; Secure`, so it can be shown as an iframe on a CWU "AI Task Hub" page. Some browsers block cookies inside iframes from another site; the long-term fix is serving the hub from a `clubwealth.com` subdomain (e.g. `hub.clubwealth.com`) and moving sign-in to CWU single sign-on.
+
+## Before launch: SOP and tutorials
+
+When the Task Hub is finished, write the user documentation before rolling it out to the team:
+
+- **SOP: How to use the CW AI Task Hub.** Signing in with your own access code, your workspace and tasks, the task assistant and drafts (Approve / Edit / Shorter), the Keap contact panel, My spreadsheets, My process forms, the CW Assistant chat bubble, and what "Needs approval" means. Add a short section for super admins: the overview page, Integrations (Keap, Eventbrite, Zapier, Buildium), approving spreadsheet accounts, and access codes.
+- **Tutorials:** short step-by-step guides with screenshots for each main job (for example: sign in for the first time, work a task with the assistant, add a spreadsheet, look up a Keap contact, read your process form flowchart), plus an in-app guided tour like the Workflow Process Form's.
+- Keep both in plain, non-technical language, and update them whenever a feature changes.

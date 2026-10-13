@@ -8,13 +8,15 @@ import { PREVIEW_COOKIE, SESSION_COOKIE, verifySession } from '@/lib/auth/sessio
 // /api/zapier/inbox is called by Zaps, which prove themselves with ZAPIER_INBOUND_SECRET.
 // /api/chat/reply/file is how the routine sends a graphic it made (same per-message token).
 // /api/chat/files/<id>?t=… is how the routine reads an attached file (a signed link per file).
+// /api/council/run (GET: the daily cron, checks CRON_SECRET), snapshot, keap and report use a run token.
 // /api/chat/reply/canva is how the routine puts a design into the person's Canva (same token).
-const PUBLIC = ['/login', '/api/auth/login', '/api/health', '/api/chat/reply', '/api/chat/reply/file', '/api/chat/reply/canva', '/api/zapier/inbox'];
+const PUBLIC = ['/login', '/api/auth/login', '/api/health', '/api/chat/reply', '/api/chat/reply/file', '/api/chat/reply/canva', '/api/zapier/inbox', '/api/council/snapshot', '/api/council/keap', '/api/council/report'];
+const councilCron = (req: NextRequest) => req.nextUrl.pathname === '/api/council/run' && req.method === 'GET';
 const signedFile = (req: NextRequest) => req.nextUrl.pathname.startsWith('/api/chat/files/') && req.method === 'GET' && req.nextUrl.searchParams.has('t');
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (PUBLIC.some((p) => pathname === p) || signedFile(req)) return NextResponse.next();
+  if (PUBLIC.some((p) => pathname === p) || signedFile(req) || councilCron(req)) return NextResponse.next();
 
   const session = await verifySession(req.cookies.get(SESSION_COOKIE)?.value);
   if (session) {

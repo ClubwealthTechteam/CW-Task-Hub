@@ -12,6 +12,7 @@ import { DEPARTMENTS } from '@/config/departments';
 import { announcementsFor, toView } from '@/lib/announcements';
 import { getViewer } from '@/lib/auth/current-user';
 import { Announcements } from '@/components/Announcements';
+import { listReports } from '@/lib/council/store';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +26,7 @@ export default async function Home() {
   const runs = isSuperAdmin(user) ? (await listRuns()).slice(0, 8) : [];
   const first = user.name.split(' ')[0];
   const updates = (await announcementsFor(user)).map(toView);
+  const council = (await listReports())[0];
   const preview = Boolean((await getViewer())?.preview);
 
   return (
@@ -36,6 +38,14 @@ export default async function Home() {
           <h1>Hi {first}, here are your automations</h1>
           <p>{isSuperAdmin(user) ? 'You can see every department and manage integrations.' : 'Open your department to run your tools. Each one shows its plan and what it still needs.'}</p>
         </section>
+
+        {council && council.overall !== 'ok' && (
+          <Link href="/council" className={`council-alert lvl-b-${council.overall}`}>
+            <b>{council.overall === 'fail' ? 'The council found a problem' : 'The council flagged something'}</b>
+            <span>{council.headline}</span>
+            <span className="small">Open the Council →</span>
+          </Link>
+        )}
 
         <section className="card" aria-labelledby="updates-title">
           <div className="spread"><h2 id="updates-title">Updates &amp; announcements</h2><span className="muted small">Team members see these at the top of their workspace</span></div>

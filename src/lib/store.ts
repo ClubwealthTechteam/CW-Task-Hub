@@ -42,3 +42,20 @@ export async function deleteKey(key: string) {
   if (storeIsPersistent()) await redis(['DEL', key]);
   else memory.delete(key);
 }
+
+/** Keys matching a pattern like "chat:conv:*", with their size in bytes (for the council's data inventory). */
+export async function scanKeys(pattern: string, max = 5000): Promise<{ key: string; bytes: number }[]> {
+  const out: { key: string; bytes: number }[] = [];
+  if (!storeIsPersistent()) {
+    const re = new RegExp(`^${pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`);
+    for (const [k, v] of memory) if (re.test(k)) out.push({ key: k, bytes: v.length });
+    return out.slice(0, max);
+  }
+  let cursor = '0';
+  do {
+    const [next, keys] = (await redis(['SCAN', cursor, 'MATCH', pattern, 'COUNT', 500])) as [string, string[]];
+    cursor = String(next);
+    for (const k of keys) out.push({ key: k, bytes: Number(await redis(['STRLEN', k])) || 0 });
+  } while (cursor !== '0' && out.length < max);
+  return out.slice(0, max);
+}

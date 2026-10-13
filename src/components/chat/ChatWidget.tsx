@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Conversation, ConversationSummary } from '@/lib/chat/store';
 import { Markdown } from './Markdown';
+import { bubbleMax, useAutoGrow } from './autogrow';
 
 type Size = 'closed' | 'open' | 'max';
 
@@ -51,6 +52,7 @@ export function ChatWidget({ firstName }: { firstName: string }) {
   const [now, setNow] = useState(Date.now());
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  useAutoGrow(inputRef, text, bubbleMax);
 
   const pending = conv?.messages.some((m) => m.status === 'pending') ?? false;
   // Task chats live in their department workspace; the bubble keeps the general ones.

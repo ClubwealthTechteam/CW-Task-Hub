@@ -10,6 +10,7 @@ import { Markdown } from '@/components/chat/Markdown';
 import { Icon, Sparkle } from '@/components/Icon';
 import { CONTACT_EVENT, loadContact, type ChatContact } from '@/lib/chat/contact';
 import { ACCEPT, MessageFiles, PendingFiles, useAttachments } from '@/components/chat/Attachments';
+import { halfScreen, useAutoGrow } from '@/components/chat/autogrow';
 
 const POLL_MS = 3000;
 const SLOW_MS = 3 * 60 * 1000;
@@ -74,6 +75,7 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
   const files = useAttachments();
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  useAutoGrow(inputRef, text, halfScreen);
   const pending = conv?.messages.some((m) => m.status === 'pending') ?? false;
 
   const open = useCallback(async (id: string) => {

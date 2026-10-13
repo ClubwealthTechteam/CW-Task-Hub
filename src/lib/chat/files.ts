@@ -21,7 +21,10 @@ export interface ChatFile {
 }
 
 export type FileType = 'image/png' | 'image/jpeg' | 'application/pdf';
-export type FileRef = Pick<ChatFile, 'id' | 'name' | 'type' | 'size' | 'source'>;
+export type FileRef = Pick<ChatFile, 'id' | 'name' | 'type' | 'size' | 'source'> & {
+  /** Set when the graphic was sent to the person's Canva. */
+  canva?: { id: string; title: string; editUrl: string; viewUrl: string; at: number };
+};
 
 export const MAX_FILE_BYTES = 4 * 1024 * 1024;   // Vercel request bodies stop at 4.5 MB
 export const MAX_FILES_PER_MESSAGE = 5;

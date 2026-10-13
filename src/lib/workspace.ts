@@ -45,6 +45,7 @@ export function starters(a: Automation): string[] {
   if (a.id === 'jaymar-8') return ['Which referrals are still open?', 'Rewrite this SMS shorter', 'Tips to find more referral posts'];
   if (a.id === 'jaymar-1') return ['Who still needs a welcome post?', 'Write 3 Page captions', 'Make a welcome graphic'];
   if (/calendar/.test(t)) return ['What’s due today?', 'Plan next week’s posts', 'Ideas for recurring posts'];
+  if (a.id === 'jaymar-6') return ['Make a graphic for this', 'Make it in Canva', 'Review my attached file'];
   if (a.department === 'social-media') return ['Make a graphic for this', 'Write a caption', 'Review my attached file'];
   const out = ['What will this task do?'];
   if (/email|message|reply|follow|communicat|reminder|outreach/.test(t)) out.push('Draft a message for me');

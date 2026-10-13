@@ -20,9 +20,10 @@ function Prompt({ text }: { text: string }) {
 
 export function ContentTemplates({ taskId }: { taskId: string }) {
   const [group, setGroup] = useState('All');
+  const [browsing, setBrowsing] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
-  const { mine, rest } = useMemo(() => templatesFor(taskId), [taskId]);
+  const { mine } = useMemo(() => templatesFor(taskId), [taskId]);
   const pick = (list: ContentTemplate[]) => (group === 'All' ? list : list.filter((t) => t.group === group));
 
   async function copy(t: ContentTemplate) {
@@ -36,31 +37,42 @@ export function ContentTemplates({ taskId }: { taskId: string }) {
   }
   const use = (t: ContentTemplate) => window.dispatchEvent(new CustomEvent(ASK_EVENT, { detail: { taskId, text: t.prompt } }));
 
+  // Compact rows: the title opens the prompt; Copy and Use sit on the right.
   const card = (t: ContentTemplate) => (
     <li key={t.id} className={`tpl${open === t.id ? ' open' : ''}`}>
-      <button className="tpl-h" onClick={() => setOpen(open === t.id ? null : t.id)} aria-expanded={open === t.id}>
-        <span className="tpl-title">{t.title}</span>
-        <span className="tpl-hint">{t.hint}</span>
-      </button>
-      {open === t.id && <Prompt text={t.prompt} />}
-      <div className="tpl-acts">
-        <button className="btn" onClick={() => copy(t)}>{copied === t.id ? 'Copied ✓' : 'Copy'}</button>
-        <button className="btn" onClick={() => use(t)}>Use in chat</button>
-        {open !== t.id && <button className="linkbtn tpl-peek" onClick={() => setOpen(t.id)}>Preview</button>}
+      <div className="tpl-row">
+        <button className="tpl-h" onClick={() => setOpen(open === t.id ? null : t.id)} aria-expanded={open === t.id} title={open === t.id ? 'Hide the prompt' : 'Show the prompt'}>
+          <span className="tpl-title"><span className="tpl-caret" aria-hidden="true">{open === t.id ? '▾' : '▸'}</span>{t.title}</span>
+          <span className="tpl-hint">{t.hint}</span>
+        </button>
+        <span className="tpl-acts">
+          <button className="linkbtn" onClick={() => copy(t)}>{copied === t.id ? 'Copied ✓' : 'Copy'}</button>
+          <button className="linkbtn tpl-use" onClick={() => use(t)}>Use</button>
+        </span>
       </div>
+      {open === t.id && <Prompt text={t.prompt} />}
     </li>
   );
 
-  const a = pick(mine);
-  const b = pick(rest);
+  const shortlist = mine.slice(0, 3);
+  const all = pick(CONTENT_TEMPLATES.filter((t) => !shortlist.includes(t)));
   return (
     <div className="tpls">
-      <p className="muted small" style={{ margin: 0 }}>Ready-made prompts for content. Fill in the <mark>[highlighted]</mark> parts, then send. Attach photos or PDFs with 📎 first when a template asks for them.</p>
-      <div className="tpl-groups" role="group" aria-label="Template type">
-        {GROUPS.map((g) => <button key={g} className={`chip-btn${group === g ? ' on' : ''}`} aria-pressed={group === g} onClick={() => setGroup(g)}>{g}</button>)}
-      </div>
-      {a.length > 0 && <><h5>For this task</h5><ul className="tpl-list">{a.map(card)}</ul></>}
-      {b.length > 0 && <><h5>{a.length ? 'More templates' : 'Templates'}</h5><ul className="tpl-list">{b.map(card)}</ul></>}
+      <p className="muted small" style={{ margin: 0 }}>Ready-made prompts. <b>Use</b> puts one in the chat box; fill in the <mark>[highlighted]</mark> parts, then send.</p>
+      {shortlist.length > 0 && <><h5>For this task</h5><ul className="tpl-list">{shortlist.map(card)}</ul></>}
+      <button className="tpl-browse" onClick={() => setBrowsing(!browsing)} aria-expanded={browsing}>
+        <span>{browsing ? 'Hide templates' : shortlist.length ? 'Browse all templates' : 'Show all templates'}</span>
+        <span className="wp-n">{CONTENT_TEMPLATES.length - shortlist.length}</span>
+        <span aria-hidden="true">{browsing ? '▴' : '▾'}</span>
+      </button>
+      {browsing && (
+        <>
+          <div className="tpl-groups" role="group" aria-label="Template type">
+            {GROUPS.map((g) => <button key={g} className={`chip-btn${group === g ? ' on' : ''}`} aria-pressed={group === g} onClick={() => setGroup(g)}>{g}</button>)}
+          </div>
+          <ul className="tpl-list">{all.map(card)}</ul>
+        </>
+      )}
     </div>
   );
 }

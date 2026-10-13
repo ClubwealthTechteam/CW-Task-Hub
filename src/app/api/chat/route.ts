@@ -13,6 +13,7 @@ import { sheetsContext } from '@/lib/chat/sheets-context';
 import { storeIsPersistent } from '@/lib/store';
 import { canUseFiles, fileMeta, MAX_FILES_PER_MESSAGE, toRef, updateFileMeta } from '@/lib/chat/files';
 import { filesContext } from '@/lib/chat/files-context';
+import { CANVA_TASK, canUseCanva, canvaConfigured, status as canvaStatus } from '@/lib/canva/client';
 import { countMessage, usageFor } from '@/lib/chat/usage';
 import { chatIsConfigured, buildPayload, fireChatRoutine } from '@/lib/chat/routine';
 import {
@@ -96,7 +97,8 @@ export async function POST(req: Request) {
       welcomeContext(task?.id).catch(() => ''),
       referralsContext(task?.id).catch(() => ''),
     ]);
-    const filesBlock = await filesContext(conv, canUseFiles(user));
+    const canvaOn = task?.id === CANVA_TASK && canvaConfigured() && canUseCanva(user) && (await canvaStatus(user.id)).connected;
+    const filesBlock = await filesContext(conv, canUseFiles(user), canvaOn);
     await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, eventsBlock + zapBlock + sheetsBlock + calendarBlock + welcomeBlock + referralsBlock + filesBlock));
   } catch (e) {
     reply.status = 'error';

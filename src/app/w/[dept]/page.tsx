@@ -26,6 +26,7 @@ import { ContentCalendar } from '@/components/calendar/ContentCalendar';
 import { calendarDeptForTask, calendarTeam, canUseCalendar } from '@/lib/calendar-access';
 import { todayPacific } from '@/lib/calendar-dates';
 import { canUseFiles } from '@/lib/chat/files';
+import { CANVA_TASK, canUseCanva } from '@/lib/canva/client';
 import { ContentTemplates } from '@/components/ContentTemplates';
 import { WelcomePosts } from '@/components/welcome/WelcomePosts';
 import { ReferralBoard } from '@/components/referrals/ReferralBoard';
@@ -78,6 +79,7 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
       preview={preview}
       inPanel={toolInMiddle}
       canAttach={dept.id === 'social-media' && canUseFiles(user) && !preview}
+      canva={selected.id === CANVA_TASK && canUseCanva(user)}
     />
   ) : null;
   // Social Media: ready-made content prompts beside the assistant.

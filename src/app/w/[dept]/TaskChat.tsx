@@ -11,6 +11,7 @@ import { Icon, Sparkle } from '@/components/Icon';
 import { CONTACT_EVENT, loadContact, type ChatContact } from '@/lib/chat/contact';
 import { ACCEPT, MessageFiles, PendingFiles, useAttachments } from '@/components/chat/Attachments';
 import { halfScreen, useAutoGrow } from '@/components/chat/autogrow';
+import { CanvaBar, useCanva } from '@/components/chat/CanvaBar';
 
 const POLL_MS = 3000;
 const SLOW_MS = 3 * 60 * 1000;
@@ -56,11 +57,13 @@ interface Props {
   inPanel?: boolean;
   /** Social Media (and super admins): attach PNG/JPEG/PDF files and ask for graphics. */
   canAttach?: boolean;
+  /** Marketing Graphics, for the people allowed to use Canva: connect Canva and send graphics there. */
+  canva?: boolean;
 }
 
 const ASK_EVENT = 'cw-ask-assistant';
 
-export function TaskChat({ taskId, title, approveTool, starters, firstName, ready, preview, inPanel, canAttach }: Props) {
+export function TaskChat({ taskId, title, approveTool, starters, firstName, ready, preview, inPanel, canAttach, canva }: Props) {
   const [conv, setConv] = useState<Conversation | null>(null);
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState('');
@@ -73,6 +76,18 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
   const endRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const files = useAttachments();
+  const [canvaState, setCanvaState] = useCanva(Boolean(canva) && !preview);
+  const canvaActions = canvaState?.connected && conv ? {
+    send: async (fileId: string) => {
+      const msg = conv.messages.find((m) => m.files?.some((f) => f.id === fileId));
+      const res = await fetch('/api/canva/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ conversationId: conv.id, messageId: msg?.id, fileId }) });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) { if (res.status === 409) setCanvaState({ ...canvaState, connected: false }); return body.error || 'Couldn’t send it to Canva'; }
+      setConv(body.conversation);
+      window.open(body.design.editUrl, '_blank', 'noopener');
+      return null;
+    },
+  } : undefined;
   const [dragging, setDragging] = useState(false);
   // The header shrinks once the conversation is scrolled, leaving more room for messages.
   const [compact, setCompact] = useState(false);
@@ -189,6 +204,7 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
         {conv && <button className="ws-newchat" onClick={() => { setConv(null); setError(''); }}><Icon name="plus" size={14} /> New chat</button>}
       </div>
 
+      {canvaState?.allowed && <CanvaBar state={canvaState} onChange={setCanvaState} returnTo={`/w/social-media?t=${taskId}`} />}
       <div className="ws-msgs" aria-live="polite" onScroll={(e) => setCompact(e.currentTarget.scrollTop > 24)}>
         {preview && <p className="note" style={{ margin: 0 }}>This person’s chats with the assistant are private, so they’re hidden in preview. Everything else on this page is exactly what they see.</p>}
         {!ready && <p className="note" style={{ margin: 0 }}>CW Assistant isn&apos;t switched on yet. Miguel is finishing the setup.</p>}
@@ -211,7 +227,12 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
               : (
                 <div key={m.id} className={`m ai${m.status === 'error' ? ' err' : ''}`}>
                   {parts(m.text).map((p, i) => (p.kind === 'draft' ? draftCard(m, p.text, i) : <Markdown key={i} text={p.text} />))}
-                  {m.files?.length ? <MessageFiles files={m.files} /> : null}
+                  {m.files?.length ? <MessageFiles files={m.files} canva={canvaActions} /> : null}
+                  {m.canva?.length ? (
+                    <div className="row canva-designs">
+                      {m.canva.map((d) => <a key={d.id} className="btn canva-btn" href={d.editUrl} target="_blank" rel="noreferrer">Open “{d.title}” in Canva</a>)}
+                    </div>
+                  ) : null}
                 </div>
               )
         ))}

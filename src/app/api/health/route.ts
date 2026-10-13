@@ -7,6 +7,7 @@ import { signInMode } from '@/lib/auth/access-codes';
 import { inboxConfigured } from '@/lib/integrations/zapier-feed';
 import { sheetsConfigured, sheetsKeyState } from '@/lib/integrations/google/sheets';
 import { zapierHooks } from '@/lib/integrations/zapier';
+import { canvaConfigured } from '@/lib/canva/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,5 +23,6 @@ export const GET = () => NextResponse.json({
   zapierInbox: inboxConfigured(),
   googleSheets: sheetsConfigured(),
   googleSheetsKey: sheetsKeyState(),
+  canva: canvaConfigured(),
   zapsToStart: Object.keys(zapierHooks()).length,
 });

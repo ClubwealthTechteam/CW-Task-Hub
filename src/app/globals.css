@@ -795,3 +795,27 @@ a.chip:hover { border-color: #0c3f7a; color: #0c3f7a; }
 .rf-table input:not([type="checkbox"]) { padding: 4px 8px; font-size: 12.5px; min-width: 160px; }
 .rf-table input[type="checkbox"] { width: auto; }
 .rf-table tr.paused { opacity: .55; }
+
+/* Canva (Marketing Graphics, Jay) */
+.canva-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 7px 22px; border-bottom: 1px solid var(--line); background: #f3f0ff; color: #3b2a7a; }
+.canva-bar.on { background: #effaf7; color: #0f5d4d; }
+.canva-mark { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13px; color: #fff; background: linear-gradient(135deg, #00c4cc, #7d2ae8); flex: none; }
+.canva-connect, .canva-btn { background: linear-gradient(135deg, #00c4cc, #7d2ae8); color: #fff !important; border: 0; text-decoration: none; }
+.canva-connect { padding: 5px 12px; font-size: 13px; }
+.canva-btn:disabled { opacity: .7; }
+.canva-note { width: 100%; font-weight: 600; }
+.canva-designs { gap: 6px; }
+.cf-made figcaption { flex-wrap: wrap; }
+/* Templates: compact rows, the full list behind "Browse all templates" */
+.tpl { padding: 8px 10px; gap: 6px; }
+.tpl-row { display: flex; align-items: flex-start; gap: 8px; }
+.tpl-row .tpl-h { flex: 1; min-width: 0; }
+.tpl-title { display: flex; align-items: baseline; gap: 5px; font-size: 13px; }
+.tpl-caret { color: var(--muted); font-size: 10px; width: 9px; flex: none; }
+.tpl-hint { padding-left: 14px; font-size: 11.5px; }
+.tpl-acts { flex: none; gap: 4px; }
+.tpl-acts .linkbtn { padding: 3px 8px; font-size: 12px; }
+.tpl-use { border-color: var(--navy); color: var(--navy); font-weight: 600; }
+.tpl-browse { display: flex; align-items: center; gap: 8px; width: 100%; border: 1px dashed var(--line-strong); background: var(--surface-2); color: var(--ink-2); border-radius: 10px; padding: 9px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.tpl-browse span:first-child { flex: 1; text-align: left; }
+.tpl-browse:hover { border-color: var(--navy); color: var(--navy); }

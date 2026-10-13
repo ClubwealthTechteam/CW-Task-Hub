@@ -10,7 +10,9 @@ import { Icon } from '@/components/Icon';
 const src = (f: { id: string }) => `/api/chat/files/${f.id}`;
 const kb = (n: number) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(n / 1024)} KB`);
 
-export function MessageFiles({ files }: { files: FileRef[] }) {
+export interface CanvaActions { send: (fileId: string) => Promise<string | null> }
+
+export function MessageFiles({ files, canva }: { files: FileRef[]; canva?: CanvaActions }) {
   const made = files.filter((f) => f.source === 'assistant');
   const sent = files.filter((f) => f.source !== 'assistant');
   return (
@@ -29,10 +31,27 @@ export function MessageFiles({ files }: { files: FileRef[] }) {
           <a href={src(f)} target="_blank" rel="noreferrer"><img src={src(f)} alt={f.name} loading="lazy" /></a>
           <figcaption>
             <span>{f.name}</span>
-            <a className="btn" href={`${src(f)}?download=1`}><Icon name="download" size={14} /> Download</a>
+            <span className="row" style={{ gap: 6 }}>
+              {f.canva ? <a className="btn canva-btn" href={f.canva.editUrl} target="_blank" rel="noreferrer">Open in Canva</a>
+                : canva && <SendToCanva onSend={() => canva.send(f.id)} />}
+              <a className="btn" href={`${src(f)}?download=1`}><Icon name="download" size={14} /> Download</a>
+            </span>
           </figcaption>
         </figure>
       ))}
+    </>
+  );
+}
+
+function SendToCanva({ onSend }: { onSend: () => Promise<string | null> }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  return (
+    <>
+      <button className="btn canva-btn" disabled={busy} title={err || 'Make this graphic a design in your Canva'} onClick={async () => { setBusy(true); setErr(''); const e = await onSend(); if (e) setErr(e); setBusy(false); }}>
+        {busy ? 'Sending to Canva…' : err ? 'Try Canva again' : 'Send to Canva'}
+      </button>
+      {err && <small className="wp-warn">{err}</small>}
     </>
   );
 }

@@ -15,6 +15,8 @@ export interface ChatMessage {
   status: ChatStatus;
   /** Files attached to a message, or graphics the assistant made for its reply. */
   files?: FileRef[];
+  /** Designs the assistant put in the person's Canva for this reply. */
+  canva?: { id: string; title: string; editUrl: string; viewUrl: string; at: number }[];
 }
 
 export interface Conversation {

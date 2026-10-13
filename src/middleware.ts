@@ -8,7 +8,8 @@ import { PREVIEW_COOKIE, SESSION_COOKIE, verifySession } from '@/lib/auth/sessio
 // /api/zapier/inbox is called by Zaps, which prove themselves with ZAPIER_INBOUND_SECRET.
 // /api/chat/reply/file is how the routine sends a graphic it made (same per-message token).
 // /api/chat/files/<id>?t=… is how the routine reads an attached file (a signed link per file).
-const PUBLIC = ['/login', '/api/auth/login', '/api/health', '/api/chat/reply', '/api/chat/reply/file', '/api/zapier/inbox'];
+// /api/chat/reply/canva is how the routine puts a design into the person's Canva (same token).
+const PUBLIC = ['/login', '/api/auth/login', '/api/health', '/api/chat/reply', '/api/chat/reply/file', '/api/chat/reply/canva', '/api/zapier/inbox'];
 const signedFile = (req: NextRequest) => req.nextUrl.pathname.startsWith('/api/chat/files/') && req.method === 'GET' && req.nextUrl.searchParams.has('t');
 
 export async function middleware(req: NextRequest) {

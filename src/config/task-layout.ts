@@ -22,3 +22,6 @@ export const LIVE_IN_HUB: Record<string, string | null> = {
   'jaymar-9': null,
   'jaymar-10': null,
 };
+
+/** People whose list shows only their Workflow Process Form tasks (their AI Audit tasks are hidden). */
+export const FORM_ONLY: string[] = ['jizel'];

@@ -7,6 +7,7 @@ import { keapContext } from '@/lib/chat/keap-context';
 import { eventbriteContext } from '@/lib/chat/eventbrite-context';
 import { zapierContext } from '@/lib/chat/zapier-context';
 import { storeIsPersistent } from '@/lib/store';
+import { countMessage, usageFor } from '@/lib/chat/usage';
 import { chatIsConfigured, buildPayload, fireChatRoutine } from '@/lib/chat/routine';
 import {
   createConversation, getConversation, listConversations, newId, saveConversation, touchIndex, type ChatMessage,
@@ -23,6 +24,7 @@ export async function GET() {
   return NextResponse.json({
     conversations: await listConversations(user.id),
     ready: chatIsConfigured() && storeIsPersistent(),
+    usage: await usageFor(user),
     missing: [!chatIsConfigured() && 'CLAUDE_CHAT_ROUTINE_TOKEN', !storeIsPersistent() && 'storage'].filter(Boolean),
   });
 }
@@ -38,6 +40,10 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const text = String(body.text ?? '').trim();
   if (!text) return NextResponse.json({ error: 'Type a message first' }, { status: 400 });
+  const usage = await usageFor(user);
+  if (usage.left === 0) {
+    return NextResponse.json({ error: `You’ve used your ${usage.limit} CW Assistant messages for today. They reset at midnight (Pacific).`, usage }, { status: 429 });
+  }
   if (text.length > MAX_TEXT) return NextResponse.json({ error: `Keep messages under ${MAX_TEXT} characters` }, { status: 400 });
 
   let conv = body.conversationId ? await getConversation(String(body.conversationId)) : null;
@@ -74,7 +80,8 @@ export async function POST(req: Request) {
     reply.status = 'error';
     reply.text = (e as Error).message;
   }
+  if (reply.status !== 'error') await countMessage(user);
   await saveConversation(conv);
   await touchIndex(conv);
-  return NextResponse.json({ conversation: conv });
+  return NextResponse.json({ conversation: conv, usage: await usageFor(user) });
 }

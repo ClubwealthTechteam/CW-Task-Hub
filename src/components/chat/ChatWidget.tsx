@@ -41,6 +41,7 @@ export function ChatWidget({ firstName }: { firstName: string }) {
   const [showList, setShowList] = useState(false);
   const [list, setList] = useState<ConversationSummary[]>([]);
   const [ready, setReady] = useState<boolean | null>(null);
+  const [usage, setUsage] = useState<{ left: number | null; limit: number | null } | null>(null);
   const [conv, setConv] = useState<Conversation | null>(null);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -62,6 +63,7 @@ export function ChatWidget({ firstName }: { firstName: string }) {
     const body = await res.json();
     setList(body.conversations);
     setReady(body.ready);
+    if (body.usage) setUsage(body.usage);
   }, []);
 
   const open = useCallback(async (id: string) => {
@@ -111,6 +113,7 @@ export function ChatWidget({ firstName }: { firstName: string }) {
       body: JSON.stringify({ conversationId: conv?.id, text: msg }),
     });
     const body = await res.json().catch(() => ({}));
+    if (body.usage) setUsage(body.usage);
     if (res.ok) { setConv(body.conversation); setText(''); setNow(Date.now()); loadList(); }
     else setError(body.error || 'Something went wrong');
     setBusy(false);
@@ -178,7 +181,7 @@ export function ChatWidget({ firstName }: { firstName: string }) {
         <div className="cwa-badge" aria-hidden="true">CW</div>
         <div className="cwa-title">
           <b>CW Assistant</b>
-          <span>{pending ? 'Writing a reply…' : ready === false ? 'Not switched on yet' : 'Usually replies in 1–2 min'}</span>
+          <span>{pending ? 'Writing a reply…' : ready === false ? 'Not switched on yet' : usage?.limit != null ? `${usage.left} of ${usage.limit} messages left today` : 'Usually replies in 1–2 min'}</span>
         </div>
         <button className="cwa-icon cwa-listbtn" onClick={() => setShowList((v) => !v)} aria-pressed={showList} aria-label="Your chats" title="Your chats">{Icon.list}</button>
         <button className="cwa-icon" onClick={newChat} aria-label="New chat" title="New chat">{Icon.plus}</button>
@@ -228,7 +231,7 @@ export function ChatWidget({ firstName }: { firstName: string }) {
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
               />
-              <button type="submit" className="cwa-send" disabled={busy || pending || !text.trim() || ready === false} aria-label="Send">{Icon.send}</button>
+              <button type="submit" className="cwa-send" disabled={busy || pending || !text.trim() || ready === false || usage?.left === 0} aria-label="Send">{Icon.send}</button>
             </form>
           </div>
         )}

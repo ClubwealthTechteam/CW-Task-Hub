@@ -44,6 +44,7 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
   const [copied, setCopied] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
   const [contact, setContact] = useState<ChatContact | null>(null);
+  const [usage, setUsage] = useState<{ left: number | null; limit: number | null } | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const pending = conv?.messages.some((m) => m.status === 'pending') ?? false;
@@ -69,7 +70,9 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
     (async () => {
       const res = await fetch('/api/chat', { cache: 'no-store' });
       if (res.ok) {
-        const latest = (await res.json()).conversations.find((c: { automationId?: string }) => c.automationId === taskId);
+        const list = await res.json();
+        if (list.usage) setUsage(list.usage);
+        const latest = list.conversations.find((c: { automationId?: string }) => c.automationId === taskId);
         if (latest) await open(latest.id);
       }
       setLoading(false);
@@ -93,6 +96,7 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
       body: JSON.stringify({ conversationId: conv?.id, automationId: taskId, text: msg, contact }),
     });
     const body = await res.json().catch(() => ({}));
+    if (body.usage) setUsage(body.usage);
     if (res.ok) { setConv(body.conversation); setText(''); setNow(Date.now()); }
     else setError(body.error || 'Something went wrong');
     setBusy(false);
@@ -168,9 +172,12 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
         />
         <div className="row">
           {starters.map((s) => <button key={s} type="button" className="chip-btn" onClick={() => { setText(s); inputRef.current?.focus(); }}>{s}</button>)}
-          <button type="submit" className="ws-send" disabled={busy || pending || !text.trim() || !ready} aria-label="Send"><Icon name="send" /></button>
+          <button type="submit" className="ws-send" disabled={busy || pending || !text.trim() || !ready || usage?.left === 0} aria-label="Send"><Icon name="send" /></button>
         </div>
       </form>
+      {usage?.limit != null && (
+        <p className="ws-usage">{usage.left === 0 ? `You’ve used your ${usage.limit} messages for today. They reset at midnight (Pacific).` : `${usage.left} of ${usage.limit} CW Assistant messages left today`}</p>
+      )}
     </main>
   );
 }

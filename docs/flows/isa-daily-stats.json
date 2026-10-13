@@ -21,7 +21,7 @@
    "x": 40,
    "y": -60,
    "title": "Omerson's TD script",
-   "desc": "Time Doctor + CW University data, sent daily",
+   "desc": "Time Doctor + CW University data, sent every day at 5:00 PM PT",
    "status": "building"
   },
   {
@@ -31,7 +31,7 @@
    "x": 250,
    "y": -60,
    "title": "Zap 0 · Catch Hook",
-   "desc": "Receives the TD data",
+   "desc": "Webhooks by Zapier · Catch Hook (Omerson's script POSTs JSON here)",
    "status": "building"
   },
   {
@@ -41,7 +41,7 @@
    "x": 460,
    "y": -60,
    "title": "Zap 0 · Storage by Zapier",
-   "desc": "Keeps the latest TD data for Zaps 1 and 2",
+   "desc": "Set Value per day (td_YYYY-MM-DD) + td_latest, for Zaps 1 and 2",
    "status": "building"
   },
   {
@@ -71,7 +71,7 @@
    "x": 460,
    "y": 180,
    "title": "Zap 1 · Get TD data",
-   "desc": "Reads yesterday's TD data from Storage",
+   "desc": "Get Value td_latest (yesterday's 5 PM data)",
    "status": "building"
   },
   {
@@ -149,7 +149,7 @@
    "x": 670,
    "y": 480,
    "title": "Zap 2 · Get TD data",
-   "desc": "Reads the latest TD data from Storage",
+   "desc": "Get Values for the last 7 days (td_YYYY-MM-DD). Today's TD data arrives at 5 PM",
    "status": "building"
   },
   {

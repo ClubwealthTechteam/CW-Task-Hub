@@ -10,13 +10,19 @@ interface ServiceAccount { client_email: string; private_key: string }
 function account(): ServiceAccount | null {
   const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON?.trim();
   if (!raw) return null;
-  try {
-    const json = JSON.parse(raw.startsWith('{') ? raw : Buffer.from(raw, 'base64').toString('utf8'));
-    return json.client_email && json.private_key ? json : null;
-  } catch {
-    console.error('GOOGLE_SERVICE_ACCOUNT_JSON is not valid');
-    return null;
+  // Forgive common paste problems: wrapping quotes, the variable name pasted in front, or line breaks
+  // inside the private key turned into real ones.
+  let text = raw.replace(/^GOOGLE_SERVICE_ACCOUNT_JSON\s*=\s*/, '').trim().replace(/^(['"])([\s\S]*)\1$/, '$2').trim();
+  if (!text.startsWith('{')) text = Buffer.from(text, 'base64').toString('utf8');
+  const keyLines = text.replace(/("private_key"\s*:\s*")([\s\S]*?)(")/, (_m, a: string, k: string, b: string) => a + k.replace(/\r?\n/g, '\\n') + b);
+  for (const t of [text, keyLines]) {
+    try {
+      const json = JSON.parse(t);
+      if (json.client_email && json.private_key) return { ...json, private_key: String(json.private_key).replace(/\\n/g, '\n') };
+    } catch { /* try the next form */ }
   }
+  console.error('GOOGLE_SERVICE_ACCOUNT_JSON is not valid');
+  return null;
 }
 
 export const sheetsConfigured = () => Boolean(account());

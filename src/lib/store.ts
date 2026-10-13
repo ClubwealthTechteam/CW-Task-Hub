@@ -31,6 +31,13 @@ export async function setJSON(key: string, value: unknown) {
   else memory.set(key, raw);
 }
 
+/** Like setJSON, but the value expires after `seconds` (memory fallback: kept until restart). */
+export async function setJSONFor(key: string, value: unknown, seconds: number) {
+  const raw = JSON.stringify(value);
+  if (storeIsPersistent()) await redis(['SET', key, raw, 'EX', seconds]);
+  else memory.set(key, raw);
+}
+
 export async function deleteKey(key: string) {
   if (storeIsPersistent()) await redis(['DEL', key]);
   else memory.delete(key);

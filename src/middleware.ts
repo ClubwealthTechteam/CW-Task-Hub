@@ -6,11 +6,14 @@ import { PREVIEW_COOKIE, SESSION_COOKIE, verifySession } from '@/lib/auth/sessio
 
 // /api/chat/reply is called by the CW Assistant routine, which proves itself with a per-message token.
 // /api/zapier/inbox is called by Zaps, which prove themselves with ZAPIER_INBOUND_SECRET.
-const PUBLIC = ['/login', '/api/auth/login', '/api/health', '/api/chat/reply', '/api/zapier/inbox'];
+// /api/chat/reply/file is how the routine sends a graphic it made (same per-message token).
+// /api/chat/files/<id>?t=… is how the routine reads an attached file (a signed link per file).
+const PUBLIC = ['/login', '/api/auth/login', '/api/health', '/api/chat/reply', '/api/chat/reply/file', '/api/zapier/inbox'];
+const signedFile = (req: NextRequest) => req.nextUrl.pathname.startsWith('/api/chat/files/') && req.method === 'GET' && req.nextUrl.searchParams.has('t');
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (PUBLIC.some((p) => pathname === p)) return NextResponse.next();
+  if (PUBLIC.some((p) => pathname === p) || signedFile(req)) return NextResponse.next();
 
   const session = await verifySession(req.cookies.get(SESSION_COOKIE)?.value);
   if (session) {

@@ -9,6 +9,7 @@ import type { ChatMessage, Conversation } from '@/lib/chat/store';
 import { Markdown } from '@/components/chat/Markdown';
 import { Icon, Sparkle } from '@/components/Icon';
 import { CONTACT_EVENT, loadContact, type ChatContact } from '@/lib/chat/contact';
+import { ACCEPT, MessageFiles, PendingFiles, useAttachments } from '@/components/chat/Attachments';
 
 const POLL_MS = 3000;
 const SLOW_MS = 3 * 60 * 1000;
@@ -52,11 +53,13 @@ interface Props {
   preview?: boolean;
   /** Shown in the right panel (next to a tool like the content calendar) instead of the middle. */
   inPanel?: boolean;
+  /** Social Media (and super admins): attach PNG/JPEG/PDF files and ask for graphics. */
+  canAttach?: boolean;
 }
 
 const ASK_EVENT = 'cw-ask-assistant';
 
-export function TaskChat({ taskId, title, approveTool, starters, firstName, ready, preview, inPanel }: Props) {
+export function TaskChat({ taskId, title, approveTool, starters, firstName, ready, preview, inPanel, canAttach }: Props) {
   const [conv, setConv] = useState<Conversation | null>(null);
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState('');
@@ -67,6 +70,9 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
   const [contact, setContact] = useState<ChatContact | null>(null);
   const [usage, setUsage] = useState<{ left: number | null; limit: number | null } | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const files = useAttachments();
+  const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const pending = conv?.messages.some((m) => m.status === 'pending') ?? false;
 
@@ -123,15 +129,16 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
 
   async function send(message = text) {
     const msg = message.trim();
-    if (!msg || busy || pending) return;
+    const attachments = message === text ? files.ready : [];
+    if ((!msg && !attachments.length) || busy || pending || files.uploading) return;
     setBusy(true); setError('');
     const res = await fetch('/api/chat', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversationId: conv?.id, automationId: taskId, text: msg, contact }),
+      body: JSON.stringify({ conversationId: conv?.id, automationId: taskId, text: msg, contact, attachments }),
     });
     const body = await res.json().catch(() => ({}));
     if (body.usage) setUsage(body.usage);
-    if (res.ok) { setConv(body.conversation); setText(''); setNow(Date.now()); }
+    if (res.ok) { setConv(body.conversation); setText(''); if (attachments.length) files.clear(); setNow(Date.now()); }
     else setError(body.error || 'Something went wrong');
     setBusy(false);
   }
@@ -189,7 +196,7 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
         )}
         {conv?.messages.map((m) => (
           m.role === 'user'
-            ? <div key={m.id} className="m me">{m.text}</div>
+            ? <div key={m.id} className="m me">{m.files?.length ? <MessageFiles files={m.files} /> : null}{m.text}</div>
             : m.status === 'pending'
               ? (
                 <div key={m.id} className="m ai">
@@ -199,6 +206,7 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
               : (
                 <div key={m.id} className={`m ai${m.status === 'error' ? ' err' : ''}`}>
                   {parts(m.text).map((p, i) => (p.kind === 'draft' ? draftCard(m, p.text, i) : <Markdown key={i} text={p.text} />))}
+                  {m.files?.length ? <MessageFiles files={m.files} /> : null}
                 </div>
               )
         ))}
@@ -207,17 +215,31 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
 
       {error && <p className="note" role="alert" style={{ margin: '0 26px' }}>{error}</p>}
       {contact && <div className="ws-ctx">Working on <b>{contact.name}</b> from Keap{contact.tags.length ? ` · ${contact.tags.length} tag${contact.tags.length > 1 ? 's' : ''}` : ''}</div>}
-      <form className="ws-composer" onSubmit={(e) => { e.preventDefault(); send(); }}>
+      <form
+        className={`ws-composer${dragging ? ' dragging' : ''}`}
+        onSubmit={(e) => { e.preventDefault(); send(); }}
+        onDragOver={canAttach ? (e) => { if (e.dataTransfer.types.includes('Files')) { e.preventDefault(); setDragging(true); } } : undefined}
+        onDragLeave={canAttach ? () => setDragging(false) : undefined}
+        onDrop={canAttach ? (e) => { e.preventDefault(); setDragging(false); files.add(e.dataTransfer.files); } : undefined}
+      >
+        {canAttach && <PendingFiles items={files.items} onRemove={files.remove} />}
         <label htmlFor="ws-input" className="sr-only">Message the {title} assistant</label>
         <textarea
           id="ws-input" ref={inputRef} rows={2} value={text} maxLength={4000}
           placeholder={pending ? 'Waiting for the reply…' : 'Ask the assistant or adjust the draft…'}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+          onPaste={canAttach ? (e) => { const f = Array.from(e.clipboardData.files); if (f.length) { e.preventDefault(); files.add(f); } } : undefined}
         />
         <div className="row">
+          {canAttach && (
+            <>
+              <button type="button" className="ws-clip" onClick={() => fileRef.current?.click()} aria-label="Attach PNG, JPEG or PDF files" title="Attach PNG, JPEG or PDF (or drop / paste them here)"><Icon name="clip" size={17} /></button>
+              <input ref={fileRef} type="file" accept={ACCEPT} multiple hidden onChange={(e) => { if (e.target.files) files.add(e.target.files); e.target.value = ''; }} />
+            </>
+          )}
           {starters.map((s) => <button key={s} type="button" className="chip-btn" onClick={() => { setText(s); inputRef.current?.focus(); }}>{s}</button>)}
-          <button type="submit" className="ws-send" disabled={busy || pending || !text.trim() || !ready || usage?.left === 0} aria-label="Send"><Icon name="send" /></button>
+          <button type="submit" className="ws-send" disabled={busy || pending || files.uploading || (!text.trim() && !files.ready.length) || !ready || usage?.left === 0} aria-label="Send"><Icon name="send" /></button>
         </div>
       </form>
       {usage?.limit != null && (

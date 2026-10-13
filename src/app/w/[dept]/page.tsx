@@ -25,6 +25,7 @@ import { Tour } from '@/components/Tour';
 import { ContentCalendar } from '@/components/calendar/ContentCalendar';
 import { calendarDeptForTask, calendarTeam, canUseCalendar } from '@/lib/calendar-access';
 import { todayPacific } from '@/lib/calendar-dates';
+import { canUseFiles } from '@/lib/chat/files';
 import { UpdatesBanner } from '@/components/Announcements';
 import { announcementsFor, toView } from '@/lib/announcements';
 
@@ -67,6 +68,7 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
       ready={chatIsConfigured() && storeIsPersistent()}
       preview={preview}
       inPanel={Boolean(calendarDept)}
+      canAttach={dept.id === 'social-media' && canUseFiles(user) && !preview}
     />
   ) : null;
   const details = selected ? (

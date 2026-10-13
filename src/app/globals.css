@@ -646,3 +646,28 @@ a.chip:hover { border-color: #0c3f7a; color: #0c3f7a; }
 .cc-card:not(.compact) .cc-title { -webkit-line-clamp: 3; }
 .cc-meta .cc-st { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .cc-time { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Chat files: attachments, previews and graphics the assistant made */
+.ws-clip { border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-2); border-radius: 999px; width: 32px; height: 32px; display: grid; place-items: center; cursor: pointer; flex: none; }
+.ws-clip:hover { border-color: #0c3f7a; color: #0c3f7a; }
+.ws-composer.dragging { border-color: var(--gold); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 25%, transparent); background: color-mix(in srgb, var(--gold) 6%, var(--surface)); }
+.cf-pending { display: flex; flex-wrap: wrap; gap: 6px; }
+.cf-chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line-strong); border-radius: 8px; padding: 3px 4px 3px 3px; font-size: 12px; max-width: 220px; background: var(--surface-2); }
+.cf-chip img { width: 28px; height: 28px; object-fit: cover; border-radius: 5px; }
+.cf-chip.err { border-color: #c0392b; color: #c0392b; }
+.cf-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.cf-chip button { border: 0; background: none; cursor: pointer; font-size: 16px; line-height: 1; color: var(--muted); padding: 0 3px; }
+.cf-spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--line-strong); border-top-color: #0c3f7a; animation: cfspin .8s linear infinite; flex: none; }
+@keyframes cfspin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .cf-spin { animation: none; } }
+.cf-sent { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.cf-thumb img { display: block; width: 96px; height: 96px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255, 255, 255, .4); }
+.cf-pdf { display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, .15); color: inherit; border: 1px solid rgba(255, 255, 255, .35); border-radius: 8px; padding: 6px 10px; text-decoration: none; font-size: 12.5px; max-width: 260px; }
+.cf-pdf span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cf-pdf small { opacity: .75; }
+.m.ai .cf-pdf { background: var(--surface-2); border-color: var(--line); }
+.cf-made { margin: 8px 0 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface-2); max-width: 420px; }
+.cf-made img { display: block; width: 100%; height: auto; }
+.cf-made figcaption { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; font-size: 12.5px; color: var(--ink-2); }
+.cf-made figcaption span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.cf-made .btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; font-size: 12.5px; text-decoration: none; color: var(--ink); white-space: nowrap; }

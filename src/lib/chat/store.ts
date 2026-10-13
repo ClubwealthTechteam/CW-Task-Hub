@@ -2,6 +2,7 @@
 // index of their conversation ids (chat:user:<uid>), newest first.
 
 import { deleteKey, getJSON, setJSON } from '@/lib/store';
+import type { FileRef } from './files';
 
 export type ChatRole = 'user' | 'assistant';
 export type ChatStatus = 'pending' | 'done' | 'error';
@@ -12,6 +13,8 @@ export interface ChatMessage {
   text: string;
   at: number;
   status: ChatStatus;
+  /** Files attached to a message, or graphics the assistant made for its reply. */
+  files?: FileRef[];
 }
 
 export interface Conversation {

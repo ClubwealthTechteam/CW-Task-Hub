@@ -2,7 +2,7 @@
 
 import type { TaskIcon } from '@/lib/workspace';
 
-const PATHS: Record<TaskIcon | 'send' | 'plus' | 'info', string[]> = {
+const PATHS: Record<TaskIcon | 'send' | 'plus' | 'info' | 'clip' | 'download' | 'file', string[]> = {
   chat: ['M4 5h16v11H8l-4 4z'],
   card: ['M3 6h18v12H3z', 'M3 10h18'],
   calendar: ['M4 6h16v14H4z', 'M4 10h16', 'M8 3v5', 'M16 3v5'],
@@ -18,6 +18,9 @@ const PATHS: Record<TaskIcon | 'send' | 'plus' | 'info', string[]> = {
   send: ['M4 12l16-8-6 16-3-7z'],
   plus: ['M12 5v14', 'M5 12h14'],
   info: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 'M12 11v5', 'M12 8h.01'],
+  clip: ['M21 11.5l-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.3 3.3 0 0 1 4.7 4.7l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9'],
+  download: ['M12 4v11', 'M7 10l5 5 5-5', 'M5 20h14'],
+  file: ['M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z', 'M14 3v5h5'],
 };
 
 export function Icon({ name, size = 16 }: { name: keyof typeof PATHS; size?: number }) {

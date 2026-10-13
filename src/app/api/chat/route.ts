@@ -9,6 +9,8 @@ import { calendarContext } from '@/lib/chat/calendar-context';
 import { zapierContext } from '@/lib/chat/zapier-context';
 import { sheetsContext } from '@/lib/chat/sheets-context';
 import { storeIsPersistent } from '@/lib/store';
+import { canUseFiles, fileMeta, MAX_FILES_PER_MESSAGE, toRef, updateFileMeta } from '@/lib/chat/files';
+import { filesContext } from '@/lib/chat/files-context';
 import { countMessage, usageFor } from '@/lib/chat/usage';
 import { chatIsConfigured, buildPayload, fireChatRoutine } from '@/lib/chat/routine';
 import {
@@ -40,7 +42,8 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const text = String(body.text ?? '').trim();
+  const hasFiles = Array.isArray(body.attachments) && body.attachments.length > 0;
+  const text = String(body.text ?? '').trim() || (hasFiles ? 'Here are the files.' : '');
   if (!text) return NextResponse.json({ error: 'Type a message first' }, { status: 400 });
   const usage = await usageFor(user);
   if (usage.left === 0) {
@@ -62,10 +65,20 @@ export async function POST(req: Request) {
   if (taskId && (!task || !canViewAutomation(user, task))) {
     return NextResponse.json({ error: 'Task not found' }, { status: 404 });
   }
+  // Attached files: only the sender's own, not yet sent in another chat.
+  const ids: string[] = Array.isArray(body.attachments) ? body.attachments.map(String) : [];
+  if (ids.length && !canUseFiles(user)) return NextResponse.json({ error: 'Attaching files is for the Social Media team' }, { status: 403 });
+  if (ids.length > MAX_FILES_PER_MESSAGE) return NextResponse.json({ error: `Attach up to ${MAX_FILES_PER_MESSAGE} files per message` }, { status: 400 });
+  const attached = await Promise.all(ids.map(fileMeta));
+  if (attached.some((f) => !f || f.owner !== user.id || f.source !== 'upload' || (f.conversationId && f.conversationId !== conv?.id))) {
+    return NextResponse.json({ error: 'One of the files is missing or expired. Attach it again.' }, { status: 400 });
+  }
+
   conv ??= createConversation(user.id, text, task?.id);
+  for (const f of attached) await updateFileMeta({ ...f!, conversationId: conv.id });
 
   const now = Date.now();
-  const asked: ChatMessage = { id: newId('m'), role: 'user', text, at: now, status: 'done' };
+  const asked: ChatMessage = { id: newId('m'), role: 'user', text, at: now, status: 'done', ...(attached.length ? { files: attached.map((f) => toRef(f!)) } : {}) };
   const reply: ChatMessage = { id: newId('m'), role: 'assistant', text: '', at: now, status: 'pending' };
   conv.messages.push(asked, reply);
   conv.updated = now;
@@ -79,7 +92,8 @@ export async function POST(req: Request) {
       sheetsContext(user, text, task?.id),
       calendarContext(task?.id).catch(() => ''),
     ]);
-    await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, eventsBlock + zapBlock + sheetsBlock + calendarBlock));
+    const filesBlock = await filesContext(conv, canUseFiles(user));
+    await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, eventsBlock + zapBlock + sheetsBlock + calendarBlock + filesBlock));
   } catch (e) {
     reply.status = 'error';
     reply.text = (e as Error).message;

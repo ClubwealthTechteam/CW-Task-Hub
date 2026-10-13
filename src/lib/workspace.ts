@@ -43,6 +43,7 @@ export function primaryTool(a: Automation) {
 export function starters(a: Automation): string[] {
   const t = a.title.toLowerCase();
   if (/calendar/.test(t)) return ['What’s due today?', 'Plan next week’s posts', 'Ideas for recurring posts'];
+  if (a.department === 'social-media') return ['Make a graphic for this', 'Write a caption', 'Review my attached file'];
   const out = ['What will this task do?'];
   if (/email|message|reply|follow|communicat|reminder|outreach/.test(t)) out.push('Draft a message for me');
   if (/report|summary|tracker|data|stat/.test(t)) out.push('Help me summarize this week');

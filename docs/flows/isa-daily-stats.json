@@ -1,26 +1,54 @@
 {
- "name": "ISA Info on Request · Tara → Claude → ProspectBoss + Time Doctor",
+ "name": "ISA Info · ProspectBoss + Time Doctor → Claude → Slack (3 options)",
  "view": {
   "x": 60,
   "y": 40,
-  "k": 0.85
+  "k": 0.8
  },
  "nodes": [
+  {
+   "id": "opts",
+   "type": "note",
+   "x": 40,
+   "y": -260,
+   "title": "Tara's choice (pending)",
+   "desc": "1 · Daily ISA report + flags → top path only\n2 · Daily report + her questions → both paths\n3 · Just her questions → bottom path only"
+  },
+  {
+   "id": "sch",
+   "type": "app",
+   "app": "trigger",
+   "x": 40,
+   "y": 40,
+   "title": "Weekdays 7:00 AM PT",
+   "desc": "Morning report (options 1 & 2)",
+   "status": "idea"
+  },
+  {
+   "id": "rep",
+   "type": "app",
+   "app": "claude",
+   "x": 250,
+   "y": 40,
+   "title": "Claude · Daily report routine",
+   "desc": "Pulls yesterday's numbers for every ISA",
+   "status": "idea"
+  },
   {
    "id": "ask",
    "type": "app",
    "app": "slack",
    "x": 40,
-   "y": 170,
+   "y": 420,
    "title": "Tara posts a request",
-   "desc": "Any message in the ISA channel, no tag needed. e.g. 'Break times for bpond015 yesterday'",
+   "desc": "Any message in the ISA channel, no tag needed (options 2 & 3)",
    "status": "idea"
   },
   {
    "id": "who",
    "type": "decision",
    "x": 250,
-   "y": 172,
+   "y": 422,
    "title": "From Tara? (Miguel while testing)",
    "desc": ""
   },
@@ -29,7 +57,7 @@
    "type": "app",
    "app": "human",
    "x": 250,
-   "y": 420,
+   "y": 660,
    "title": "Ignore",
    "desc": "No reply to anyone else",
    "status": "idea"
@@ -39,9 +67,9 @@
    "type": "app",
    "app": "claude",
    "x": 460,
-   "y": 170,
-   "title": "Claude routine",
-   "desc": "Reads her message, works out what she needs (who, which days, which numbers)",
+   "y": 420,
+   "title": "Claude · Request routine",
+   "desc": "Works out what she needs: which ISAs, which days, which numbers",
    "status": "idea"
   },
   {
@@ -49,9 +77,9 @@
    "type": "app",
    "app": "prospect",
    "x": 670,
-   "y": 40,
+   "y": 110,
    "title": "ProspectBoss API",
-   "desc": "Read-only, live: calls, connects, talk time, logins, breaks per caller",
+   "desc": "Read-only: calls, connects, talk time, logins, breaks per caller",
    "status": "idea"
   },
   {
@@ -59,9 +87,9 @@
    "type": "app",
    "app": "timedoctor",
    "x": 670,
-   "y": 300,
+   "y": 350,
    "title": "Time Doctor",
-   "desc": "Read-only: tracked time and activity per ISA (via the connector, or Omerson's Zap)",
+   "desc": "Read-only: tracked time and activity (connector or Omerson's Zap)",
    "status": "idea"
   },
   {
@@ -69,9 +97,19 @@
    "type": "app",
    "app": "claude",
    "x": 880,
-   "y": 170,
-   "title": "Claude answers",
-   "desc": "Matches usernames to ISA names, does the math (breaks, active time), flags anything unusual",
+   "y": 230,
+   "title": "Claude works it out",
+   "desc": "Matches usernames to ISA names; breaks, active time; flags long breaks, low active time, TD online but no PB calls",
+   "status": "idea"
+  },
+  {
+   "id": "post",
+   "type": "app",
+   "app": "slack",
+   "x": 1090,
+   "y": 40,
+   "title": "Morning report post",
+   "desc": "Summary per ISA + flags, as Club Wealth Assistant",
    "status": "idea"
   },
   {
@@ -79,7 +117,7 @@
    "type": "app",
    "app": "slack",
    "x": 1090,
-   "y": 170,
+   "y": 420,
    "title": "Reply in thread",
    "desc": "Under Tara's message, as Club Wealth Assistant",
    "status": "idea"
@@ -88,64 +126,88 @@
    "id": "rules",
    "type": "note",
    "x": 40,
-   "y": 560,
+   "y": 860,
    "title": "Rules",
-   "desc": "Read-only toward ProspectBoss and Time Doctor.\nReplies only in the ISA channel, only to Tara (Miguel while testing).\nAPI key lives in the routine settings, never in Slack or chat."
+   "desc": "Read-only toward ProspectBoss and Time Doctor.\nPosts only in the ISA channel; answers only Tara (Miguel while testing).\nAPI key lives in the routine settings, never in Slack or chat."
   },
   {
    "id": "wait",
    "type": "note",
    "x": 290,
-   "y": 560,
+   "y": 860,
    "title": "Waiting on",
-   "desc": "Gary: API docs + key (to techteam@).\nMiguel: test channel (#isa-stats-test) with the bot invited.\nLater: switch to Tara's channel."
+   "desc": "Tara: option 1, 2 or 3.\nGary: API docs + key (to techteam@).\nMiguel: #isa-stats-test with the bot invited."
   }
  ],
  "edges": [
   {
    "id": "e1",
+   "from": "sch",
+   "to": "rep",
+   "port": "out"
+  },
+  {
+   "id": "e2",
+   "from": "rep",
+   "to": "pb",
+   "port": "out"
+  },
+  {
+   "id": "e3",
+   "from": "rep",
+   "to": "td",
+   "port": "out"
+  },
+  {
+   "id": "e4",
    "from": "ask",
    "to": "who",
    "port": "out"
   },
   {
-   "id": "e2",
+   "id": "e5",
    "from": "who",
    "to": "rt",
    "port": "yes"
   },
   {
-   "id": "e3",
+   "id": "e6",
    "from": "who",
    "to": "skip",
    "port": "no"
   },
   {
-   "id": "e4",
+   "id": "e7",
    "from": "rt",
    "to": "pb",
    "port": "out"
   },
   {
-   "id": "e5",
+   "id": "e8",
    "from": "rt",
    "to": "td",
    "port": "out"
   },
   {
-   "id": "e6",
+   "id": "e9",
    "from": "pb",
    "to": "calc",
    "port": "out"
   },
   {
-   "id": "e7",
+   "id": "e10",
    "from": "td",
    "to": "calc",
    "port": "out"
   },
   {
-   "id": "e8",
+   "id": "e11",
+   "from": "calc",
+   "to": "post",
+   "port": "out"
+  },
+  {
+   "id": "e12",
    "from": "calc",
    "to": "reply",
    "port": "out"

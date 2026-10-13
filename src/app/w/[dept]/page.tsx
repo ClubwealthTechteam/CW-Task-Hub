@@ -27,6 +27,8 @@ import { calendarDeptForTask, calendarTeam, canUseCalendar } from '@/lib/calenda
 import { todayPacific } from '@/lib/calendar-dates';
 import { canUseFiles } from '@/lib/chat/files';
 import { ContentTemplates } from '@/components/ContentTemplates';
+import { WelcomePosts } from '@/components/welcome/WelcomePosts';
+import { canUseWelcome } from '@/lib/welcome/access';
 import { UpdatesBanner } from '@/components/Announcements';
 import { announcementsFor, toView } from '@/lib/announcements';
 
@@ -58,6 +60,9 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
   const owner = selected ? personById(selected.ownerId) : null;
 
   const calendarDept = selected && calendarDeptForTask(selected.id) && canUseCalendar(user, dept.id) ? dept.id : undefined;
+  // Jay's task #1: the welcome posts board in the middle.
+  const welcome = selected?.id === 'jaymar-1' && dept.id === 'social-media' && canUseWelcome(user);
+  const toolInMiddle = Boolean(calendarDept || welcome);
   const chat = selected ? (
     <TaskChat
       key={selected.id}
@@ -68,7 +73,7 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
       firstName={first}
       ready={chatIsConfigured() && storeIsPersistent()}
       preview={preview}
-      inPanel={Boolean(calendarDept)}
+      inPanel={toolInMiddle}
       canAttach={dept.id === 'social-media' && canUseFiles(user) && !preview}
     />
   ) : null;
@@ -161,10 +166,12 @@ export default async function WorkspacePage({ params, searchParams }: { params: 
 
         {selected && calendarDept ? (
           <ContentCalendar dept={calendarDept} taskId={selected.id} team={calendarTeam(calendarDept).map((p) => ({ id: p.id, name: p.name }))} today={todayPacific()} readOnly={preview} />
+        ) : selected && welcome ? (
+          <WelcomePosts taskId={selected.id} readOnly={preview} />
         ) : selected ? chat : <main className="ws-main" />}
 
         {selected && (
-          calendarDept
+          toolInMiddle
             ? <SidePanel label="Assistant & details" tabs={[
                 { id: 'assistant', label: 'Assistant', content: chat },
                 ...(templates ? [{ id: 'templates', label: 'Templates', content: templates }] : []),

@@ -99,9 +99,10 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
   // A tool on the page (e.g. the calendar's "Draft caption") can hand the assistant a message to send.
   useEffect(() => {
     const on = (e: Event) => {
-      const d = (e as CustomEvent<{ taskId: string; text: string }>).detail;
+      const d = (e as CustomEvent<{ taskId: string; text: string; files?: { id: string; name: string; type: string; size: number }[] }>).detail;
       if (d.taskId !== taskId) return;
       setText(d.text);
+      d.files?.forEach((f) => files.addExisting(f));
       setTimeout(() => inputRef.current?.focus(), 50);
     };
     window.addEventListener(ASK_EVENT, on);

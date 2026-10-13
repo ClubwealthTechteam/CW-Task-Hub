@@ -16,6 +16,8 @@ export interface ChatFile {
   conversationId?: string;  // set once the file is sent in a message
   source: 'upload' | 'assistant';
   at: number;
+  /** A department whose people may all open it (e.g. a client's photo on a welcome post). */
+  shared?: string;
 }
 
 export type FileType = 'image/png' | 'image/jpeg' | 'application/pdf';

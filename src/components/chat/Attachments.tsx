@@ -99,9 +99,12 @@ export function useAttachments() {
       setItems((x) => x.map((p) => (p.key === key ? { ...p, ...r } : p)));
     }
   }
+  /** A file already in the hub (e.g. a client's photo from the welcome board). */
+  const addExisting = (f: { id: string; name: string; type: string; size: number }) =>
+    setItems((x) => (x.some((p) => p.id === f.id) ? x : [...x, { key: f.id, name: f.name, type: f.type, size: f.size, id: f.id, preview: f.type.startsWith('image/') ? `/api/chat/files/${f.id}` : undefined }]));
   const remove = (key: string) => setItems((x) => x.filter((p) => p.key !== key));
   const clear = () => setItems([]);
   const ready = items.filter((p) => p.id).map((p) => p.id!);
   const uploading = items.some((p) => !p.id && !p.error);
-  return { items, add, remove, clear, ready, uploading };
+  return { items, add, addExisting, remove, clear, ready, uploading };
 }

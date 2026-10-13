@@ -17,7 +17,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   } else {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
-    if (!meta || (meta.owner !== user.id && !isSuperAdmin(user))) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    const allowed = meta && (meta.owner === user.id || isSuperAdmin(user) || (meta.shared && user.departments.includes(meta.shared as never)));
+    if (!allowed) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
   const bytes = await fileBytes(meta);
   if (!bytes) return NextResponse.json({ error: 'This file has expired' }, { status: 410 });

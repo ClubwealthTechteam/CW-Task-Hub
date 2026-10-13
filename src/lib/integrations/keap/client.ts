@@ -4,7 +4,8 @@
 import { isKeapRead, keapCapability } from './capabilities';
 import { callRest, IntegrationError } from '../http';
 
-const BASE = 'https://api.infusionsoft.com/crm/rest';
+// KEAP_BASE_URL is only for local testing against a stand-in server.
+const BASE = process.env.KEAP_BASE_URL || 'https://api.infusionsoft.com/crm/rest';
 
 export const keapConfigured = () => Boolean(process.env.KEAP_API_KEY);
 

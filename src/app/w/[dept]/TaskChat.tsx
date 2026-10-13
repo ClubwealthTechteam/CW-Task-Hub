@@ -74,6 +74,8 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
   const fileRef = useRef<HTMLInputElement>(null);
   const files = useAttachments();
   const [dragging, setDragging] = useState(false);
+  // The header shrinks once the conversation is scrolled, leaving more room for messages.
+  const [compact, setCompact] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   useAutoGrow(inputRef, text, halfScreen);
   const pending = conv?.messages.some((m) => m.status === 'pending') ?? false;
@@ -179,14 +181,14 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
   const Root = inPanel ? 'section' : 'main';
   return (
     <Root className={`ws-main${inPanel ? ' ws-chat-panel' : ''}`} aria-label={`${title} assistant`}>
-      <div className="ws-mh">
+      <div className={`ws-mh${compact ? ' compact' : ''}`}>
         <span className="ws-bot"><Sparkle /></span>
         <b title={title}>{title}</b>
         <span className="pill p-navy">Human review on</span>
         {conv && <button className="ws-newchat" onClick={() => { setConv(null); setError(''); }}><Icon name="plus" size={14} /> New chat</button>}
       </div>
 
-      <div className="ws-msgs" aria-live="polite">
+      <div className="ws-msgs" aria-live="polite" onScroll={(e) => setCompact(e.currentTarget.scrollTop > 24)}>
         {preview && <p className="note" style={{ margin: 0 }}>This person’s chats with the assistant are private, so they’re hidden in preview. Everything else on this page is exactly what they see.</p>}
         {!ready && <p className="note" style={{ margin: 0 }}>CW Assistant isn&apos;t switched on yet. Miguel is finishing the setup.</p>}
         {!loading && !conv?.messages.length && (

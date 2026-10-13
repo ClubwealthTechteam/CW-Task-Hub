@@ -27,12 +27,14 @@ export interface Conversation {
   automationId?: string;
   /** Made by a tool in the background (e.g. a welcome graphic): kept out of the person's chat list. */
   background?: boolean;
+  /** A chat with the council's Executive Judge (super admins, Council page). */
+  judge?: boolean;
   created: number;
   updated: number;
   messages: ChatMessage[];
 }
 
-export interface ConversationSummary { id: string; title: string; updated: number; automationId?: string }
+export interface ConversationSummary { id: string; title: string; updated: number; automationId?: string; judge?: boolean }
 
 /** A reply that hasn't arrived after this long is shown as failed, and the person can ask again. */
 export const REPLY_TIMEOUT_MS = 10 * 60 * 1000;
@@ -70,7 +72,7 @@ export async function listConversations(uid: string): Promise<ConversationSummar
 export async function touchIndex(conv: Conversation) {
   if (conv.background) return;
   const list = (await listConversations(conv.owner)).filter((c) => c.id !== conv.id);
-  list.unshift({ id: conv.id, title: conv.title, updated: conv.updated, automationId: conv.automationId });
+  list.unshift({ id: conv.id, title: conv.title, updated: conv.updated, automationId: conv.automationId, ...(conv.judge ? { judge: true } : {}) });
   await setJSON(userKey(conv.owner), list.slice(0, MAX_CONVERSATIONS));
 }
 

@@ -56,7 +56,7 @@ export function ChatWidget({ firstName }: { firstName: string }) {
 
   const pending = conv?.messages.some((m) => m.status === 'pending') ?? false;
   // Task chats live in their department workspace; the bubble keeps the general ones.
-  const general = list.filter((c) => !c.automationId);
+  const general = list.filter((c) => !c.automationId && !c.judge);
   const isOpen = size !== 'closed';
 
   const loadList = useCallback(async () => {

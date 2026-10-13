@@ -5,6 +5,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { ACTIONS, AGENTS, type Level, type Proposal, type Report, type Run, type Severity } from '@/lib/council/agents';
+import { buildHandoff, handoffItems, tagOf } from '@/lib/council/handoff';
+import { JudgeChat } from './JudgeChat';
 
 const LEVEL: Record<Level, string> = { ok: 'All good', warn: 'Needs attention', fail: 'Problem' };
 const SEV_ORDER: Severity[] = ['critical', 'high', 'medium', 'low', 'info'];
@@ -18,6 +20,8 @@ export function CouncilBoard({ readOnly }: { readOnly?: boolean }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [open, setOpen] = useState<string | null>(null);
+  const [showHandoff, setShowHandoff] = useState(false);
+  const [copiedHandoff, setCopiedHandoff] = useState(false);
 
   const load = useCallback(async () => {
     const res = await fetch('/api/council', { cache: 'no-store' });
@@ -70,6 +74,25 @@ export function CouncilBoard({ readOnly }: { readOnly?: boolean }) {
         </div>
       </section>
 
+      <section className="judge-row">
+        <JudgeChat readOnly={readOnly} />
+        <HotList report={report} onShow={() => setShowHandoff(true)} />
+      </section>
+
+      {showHandoff && report && (
+        <div className="cc-modal" role="dialog" aria-modal="true" aria-labelledby="ho-title" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowHandoff(false); }}>
+          <div className="cc-editor handoff">
+            <div className="spread"><h3 id="ho-title">Hand-off for Claude Code</h3><button className="cc-x" onClick={() => setShowHandoff(false)} aria-label="Close">×</button></div>
+            <p className="muted small" style={{ margin: 0 }}>Paste this into your Claude Code chat and we’ll fix it together. It lists the 🔥 hot and ⚠ needs-attention findings from this report.</p>
+            <pre>{buildHandoff(report)}</pre>
+            <div className="cc-actions">
+              <button className="btn primary" onClick={async () => { try { await navigator.clipboard.writeText(buildHandoff(report)); setCopiedHandoff(true); setTimeout(() => setCopiedHandoff(false), 1800); } catch { /* select by hand */ } }}>{copiedHandoff ? 'Copied ✓' : 'Copy hand-off'}</button>
+              <button className="btn" onClick={() => setShowHandoff(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <section className="council-grid">
         {AGENTS.map((a) => {
           const r = report?.agents.find((x) => x.id === a.id);
@@ -90,6 +113,8 @@ export function CouncilBoard({ readOnly }: { readOnly?: boolean }) {
                       <li key={key} className={`sev-${f.severity}`}>
                         <button onClick={() => setOpen(open === key ? null : key)} aria-expanded={open === key}>
                           <span className={`sev sev-b-${f.severity}`}>{f.severity}</span>
+                          {tagOf(f, r!.status) === 'hot' && <span className="tag-hot">🔥 Hot</span>}
+                          {tagOf(f, r!.status) === 'attention' && <span className="tag-att">⚠ Needs attention</span>}
                           <span className="f-title">{f.title}</span>
                           {f.area && <span className="muted small">{f.area}</span>}
                         </button>
@@ -143,5 +168,28 @@ export function CouncilBoard({ readOnly }: { readOnly?: boolean }) {
         </section>
       )}
     </>
+  );
+}
+
+function HotList({ report, onShow }: { report?: Report; onShow: () => void }) {
+  const items = report ? handoffItems(report) : [];
+  const hot = items.filter((x) => x.tag === 'hot');
+  const att = items.filter((x) => x.tag === 'attention');
+  return (
+    <section className="card hotlist" aria-label="Hot and needs attention">
+      <h2>Fix list</h2>
+      <div className="hot-counts">
+        <div className="hc hot"><b>{hot.length}</b><span>🔥 Hot</span></div>
+        <div className="hc att"><b>{att.length}</b><span>⚠ Needs attention</span></div>
+      </div>
+      {items.length ? (
+        <ul className="hot-items">
+          {items.slice(0, 8).map((x, i) => <li key={i}><span className={x.tag === 'hot' ? 'tag-hot' : 'tag-att'}>{x.tag === 'hot' ? '🔥' : '⚠'}</span> {x.f.title}<small className="muted"> · {x.agent}</small></li>)}
+          {items.length > 8 && <li className="muted small">+{items.length - 8} more in the hand-off</li>}
+        </ul>
+      ) : <p className="muted small" style={{ margin: 0 }}>{report ? 'Nothing hot or needing attention. 🎉' : 'Waiting for the first council report.'}</p>}
+      <button className="btn primary" disabled={!items.length} onClick={onShow}>Copy hand-off for Claude Code</button>
+      <p className="muted small" style={{ margin: 0 }}>Or ask the Judge to write it with its own priorities.</p>
+    </section>
   );
 }

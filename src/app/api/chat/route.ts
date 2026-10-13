@@ -13,6 +13,7 @@ import { sheetsContext } from '@/lib/chat/sheets-context';
 import { storeIsPersistent } from '@/lib/store';
 import { canUseFiles, fileMeta, MAX_FILES_PER_MESSAGE, toRef, updateFileMeta } from '@/lib/chat/files';
 import { filesContext } from '@/lib/chat/files-context';
+import { judgeContext } from '@/lib/council/judge-context';
 import { CANVA_TASK, canUseCanva, canvaConfigured, status as canvaStatus } from '@/lib/canva/client';
 import { countMessage, usageFor } from '@/lib/chat/usage';
 import { chatIsConfigured, buildPayload, fireChatRoutine } from '@/lib/chat/routine';
@@ -62,14 +63,17 @@ export async function POST(req: Request) {
   if (conv?.messages.some((m) => m.status === 'pending')) {
     return NextResponse.json({ error: 'Wait for the current reply first' }, { status: 409 });
   }
+  // The council's Executive Judge: super admins only, chat only, no task and no files.
+  const judge = conv ? Boolean(conv.judge) : Boolean(body.judge);
+  if (judge && !isSuperAdmin(user)) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   // A task chat stays with its task; people can only chat with their own tasks (super admins: any).
-  const taskId = conv ? conv.automationId : body.automationId ? String(body.automationId) : undefined;
+  const taskId = judge ? undefined : conv ? conv.automationId : body.automationId ? String(body.automationId) : undefined;
   const task = taskId ? await findAutomation(taskId) : undefined;
   if (taskId && (!task || !canViewAutomation(user, task))) {
     return NextResponse.json({ error: 'Task not found' }, { status: 404 });
   }
   // Attached files: only the sender's own, not yet sent in another chat.
-  const ids: string[] = Array.isArray(body.attachments) ? body.attachments.map(String) : [];
+  const ids: string[] = !judge && Array.isArray(body.attachments) ? body.attachments.map(String) : [];
   if (ids.length && !canUseFiles(user)) return NextResponse.json({ error: 'Attaching files is for the Social Media team' }, { status: 403 });
   if (ids.length > MAX_FILES_PER_MESSAGE) return NextResponse.json({ error: `Attach up to ${MAX_FILES_PER_MESSAGE} files per message` }, { status: 400 });
   const attached = await Promise.all(ids.map(fileMeta));
@@ -77,7 +81,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'One of the files is missing or expired. Attach it again.' }, { status: 400 });
   }
 
-  conv ??= createConversation(user.id, text, task?.id);
+  if (!conv) {
+    conv = createConversation(user.id, text, task?.id);
+    if (judge) conv.judge = true;
+  }
   for (const f of attached) await updateFileMeta({ ...f!, conversationId: conv.id });
 
   const now = Date.now();
@@ -87,19 +94,23 @@ export async function POST(req: Request) {
   conv.updated = now;
 
   try {
-    const contact = task ? cleanContact(body.contact) : undefined;
-    const [keapBlock, eventsBlock, zapBlock, sheetsBlock, calendarBlock, welcomeBlock, referralsBlock] = await Promise.all([
-      keapContext(user, text, contact?.id),
-      eventbriteContext(user, text, Boolean(task && (task.department === 'events' || task.integrations.includes('eventbrite')))),
-      zapierContext(user, text),
-      sheetsContext(user, text, task?.id),
-      calendarContext(task?.id).catch(() => ''),
-      welcomeContext(task?.id).catch(() => ''),
-      referralsContext(task?.id).catch(() => ''),
-    ]);
-    const canvaOn = task?.id === CANVA_TASK && canvaConfigured() && canUseCanva(user) && (await canvaStatus(user.id)).connected;
-    const filesBlock = await filesContext(conv, canUseFiles(user), canvaOn);
-    await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, eventsBlock + zapBlock + sheetsBlock + calendarBlock + welcomeBlock + referralsBlock + filesBlock));
+    if (judge) {
+      await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, undefined, '', await judgeContext()));
+    } else {
+      const contact = task ? cleanContact(body.contact) : undefined;
+      const [keapBlock, eventsBlock, zapBlock, sheetsBlock, calendarBlock, welcomeBlock, referralsBlock] = await Promise.all([
+        keapContext(user, text, contact?.id),
+        eventbriteContext(user, text, Boolean(task && (task.department === 'events' || task.integrations.includes('eventbrite')))),
+        zapierContext(user, text),
+        sheetsContext(user, text, task?.id),
+        calendarContext(task?.id).catch(() => ''),
+        welcomeContext(task?.id).catch(() => ''),
+        referralsContext(task?.id).catch(() => ''),
+      ]);
+      const canvaOn = task?.id === CANVA_TASK && canvaConfigured() && canUseCanva(user) && (await canvaStatus(user.id)).connected;
+      const filesBlock = await filesContext(conv, canUseFiles(user), canvaOn);
+      await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, eventsBlock + zapBlock + sheetsBlock + calendarBlock + welcomeBlock + referralsBlock + filesBlock));
+    }
   } catch (e) {
     reply.status = 'error';
     reply.text = (e as Error).message;

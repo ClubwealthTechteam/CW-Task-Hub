@@ -874,3 +874,31 @@ a.chip:hover { border-color: #0c3f7a; color: #0c3f7a; }
 .nav .im-item[aria-current="page"] { background: #eef3fb; border: 0; }
 .nav .im-item[aria-current="page"] b { color: #0c3f7a; }
 .dm-tag { margin-left: 6px; font-size: 10.5px; font-weight: 700; color: var(--gold); background: color-mix(in srgb, var(--gold) 15%, transparent); border-radius: 999px; padding: 1px 7px; vertical-align: 1px; }
+
+/* Executive Judge and the fix list */
+.judge-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 14px; align-items: start; }
+.judge { gap: 10px; }
+.judge-h { display: flex; gap: 10px; align-items: flex-start; }
+.judge-h > div { flex: 1; }
+.judge-h h2 { margin: 0; font-size: 16px; }
+.judge-h p { margin: 2px 0 0; }
+.judge-ic { font-size: 22px; line-height: 1; }
+.judge-msgs { max-height: 420px; min-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 4px 2px; }
+.judge-composer { margin: 0; }
+.judge-composer .row { flex-wrap: wrap; }
+.judge-draft { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.judge-draft .lab { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.judge-draft pre, .handoff pre { margin: 0; white-space: pre-wrap; font: inherit; font-size: 12.5px; line-height: 1.5; max-height: 320px; overflow-y: auto; background: var(--surface-2); border-radius: 8px; padding: 10px; }
+.handoff { width: min(760px, 100%); }
+.handoff pre { max-height: 55vh; }
+.hotlist { gap: 10px; position: sticky; top: 80px; }
+.hotlist h2 { margin: 0; font-size: 16px; }
+.hot-counts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.hc { border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 2px; }
+.hc b { font-size: 24px; font-variant-numeric: tabular-nums; }
+.hc span { font-size: 12px; font-weight: 600; }
+.hc.hot { background: #fef2f2; color: #b42318; }
+.hc.att { background: #fffbeb; color: #9a5b00; }
+.hot-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; font-size: 13px; }
+.tag-hot { font-size: 10.5px; font-weight: 700; color: #b42318; background: #fde2e2; border-radius: 999px; padding: 1px 7px; white-space: nowrap; }
+.tag-att { font-size: 10.5px; font-weight: 700; color: #9a5b00; background: #fdf0d9; border-radius: 999px; padding: 1px 7px; white-space: nowrap; }

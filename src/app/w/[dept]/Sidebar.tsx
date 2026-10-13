@@ -40,11 +40,15 @@ export function Sidebar({ user, dept, tasks, selectedId, sheetCount, formCount, 
       <nav className="ws-navs">
         {mineForm.length > 0 && (<><div className="ws-group">From my process form</div>{mineForm.map(navItem)}</>)}
         {mine.length > 0 && (<><div className="ws-group">My tasks</div>{mine.map(navItem)}</>)}
+        {/* Super admins: each person's tasks fold into a dropdown; the one holding the open task starts open. */}
         {[...byOwner].map(([id, list]) => (
-          <div key={id} className="ws-navs">
-            <div className="ws-group">{personById(id)?.name.split(/\s+/)[0] ?? id}&apos;s tasks</div>
-            {list.map(navItem)}
-          </div>
+          <details key={id} className="ws-fold" open={list.some((a) => a.id === selectedId)}>
+            <summary className="ws-group">
+              <span>{personById(id)?.name.split(/\s+/)[0] ?? id}&apos;s tasks</span>
+              <span className="ws-count">{list.length}</span>
+            </summary>
+            <div className="ws-navs">{list.map(navItem)}</div>
+          </details>
         ))}
         {tasks.length === 0 && <p className="ws-empty">{isSuperAdmin(user) ? 'No tasks in this department yet.' : 'You don’t have any tasks yet. Fill in the Workflow Process Form and your processes show up here.'}</p>}
       </nav>

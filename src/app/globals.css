@@ -435,3 +435,15 @@ a.chip:hover { border-color: #0c3f7a; color: #0c3f7a; }
 .pf-branch.other .pf-label { background: var(--muted-tint); color: var(--ink-2); }
 .pf-branch.yes .pf-node { border-color: #b9dcc4; }
 .pf-branch.no .pf-node { border-color: #f1c3be; }
+
+/* Collapsible per-person task groups (super admins) */
+.ws-fold { flex: none; }
+.ws-fold > summary { list-style: none; display: flex; align-items: center; gap: 8px; cursor: pointer; border-radius: 8px; user-select: none; }
+.ws-fold > summary::-webkit-details-marker { display: none; }
+.ws-fold > summary::before { content: ""; width: 7px; height: 7px; flex: none; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform .15s; margin: 0 2px 0 1px; }
+.ws-fold[open] > summary::before { transform: rotate(45deg); }
+.ws-fold > summary span:first-child { flex: 1; }
+.ws-fold > summary:hover { background: var(--surface-2); color: var(--ink-2); }
+.ws-fold > summary:focus-visible { outline: 2px solid #0c3f7a; outline-offset: 1px; }
+.ws-fold > .ws-navs { padding: 0 0 6px; overflow: visible; flex: none; }
+@media (prefers-reduced-motion: reduce) { .ws-fold > summary::before { transition: none; } }

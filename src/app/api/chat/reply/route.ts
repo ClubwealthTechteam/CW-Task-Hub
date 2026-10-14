@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server';
 import { validReplyToken } from '@/lib/chat/routine';
 import { getConversation, saveConversation, touchIndex } from '@/lib/chat/store';
 import { fileMeta, toRef } from '@/lib/chat/files';
+import { notifyReply } from '@/lib/notifications';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,5 +40,6 @@ export async function POST(req: Request) {
   conv.updated = Date.now();
   await saveConversation(conv);
   await touchIndex(conv);
+  await notifyReply(conv).catch(() => null);
   return NextResponse.json({ ok: true });
 }

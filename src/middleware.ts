@@ -10,7 +10,8 @@ import { PREVIEW_COOKIE, SESSION_COOKIE, verifySession } from '@/lib/auth/sessio
 // /api/chat/files/<id>?t=… is how the routine reads an attached file (a signed link per file).
 // /api/council/run (GET: the daily cron, checks CRON_SECRET), snapshot, keap and report use a run token.
 // /api/chat/reply/canva is how the routine puts a design into the person's Canva (same token).
-const PUBLIC = ['/login', '/api/auth/login', '/api/health', '/api/chat/reply', '/api/chat/reply/file', '/api/chat/reply/canva', '/api/zapier/inbox', '/api/council/snapshot', '/api/council/keap', '/api/council/report'];
+// /api/backup is called by the nightly GitHub Action with BACKUP_SECRET.
+const PUBLIC = ['/login', '/api/auth/login', '/api/health', '/api/chat/reply', '/api/chat/reply/file', '/api/chat/reply/canva', '/api/zapier/inbox', '/api/council/snapshot', '/api/council/keap', '/api/council/report', '/api/backup'];
 const councilCron = (req: NextRequest) => req.nextUrl.pathname === '/api/council/run' && req.method === 'GET';
 const signedFile = (req: NextRequest) => req.nextUrl.pathname.startsWith('/api/chat/files/') && req.method === 'GET' && req.nextUrl.searchParams.has('t');
 

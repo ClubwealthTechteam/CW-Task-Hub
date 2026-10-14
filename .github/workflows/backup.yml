@@ -1,0 +1,36 @@
+# Nightly backup of the hub's data. Saves it as a private artifact on this repository for 30 days
+# (Actions → Nightly backup → a run → Artifacts). Needs two repository secrets:
+#   HUB_URL        e.g. https://cw-ai-task-hub.vercel.app
+#   BACKUP_SECRET  the same value as BACKUP_SECRET in Vercel (any long random text)
+name: Nightly backup
+
+on:
+  schedule:
+    - cron: '17 10 * * *' # 3:17 AM Pacific (summer) / 2:17 AM (winter)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download the backup
+        env:
+          HUB_URL: ${{ secrets.HUB_URL }}
+          BACKUP_SECRET: ${{ secrets.BACKUP_SECRET }}
+        run: |
+          if [ -z "$HUB_URL" ] || [ -z "$BACKUP_SECRET" ]; then echo "::error::Add HUB_URL and BACKUP_SECRET as repository secrets"; exit 1; fi
+          code=$(curl -sS -o backup.json -w '%{http_code}' -H "Authorization: Bearer $BACKUP_SECRET" "$HUB_URL/api/backup")
+          if [ "$code" != "200" ]; then echo "::error::Backup request failed with HTTP $code"; head -c 300 backup.json; exit 1; fi
+          keys=$(python3 -c "import json;d=json.load(open('backup.json'));print(d['keys'])")
+          echo "Backed up $keys keys"
+          gzip -9 backup.json
+          echo "STAMP=$(date -u +%Y-%m-%d)" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hub-backup-${{ env.STAMP }}
+          path: backup.json.gz
+          retention-days: 30

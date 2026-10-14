@@ -80,3 +80,27 @@ export async function forget(key: string) {
   local.delete(key);
   await deleteKey(`cache:${key}`).catch(() => null);
 }
+
+/**
+ * Every key and its stored text, for the nightly backup. Uses SCAN + MGET in batches. `skip` drops keys
+ * (secrets, caches, uploaded files) before their values are read.
+ */
+export async function dumpAll(skip: (key: string) => boolean): Promise<Record<string, string>> {
+  const out: Record<string, string> = {};
+  if (!storeIsPersistent()) {
+    for (const [k, v] of memory) if (!skip(k)) out[k] = v;
+    return out;
+  }
+  let cursor = '0';
+  do {
+    const [next, keys] = (await redis(['SCAN', cursor, 'COUNT', 500])) as [string, string[]];
+    cursor = String(next);
+    const keep = keys.filter((k) => !skip(k));
+    for (let i = 0; i < keep.length; i += 100) {
+      const batch = keep.slice(i, i + 100);
+      const values = (await redis(['MGET', ...batch])) as (string | null)[];
+      batch.forEach((k, j) => { if (values[j] != null) out[k] = values[j] as string; });
+    }
+  } while (cursor !== '0');
+  return out;
+}

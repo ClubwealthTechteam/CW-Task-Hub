@@ -5,3 +5,5 @@ out/
 .env.local
 .vercel
 *.tsbuildinfo
+playwright-report/
+test-results/

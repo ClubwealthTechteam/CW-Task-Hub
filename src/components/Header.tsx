@@ -7,6 +7,7 @@ import { IntegrationsMenu, type MenuApp } from './IntegrationsMenu';
 import { DepartmentsMenu } from './DepartmentsMenu';
 import { SearchButton } from './CommandPalette';
 import { NotificationBell } from './NotificationBell';
+import { Icon } from './Icon';
 
 // White top bar in the CW University style. Team members see their workspace; super admins also get
 // every department, Integrations and Admin settings.
@@ -42,10 +43,10 @@ export function Header({ user, current }: { user: Person; current?: string }) {
           <Link href="/updates" aria-current={cur('updates')}>Updates</Link>
           <Link href="/help" aria-current={cur('help')}>Help</Link>
           {apps.length > 0 && <IntegrationsMenu apps={apps} manage={canManageIntegrations(user)} active={['keap', 'eventbrite', 'zapier'].includes(current ?? '')} />}
-          {admin && <Link href="/admin" aria-current={cur('settings')}>Admin settings</Link>}
         </nav>
         <SearchButton />
         <NotificationBell />
+        {admin && <Link href="/admin" className="hdr-gear" aria-label="Admin settings" title="Admin settings" aria-current={cur('settings')}><Icon name="gear" size={19} /></Link>}
         <div className="who">
           <span className="avatar" aria-hidden="true">{initials}</span>
           <span>{user.name}</span>

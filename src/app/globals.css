@@ -1316,3 +1316,26 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
   .tl-day { grid-template-columns: 1fr; gap: 0; }
   .tl-date { position: static; flex-direction: row; gap: 8px; align-items: baseline; }
 }
+
+/* Gear (Admin settings) beside the bell: bare icon, no tile or border. */
+.hdr-gear { width: 34px; height: 34px; display: grid; place-items: center; color: var(--ink-2); border-radius: 8px; text-decoration: none; }
+.hdr-gear:hover, .hdr-gear[aria-current="page"] { color: var(--navy); }
+.hdr-gear[aria-current="page"] svg { stroke-width: 2.1; }
+.hdr-gear:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/* Admin settings header band: navy, like the other page headers; tabs sit on its bottom edge. */
+.adm-band { background: linear-gradient(120deg, var(--navy), var(--navy-2)); color: #fff; border-radius: var(--radius); padding: 24px 28px 0; display: flex; flex-direction: column; gap: 18px; }
+.adm-band .eyebrow { color: var(--gold); }
+.adm-band h1 { margin: 2px 0 0; font-size: 28px; letter-spacing: -.01em; color: #fff; }
+.adm-band .adm-lead { margin: 0; color: #cfd8ec; max-width: 70ch; }
+.adm-band .adm-status { padding: 16px 0 2px; border-top: 1px solid rgba(255, 255, 255, .14); border-bottom: 0; }
+.adm-band .adm-sub { color: #aebbd8; font-size: 12.5px; }
+.adm-band .adm-ver b { color: #fff; }
+.adm-band .adm-status li b { color: #fff; }
+.adm-band .adm-status li small { color: #b9c5df; }
+.adm-band .adm-status li i { background: #ff8a80; box-shadow: 0 0 0 3px rgba(255, 138, 128, .18); }
+.adm-band .adm-status li i.ok { background: #4fd18b; box-shadow: 0 0 0 3px rgba(79, 209, 139, .18); }
+.adm-band .adm-tabs { margin-top: 0; border-bottom: 0; border-top: 1px solid rgba(255, 255, 255, .14); }
+.adm-band .adm-tabs a { color: #aebbd8; padding: 13px 0 12px; margin-bottom: 0; border-bottom-width: 3px; }
+.adm-band .adm-tabs a:hover { color: #fff; }
+.adm-band .adm-tabs a[aria-current="page"] { color: #fff; border-bottom-color: var(--gold); }

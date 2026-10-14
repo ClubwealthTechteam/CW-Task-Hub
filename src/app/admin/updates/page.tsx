@@ -43,20 +43,20 @@ export default async function SystemUpdates({ searchParams }: { searchParams: { 
     <>
       <Header user={user} current="settings" />
       <main className="page adm">
-        <AdminTabs current="updates" />
-
-        <section className="adm-status" aria-label="System status">
-          <div className="adm-ver">
-            <span className="muted small">Running version</span>
-            <b>{sha ?? 'Local build'}</b>
-            <span className="muted small">{CHANGELOG.length} changes since launch on Oct 12</span>
+        <AdminTabs current="updates">
+          <div className="adm-status" role="group" aria-label="System status">
+            <div className="adm-ver">
+              <span className="adm-sub">Running version</span>
+              <b>{sha ?? 'Local build'}</b>
+              <span className="adm-sub">{CHANGELOG.length} changes since launch on Oct 12</span>
+            </div>
+            <ul>
+              {status.map((s) => (
+                <li key={s.label}><i className={s.ok ? 'ok' : 'off'} aria-hidden="true" /><span><b>{s.label}</b><small>{s.note}</small></span></li>
+              ))}
+            </ul>
           </div>
-          <ul>
-            {status.map((s) => (
-              <li key={s.label}><i className={s.ok ? 'ok' : 'off'} aria-hidden="true" /><span><b>{s.label}</b><small>{s.note}</small></span></li>
-            ))}
-          </ul>
-        </section>
+        </AdminTabs>
 
         <section className="adm-log" aria-labelledby="log-title">
           <div className="adm-log-h">

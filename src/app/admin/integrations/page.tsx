@@ -28,8 +28,9 @@ export default async function IntegrationsPage() {
     <>
       <Header user={user} current="settings" />
       <main className="page">
-        <AdminTabs current="integrations" />
-        <p className="muted adm-lead">Connect the tools the automations use. Keys live in Vercel environment variables or on the server, never in the browser.</p>
+        <AdminTabs current="integrations">
+          <p className="adm-lead">Connect the tools the automations use. Keys live in Vercel environment variables or on the server, never in the browser.</p>
+        </AdminTabs>
 
         {!storeIsPersistent() && (
           <p className="note">Storage isn&apos;t connected, so integrations you add and the run log reset when the server restarts. Add Upstash Redis in Vercel → Storage to keep them.</p>

@@ -3,11 +3,11 @@
 Club Wealth daily celebrations: who has a birthday or work anniversary today, and whether today is a holiday.
 Used by the Slack celebrations routine. Pure standard library, no network.
 
-  python3 celebrations.py --date 2026-10-14 --sheet sheet2026.json --sheet sheet2025.json --sheet sheet2324.json \
-      [--slack-users users.json] > plan.json
+  python3 celebrations.py --date 2026-10-14 --fetch [--slack-users users.json] > plan.json
 
-Each --sheet file is the raw values of one tab (a list of rows, header row first), exactly as the Google Sheets
-"get values" call returns them. Columns are found by their header, so the tabs may order them differently:
+--fetch downloads the three "New Hires - Onboarding" tabs as CSV (they are shared by link; CW tabs only, never
+HOMEXA or PFL). For testing, --sheet <file.json|file.csv> can be given instead (oldest first); a JSON file is the raw
+values of one tab (a list of rows, header row first). Columns are found by their header, so the tabs may order them differently:
   status    "Remarks" (2025 / 2026 tabs) or "STATUS" (2023-2024 tab)  -> only "Working" people count
   name      "First and Last Name"
   birthday  "Date of Birth"
@@ -17,7 +17,30 @@ Later --sheet files win over earlier ones for the same person (pass oldest first
 different status replaces an older one.
 --slack-users is the "members" list from Slack users.list: people are matched by name to tag them and get photos.
 """
-import argparse, datetime as dt, json, re, sys, unicodedata
+import argparse, csv, datetime as dt, io, json, re, sys, unicodedata, urllib.request
+
+# The onboarding records, oldest first (a newer record for the same person wins).
+SOURCES = [
+    ('2023-2024', '1ql473Qhn0mJHkHrvuINZAkHSRClr3ClYbPkyPzMLJ8g', 199043715),  # tab "Form Responses 1"
+    ('2025', '1-gltrA1qQekPpYik49VL_lgc0PvqkxsipRz4d1l89F4', 914234631),       # tab "2025"
+    ('2026', '1cZ8RXgdvQ32CzXQlLMwojNe16cm3jQuwllTWBWaQHqI', 738878938),       # tab "CW"
+]
+
+
+def fetch_csv(sheet_id, gid):
+    url = f'https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={gid}'
+    with urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': 'cw-celebrations'}), timeout=60) as r:
+        text = r.read().decode('utf-8')
+    if text.lstrip().startswith('<'):
+        raise SystemExit(f'Could not read sheet {sheet_id} (not shared by link?)')
+    return list(csv.reader(io.StringIO(text)))
+
+
+def load(path):
+    if path.endswith('.csv'):
+        return list(csv.reader(open(path, encoding='utf-8')))
+    data = json.load(open(path))
+    return data.get('values', data) if isinstance(data, dict) else data
 
 # ---------------------------------------------------------------- holidays
 GREETINGS = {
@@ -223,11 +246,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--date', required=True)
     ap.add_argument('--sheet', action='append', default=[])
+    ap.add_argument('--fetch', action='store_true')
     ap.add_argument('--slack-users')
     a = ap.parse_args()
     today = dt.date.fromisoformat(a.date)
-    sheets = [json.load(open(f)) for f in a.sheet]
-    sheets = [s.get('values', s) if isinstance(s, dict) else s for s in sheets]
+    sheets = [fetch_csv(sid, gid) for _, sid, gid in SOURCES] if a.fetch else [load(f) for f in a.sheet]
     team = people(sheets)
     idx = slack_index(json.load(open(a.slack_users)) if a.slack_users else [])
 

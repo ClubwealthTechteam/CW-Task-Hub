@@ -1339,3 +1339,17 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
 .adm-band .adm-tabs a { color: #aebbd8; padding: 13px 0 12px; margin-bottom: 0; border-bottom-width: 3px; }
 .adm-band .adm-tabs a:hover { color: #fff; }
 .adm-band .adm-tabs a[aria-current="page"] { color: #fff; border-bottom-color: var(--gold); }
+
+/* "A new version is ready · Reload" (bottom-left, clear of the chat bubble). */
+.upd-notice { position: fixed; left: 20px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 60; display: flex; align-items: center; gap: 12px; max-width: min(460px, calc(100vw - 110px)); background: var(--navy); color: #fff; border-radius: 12px; padding: 12px 10px 12px 16px; box-shadow: 0 16px 40px rgba(10, 20, 45, .3); animation: upd-in .25s ease-out; }
+.upd-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 4px rgba(214, 180, 106, .25); flex: none; }
+.upd-txt { display: flex; flex-direction: column; min-width: 0; }
+.upd-txt b { font-size: 14px; }
+.upd-txt small { color: #cfd8ec; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.upd-reload { margin-left: auto; background: none; border: 0; padding: 4px 6px; color: var(--gold); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
+.upd-reload:hover { text-decoration: underline; text-underline-offset: 3px; }
+.upd-x { background: none; border: 0; color: #aebbd8; width: 28px; height: 28px; display: grid; place-items: center; cursor: pointer; border-radius: 6px; flex: none; }
+.upd-x:hover { color: #fff; }
+.upd-reload:focus-visible, .upd-x:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+@keyframes upd-in { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .upd-notice { animation: none; } }

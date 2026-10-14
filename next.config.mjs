@@ -1,8 +1,15 @@
 /** @type {import('next').NextConfig} */
 const frameAncestors = process.env.FRAME_ANCESTORS || 'https://learning.clubwealth.com https://*.clubwealth.com';
 
+// Set once, before Next starts its build workers, so the browser and server parts of one build agree.
+process.env.CW_BUILD_ID ||= process.env.VERCEL_GIT_COMMIT_SHA || `local-${Date.now()}`;
+const buildId = process.env.CW_BUILD_ID;
+
 const nextConfig = {
   reactStrictMode: true,
+  // One id per deploy, baked into both the browser code and the server: when they differ, the
+  // page someone has open is older than what's live, and the hub offers a reload.
+  env: { NEXT_PUBLIC_BUILD_ID: buildId },
   poweredByHeader: false,
   async headers() {
     return [

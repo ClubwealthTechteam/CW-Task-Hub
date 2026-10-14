@@ -13,6 +13,7 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   // Oct 14
+  { date: '2026-10-14', kind: 'new', area: 'Hub', title: '“New version ready · Reload” notice', detail: 'When a new update goes live, anyone with the hub open gets a reload prompt, so nobody needs a new link.' },
   { date: '2026-10-14', kind: 'new', area: 'Admin', title: 'Admin settings with System updates and Integrations', detail: 'One place for super admins, opened from the gear beside the bell: this timeline of every change, and the integrations page.' },
   { date: '2026-10-14', kind: 'improved', area: 'Design', title: 'Calmer dashboard', detail: 'Fewer buttons, outlined instead of solid, and icons without circles behind them. Search closes with an ×.' },
   { date: '2026-10-14', kind: 'new', area: 'Slack', title: 'Daily celebrations in #cw-team', detail: 'Birthdays, work anniversaries and holidays posted at 6:00 AM PT with a Club Wealth poster. Skips deactivated Slack accounts.' },

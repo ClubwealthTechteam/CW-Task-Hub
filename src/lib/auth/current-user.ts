@@ -5,6 +5,7 @@ import { redirect, notFound } from 'next/navigation';
 import { personById, type Person } from '@/config/people';
 import { canViewDepartment } from '@/lib/access';
 import type { DepartmentId } from '@/config/departments';
+import { markActive } from '@/lib/adoption';
 import { PREVIEW_COOKIE, SESSION_COOKIE, signValue, verifySession } from './session';
 
 /** "Preview as": a super admin sees the hub exactly as one team member does (read-only; writes are blocked). */
@@ -32,9 +33,11 @@ export async function getCurrentUser(): Promise<Person | null> {
 
 /** For pages: sends signed-out people to /login. */
 export async function requireUser(): Promise<Person> {
-  const user = await getCurrentUser();
-  if (!user) redirect('/login');
-  return user;
+  const viewer = await getViewer();
+  if (!viewer) redirect('/login');
+  // Adoption numbers: opening any page counts as a day of using the hub (never while previewing someone).
+  if (!viewer.preview) await markActive(viewer.user.id).catch(() => null);
+  return viewer.user;
 }
 
 /** For pages: 404s (rather than revealing it exists) when someone opens another department. */

@@ -5,6 +5,7 @@ import { canViewEventbrite } from '@/lib/integrations/eventbrite/access';
 import { builtinIntegrations } from '@/lib/integrations/registry';
 import { IntegrationsMenu, type MenuApp } from './IntegrationsMenu';
 import { DepartmentsMenu } from './DepartmentsMenu';
+import { SearchButton } from './CommandPalette';
 
 // White top bar in the CW University style. Team members see their workspace; super admins also get
 // every department and Integrations.
@@ -41,6 +42,7 @@ export function Header({ user, current }: { user: Person; current?: string }) {
           <Link href="/help" aria-current={cur('help')}>Help</Link>
           {apps.length > 0 && <IntegrationsMenu apps={apps} manage={canManageIntegrations(user)} active={['keap', 'eventbrite', 'zapier', 'integrations'].includes(current ?? '')} />}
         </nav>
+        <SearchButton />
         <div className="who">
           <span className="avatar" aria-hidden="true">{initials}</span>
           <span>{user.name}</span>

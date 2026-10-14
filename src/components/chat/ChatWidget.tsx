@@ -84,6 +84,17 @@ export function ChatWidget({ firstName }: { firstName: string }) {
 
   useEffect(() => { savePrefs({ size, conv: conv?.id }); }, [size, conv?.id]);
 
+  // Ctrl+K search can open one of these chats.
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      const id = (e as CustomEvent<{ id: string }>).detail?.id;
+      if (!id) return;
+      open(id).then((ok) => { if (ok) { setSize((s) => (s === 'closed' ? 'open' : s)); setShowList(false); setError(''); } });
+    };
+    window.addEventListener('cwa:open', onOpen);
+    return () => window.removeEventListener('cwa:open', onOpen);
+  }, [open]);
+
   // While a reply is on its way, check for it every few seconds (even when minimized).
   useEffect(() => {
     if (!pending || !conv) return;

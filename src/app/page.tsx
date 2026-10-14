@@ -14,6 +14,7 @@ import { ActivityChart } from '@/components/dash/ActivityChart';
 import { ActivityTable } from '@/components/dash/ActivityTable';
 import { Gauge } from '@/components/dash/Gauge';
 import { dashboardData } from '@/lib/dashboard';
+import { Adoption } from '@/components/dash/Adoption';
 import { MemberHome } from '@/components/home/MemberHome';
 
 export const dynamic = 'force-dynamic';
@@ -121,6 +122,8 @@ export default async function Home() {
             </div>
           </section>
         </div>
+
+        <Adoption data={dash.adoption} />
 
         <ActivityTable rows={dash.rows} />
 

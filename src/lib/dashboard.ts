@@ -15,6 +15,7 @@ import { sheetsConfigured, sheetsKeyState } from '@/lib/integrations/google/shee
 import { inboxConfigured } from '@/lib/integrations/zapier-feed';
 import { canvaConfigured } from '@/lib/canva/client';
 import type { Automation } from '@/data/automations';
+import { adoptionData, type PersonUse } from '@/lib/adoption';
 
 const DAY = 86_400_000;
 const pacific = (t: number) => new Date(t).toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
@@ -33,11 +34,18 @@ async function activity(taskTitle: Map<string, string>) {
   const byDay = new Map<string, { q: number; who: Set<string> }>();
   for (let t = since + DAY; t <= now; t += DAY) byDay.set(pacific(t), { q: 0, who: new Set() });
   const rows: ActivityRow[] = [];
+  const use: Record<string, PersonUse> = {};
   for (const c of convs) {
     if (!c || c.background || c.judge) continue;
+    const u = (use[c.owner] ??= { messageDays: [], messages7: 0, messagesPrev7: 0, tasks: [], lastMessage: 0 });
     for (const m of c.messages) if (m.role === 'user' && m.at > since) {
-      const d = byDay.get(pacific(m.at)); if (d) { d.q++; d.who.add(c.owner); }
+      const day = pacific(m.at);
+      const d = byDay.get(day); if (d) { d.q++; d.who.add(c.owner); }
+      if (!u.messageDays.includes(day)) u.messageDays.push(day);
+      if (m.at > now - 7 * DAY) u.messages7++; else if (m.at > now - 14 * DAY) u.messagesPrev7++;
+      u.lastMessage = Math.max(u.lastMessage, m.at);
     }
+    if (c.automationId && !u.tasks.includes(c.automationId) && c.messages.some((m) => m.role === 'user' && m.at > since)) u.tasks.push(c.automationId);
     const p = personById(c.owner);
     const last = [...c.messages].reverse().find((m) => m.role === 'assistant');
     rows.push({
@@ -48,13 +56,13 @@ async function activity(taskTitle: Map<string, string>) {
     });
   }
   const days: DayCount[] = [...byDay.entries()].map(([date, v]) => ({ date, questions: v.q, people: v.who.size }));
-  return { days, rows: rows.sort((a, b) => b.at - a.at).slice(0, 40) };
+  return { days, rows: rows.sort((a, b) => b.at - a.at).slice(0, 40), use };
 }
 
 export async function dashboardData(all: Automation[]) {
   const taskTitle = new Map(all.map((a) => [a.id, a.title]));
   const act = await cached('dashboard:activity', 5 * 60, () => activity(taskTitle));
-  const [subs, reports] = await Promise.all([getSubmissions(), listReports()]);
+  const [subs, reports, adoption] = await Promise.all([getSubmissions(), listReports(), adoptionData(act.use ?? {}, all.length)]);
 
   const thisWeek = act.days.slice(-7).reduce((n, d) => n + d.questions, 0);
   const lastWeek = act.days.slice(-14, -7).reduce((n, d) => n + d.questions, 0);
@@ -78,6 +86,7 @@ export async function dashboardData(all: Automation[]) {
     council: report ? { at: report.at, overall: report.overall, headline: report.headline, hot: items.filter((i) => i.tag === 'hot').length, attention: items.filter((i) => i.tag === 'attention').length, top: items.slice(0, 3).map((i) => ({ tag: i.tag, title: i.f.title })) } : null,
     forms: { submitted: PEOPLE.filter((p) => submitted.has(p.id)).map((p) => p.name), waiting: owesForm.map((p) => p.name), total: submitted.size + owesForm.length },
     integrations,
+    adoption,
   };
 }
 export type DashboardData = Awaited<ReturnType<typeof dashboardData>>;

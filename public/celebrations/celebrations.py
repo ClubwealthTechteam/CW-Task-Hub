@@ -276,7 +276,7 @@ def main():
     if anniversaries:
         tags = join([x['tag'] for x in anniversaries])
         you = 'you' if len(anniversaries) == 1 else 'you both' if len(anniversaries) == 2 else 'you all'
-        plan['messages'].append({'kind': 'anniversary', 'text': f"Happy Anniversary, {tags}! Thank you for being part of the Club Wealth family. Wishing {you} continued growth, success, and many more milestones to celebrate!"})
+        plan['messages'].append({'kind': 'anniversary', 'text': f"Happy Anniversary, {tags}! 🎉🥂 Thank you for being part of the Club Wealth family. Wishing {you} continued growth, success, and many more milestones to celebrate! 🏆✨"})
     if plan['holiday']:
         plan['messages'].append({'kind': 'holiday', 'text': plan['holiday']['text']})
     plan['unmatched'] = [x['name'] for x in birthdays + anniversaries if not x['slack_id']]

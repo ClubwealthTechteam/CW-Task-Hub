@@ -45,7 +45,11 @@ export const dynamic = 'force-dynamic';
 
 const PLAN_LABEL = { read: 'Reads', draft: 'Drafts for you', approval: 'Needs approval', assist: 'Assists' } as const;
 
-export default async function WorkspacePage({ params, searchParams }: { params: { dept: string }; searchParams: { t?: string } }) {
+export default async function WorkspacePage(
+  props: { params: Promise<{ dept: string }>; searchParams: Promise<{ t?: string }> }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const dept = departmentById(params.dept);
   if (!dept) notFound();
   const user = await requireDepartment(dept.id as DepartmentId);

@@ -9,7 +9,8 @@ import { CALENDAR_STATUS } from '@/lib/welcome/auto';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: Request, { params }: { params: { contactId: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ contactId: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
   if (!canUseWelcome(user)) return NextResponse.json({ error: 'Not found' }, { status: 404 });

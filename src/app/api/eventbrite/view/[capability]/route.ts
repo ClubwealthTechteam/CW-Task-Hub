@@ -8,7 +8,8 @@ import type { IntegrationError } from '@/lib/integrations/http';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: Request, { params }: { params: { capability: string } }) {
+export async function GET(req: Request, props: { params: Promise<{ capability: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
   if (!canViewEventbrite(user)) return NextResponse.json({ error: 'Eventbrite is for the Events team and super admins' }, { status: 403 });

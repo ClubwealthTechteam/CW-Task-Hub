@@ -13,7 +13,11 @@ import { serviceAccountEmail, sheetInfo, sheetsConfigured } from '@/lib/integrat
 
 export const dynamic = 'force-dynamic';
 
-export default async function SheetsPage({ params, searchParams }: { params: { dept: string }; searchParams: { task?: string } }) {
+export default async function SheetsPage(
+  props: { params: Promise<{ dept: string }>; searchParams: Promise<{ task?: string }> }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const dept = departmentById(params.dept);
   if (!dept) notFound();
   const user = await requireDepartment(dept.id as DepartmentId);

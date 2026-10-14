@@ -29,11 +29,9 @@ jobs:
         run: npm run typecheck
       - name: Build
         run: npm run build
-      # Known security problems in the packages the live site uses. Reported here (and in the run's
-      # annotations) without failing the check until the Next.js 15 upgrade clears the current ones.
+      # Known high or critical security problems in the packages the live site uses fail the check.
       - name: Security audit (packages)
         run: npm audit --omit=dev --audit-level=high
-        continue-on-error: true
       - name: Install the test browser
         run: npx playwright install --with-deps chromium
       - name: Smoke tests

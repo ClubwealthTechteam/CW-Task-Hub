@@ -10,7 +10,8 @@ export const dynamic = 'force-dynamic';
 
 const MAX_LIMIT = 200;
 
-export async function GET(req: Request, { params }: { params: { capability: string } }) {
+export async function GET(req: Request, props: { params: Promise<{ capability: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
   if (!isSuperAdmin(user)) return NextResponse.json({ error: 'Only Miguel, Omerson or Camille can browse Keap' }, { status: 403 });

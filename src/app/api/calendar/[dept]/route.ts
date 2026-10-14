@@ -8,7 +8,8 @@ import { upcomingEvents } from '@/lib/calendar-events';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(_req: Request, { params }: { params: { dept: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ dept: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
   if (!canUseCalendar(user, params.dept)) return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -16,7 +17,8 @@ export async function GET(_req: Request, { params }: { params: { dept: string } 
   return NextResponse.json({ posts, events });
 }
 
-export async function POST(req: Request, { params }: { params: { dept: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ dept: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
   if (!canUseCalendar(user, params.dept)) return NextResponse.json({ error: 'Not found' }, { status: 404 });

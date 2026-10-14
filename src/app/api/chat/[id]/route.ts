@@ -5,7 +5,8 @@ import { deleteConversation, getConversation } from '@/lib/chat/store';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
   const conv = await getConversation(params.id);
@@ -16,7 +17,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 }
 
 /** Removes one of your own chats. */
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
   const conv = await getConversation(params.id);

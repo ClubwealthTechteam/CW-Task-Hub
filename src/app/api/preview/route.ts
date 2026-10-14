@@ -29,6 +29,6 @@ export async function GET(req: Request) {
   }
   const res = NextResponse.redirect(new URL(`/w/${as.departments[0]}`, url.origin));
   res.cookies.set(PREVIEW_COOKIE, `${as.id}.${await previewSignature(viewer.real.id, as.id)}`, { ...sessionCookieOptions, maxAge: 60 * 60 * 8 });
-  cookies(); // keep this route dynamic
+  await cookies(); // keep this route dynamic
   return res;
 }

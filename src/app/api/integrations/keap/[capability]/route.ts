@@ -4,7 +4,8 @@ import { canManageIntegrations } from '@/lib/access';
 import { callKeap, KeapError } from '@/lib/integrations/keap/client';
 
 // Direct Keap actions from the Integrations page. Super admins only; automations call the client directly.
-export async function POST(req: Request, { params }: { params: { capability: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ capability: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!canManageIntegrations(user)) return NextResponse.json({ error: 'Super admins only' }, { status: 403 });
   const body = await req.json().catch(() => ({}));

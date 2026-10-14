@@ -13,6 +13,7 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   // Oct 14
+  { date: '2026-10-14', kind: 'fixed', area: 'Safety', title: 'Security update: Next.js 15', detail: 'Upgraded the framework the hub runs on (Next.js 14 → 15.5) and its CSS tool, closing every known security advisory. The package audit now finds 0 issues and runs on every change.' },
   { date: '2026-10-14', kind: 'improved', area: 'Dashboard', title: 'Tighter dashboard layout', detail: 'Updates sit at the top, Departments is compact beside Hub progress, and Team adoption and Recent activity open with View all.' },
   { date: '2026-10-14', kind: 'new', area: 'Quality', title: 'Package security audit on every change', detail: 'Added to the automatic checks; the Council can now see what the checks cover.' },
   { date: '2026-10-14', kind: 'improved', area: 'Keap', title: 'Keap shortcuts in plain language', detail: 'Pick a view, fill in normal fields like Email or Contact ID, and read the answer as a table. Raw data is still one click away.' },

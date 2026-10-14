@@ -15,7 +15,8 @@ import { Sidebar } from '../Sidebar';
 
 export const dynamic = 'force-dynamic';
 
-export default async function FormsPage({ params }: { params: { dept: string } }) {
+export default async function FormsPage(props: { params: Promise<{ dept: string }> }) {
+  const params = await props.params;
   const dept = departmentById(params.dept);
   if (!dept) notFound();
   const user = await requireDepartment(dept.id as DepartmentId);

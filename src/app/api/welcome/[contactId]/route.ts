@@ -11,7 +11,8 @@ export const dynamic = 'force-dynamic';
 
 const TEXT = { business: 120, city: 120, coach: 120, pageCaption: 3000, groupCaption: 3000, notes: 2000 } as const;
 
-export async function PATCH(req: Request, { params }: { params: { contactId: string } }) {
+export async function PATCH(req: Request, props: { params: Promise<{ contactId: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
   if (!canUseWelcome(user)) return NextResponse.json({ error: 'Not found' }, { status: 404 });

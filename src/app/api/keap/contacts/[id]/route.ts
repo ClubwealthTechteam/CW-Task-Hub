@@ -7,7 +7,8 @@ import { KeapError } from '@/lib/integrations/keap/client';
 export const dynamic = 'force-dynamic';
 
 /** One Keap contact with their tags. */
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
   if (!canLookUpKeap(user)) return NextResponse.json({ error: 'None of your tasks use Keap' }, { status: 403 });

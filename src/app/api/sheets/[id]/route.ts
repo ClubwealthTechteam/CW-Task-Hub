@@ -6,7 +6,8 @@ import { listSheets, saveSheets } from '@/lib/sheets';
 export const dynamic = 'force-dynamic';
 
 /** Removes a spreadsheet you added (super admins: anyone's). */
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
   const all = await listSheets();

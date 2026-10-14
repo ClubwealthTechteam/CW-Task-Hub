@@ -15,7 +15,8 @@ async function admin() {
   return null;
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const denied = await admin();
   if (denied) return denied;
   const body = await req.json().catch(() => ({}));
@@ -38,7 +39,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   return NextResponse.json({ announcement: updated });
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const denied = await admin();
   if (denied) return denied;
   await deleteAnnouncement(params.id);

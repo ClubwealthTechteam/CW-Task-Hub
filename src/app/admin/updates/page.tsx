@@ -20,7 +20,8 @@ const KINDS = Object.keys(KIND_LABEL) as ChangeKind[];
 
 const dayLabel = (iso: string) => new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
-export default async function SystemUpdates({ searchParams }: { searchParams: { kind?: string } }) {
+export default async function SystemUpdates(props: { searchParams: Promise<{ kind?: string }> }) {
+  const searchParams = await props.searchParams;
   const user = await requireUser();
   if (!isSuperAdmin(user)) notFound();
   const kind = KINDS.includes(searchParams.kind as ChangeKind) ? (searchParams.kind as ChangeKind) : null;

@@ -11,7 +11,8 @@ import { RunPanel } from './RunPanel';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AutomationPage({ params }: { params: { id: string } }) {
+export default async function AutomationPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const a = await findAutomation(params.id);
   if (!a) notFound();
   const user = await requireDepartment(a.department);

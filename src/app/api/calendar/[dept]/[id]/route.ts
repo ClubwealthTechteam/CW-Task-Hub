@@ -15,7 +15,8 @@ async function allowed(dept: string) {
 }
 
 /** The whole post (an edit), or just { status, date? } to tick one off. */
-export async function PATCH(req: Request, { params }: { params: { dept: string; id: string } }) {
+export async function PATCH(req: Request, props: { params: Promise<{ dept: string; id: string }> }) {
+  const params = await props.params;
   const denied = await allowed(params.dept);
   if (denied) return denied;
   const body = await req.json().catch(() => ({}));
@@ -30,7 +31,8 @@ export async function PATCH(req: Request, { params }: { params: { dept: string; 
   return post ? NextResponse.json({ post }) : NextResponse.json({ error: 'Not found' }, { status: 404 });
 }
 
-export async function DELETE(_req: Request, { params }: { params: { dept: string; id: string } }) {
+export async function DELETE(_req: Request, props: { params: Promise<{ dept: string; id: string }> }) {
+  const params = await props.params;
   const denied = await allowed(params.dept);
   if (denied) return denied;
   await deletePost(params.dept, params.id);

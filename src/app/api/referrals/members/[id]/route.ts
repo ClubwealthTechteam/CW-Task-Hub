@@ -8,7 +8,8 @@ import { memberNotes, saveMemberNotes } from '@/lib/referrals/store';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
   if (!canUseReferrals(user)) return NextResponse.json({ error: 'Not found' }, { status: 404 });

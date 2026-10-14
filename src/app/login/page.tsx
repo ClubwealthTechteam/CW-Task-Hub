@@ -3,7 +3,8 @@ import { LoginForm } from './LoginForm';
 
 export const metadata = { title: 'Sign in · CW AI Task Hub' };
 
-export default function LoginPage({ searchParams }: { searchParams: { next?: string } }) {
+export default async function LoginPage(props: { searchParams: Promise<{ next?: string }> }) {
+  const searchParams = await props.searchParams;
   const people = PEOPLE.map((p) => ({ id: p.id, name: p.name })).sort((a, b) => a.name.localeCompare(b.name));
   return (
     <main className="login">

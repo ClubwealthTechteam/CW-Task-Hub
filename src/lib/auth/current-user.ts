@@ -14,10 +14,10 @@ export const previewSignature = (realId: string, asId: string) => signValue(`pre
 export interface Viewer { user: Person; real: Person; preview: boolean }
 
 export async function getViewer(): Promise<Viewer | null> {
-  const session = await verifySession(cookies().get(SESSION_COOKIE)?.value);
+  const session = await verifySession((await cookies()).get(SESSION_COOKIE)?.value);
   const real = session ? personById(session.uid) : undefined;
   if (!real) return null;
-  const raw = cookies().get(PREVIEW_COOKIE)?.value;
+  const raw = (await cookies()).get(PREVIEW_COOKIE)?.value;
   if (raw && real.role === 'super_admin') {
     const [asId, sig] = raw.split('.');
     const as = personById(asId);

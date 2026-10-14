@@ -8,7 +8,8 @@ import { fileBytes, fileMeta, validFileToken } from '@/lib/chat/files';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const url = new URL(req.url);
   const meta = await fileMeta(params.id);
   const token = url.searchParams.get('t');

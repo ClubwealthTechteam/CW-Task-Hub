@@ -35,7 +35,8 @@ export async function GET() {
       { kind: 'page' as const, title: 'Zapier', sub: 'Updates from Zaps', href: '/zapier' },
     ] : []),
     ...(canViewEventbrite(user) ? [{ kind: 'page' as const, title: 'Eventbrite', sub: 'Events, tickets and attendees · view-only', href: '/eventbrite' }] : []),
-    ...(canManageIntegrations(user) ? [{ kind: 'page' as const, title: 'Integrations', sub: 'Connect and test apps', href: '/integrations' }] : []),
+    ...(canManageIntegrations(user) ? [{ kind: 'page' as const, title: 'Integrations', sub: 'Admin settings · connect and test apps', href: '/admin/integrations' }] : []),
+    ...(isSuperAdmin(user) ? [{ kind: 'page' as const, title: 'System updates', sub: 'Admin settings · changes & add-ons timeline', href: '/admin/updates' }] : []),
   ];
 
   const taskItems: SearchItem[] = tasks.filter((a) => canViewAutomation(user, a)).map((a) => ({

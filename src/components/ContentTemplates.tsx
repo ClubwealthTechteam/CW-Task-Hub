@@ -62,8 +62,7 @@ export function ContentTemplates({ taskId, dept = 'social-media' }: { taskId: st
       {shortlist.length > 0 && <><h5>For this task</h5><ul className="tpl-list">{shortlist.map(card)}</ul></>}
       <button className="tpl-browse" onClick={() => setBrowsing(!browsing)} aria-expanded={browsing}>
         <span>{browsing ? 'Hide templates' : shortlist.length ? 'Browse all templates' : 'Show all templates'}</span>
-        <span className="wp-n">{deptAll.length - shortlist.length}</span>
-        <span aria-hidden="true">{browsing ? '▴' : '▾'}</span>
+        <span className="tpl-browse-n">({deptAll.length - shortlist.length})</span>
       </button>
       {browsing && (
         <>

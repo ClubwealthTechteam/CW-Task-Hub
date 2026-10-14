@@ -144,7 +144,7 @@ export function Announcements({ items, admin, departments, limit, preview }: {
     <div className="ann-list">
       {admin && !preview && (composing
         ? <Composer departments={departments} onDone={() => { setComposing(false); refresh(); }} onCancel={() => setComposing(false)} />
-        : <div><button className="btn primary" onClick={() => setComposing(true)}><Icon name="plus" size={14} /> New update</button></div>)}
+        : <div><button className="textlink" onClick={() => setComposing(true)}><Icon name="plus" size={14} /> New update</button></div>)}
       {shown.length === 0 && <p className="muted small" style={{ margin: 0 }}>No updates yet.{admin ? ' Post one to let the team know what’s new.' : ''}</p>}
       {shown.map((a) => <Item key={a.id} a={a} admin={admin && !preview} onChanged={refresh} />)}
       {limit && items.length > limit && <Link href="/updates" className="small">See all {items.length} updates</Link>}

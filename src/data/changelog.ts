@@ -1,0 +1,62 @@
+// What changed in the hub, newest first. Shown to super admins on Admin settings → System updates.
+// Add an entry whenever a feature ships: one plain sentence a team lead can understand.
+
+export type ChangeKind = 'new' | 'improved' | 'removed' | 'fixed';
+
+export interface ChangeEntry {
+  date: string; // YYYY-MM-DD (Pacific)
+  kind: ChangeKind;
+  area: string;
+  title: string;
+  detail?: string;
+}
+
+export const CHANGELOG: ChangeEntry[] = [
+  // Oct 14
+  { date: '2026-10-14', kind: 'new', area: 'Admin', title: 'Admin settings with System updates and Integrations', detail: 'One place for super admins: this timeline of every change, and the integrations page.' },
+  { date: '2026-10-14', kind: 'improved', area: 'Design', title: 'Calmer dashboard', detail: 'Fewer buttons, outlined instead of solid, and icons without circles behind them. Search closes with an ×.' },
+  { date: '2026-10-14', kind: 'new', area: 'Slack', title: 'Daily celebrations in #cw-team', detail: 'Birthdays, work anniversaries and holidays posted at 6:00 AM PT with a Club Wealth poster. Skips deactivated Slack accounts.' },
+  { date: '2026-10-14', kind: 'new', area: 'Automations', title: 'Automation health card and daily health check', detail: 'Every weekday the hub, routines and Zapier workflows are checked and posted to #cw-assistant.' },
+  { date: '2026-10-14', kind: 'new', area: 'Assistant', title: 'Instant replies for quick questions', detail: 'Short questions stream back from Claude right away; bigger jobs still go to the routine.' },
+  { date: '2026-10-14', kind: 'new', area: 'Safety', title: 'Nightly backup of the hub’s data', detail: 'Kept for 30 days as a GitHub artifact.' },
+  { date: '2026-10-14', kind: 'new', area: 'Safety', title: 'Error alerts', detail: 'Page crashes and failed sends are logged and shown on the home page.' },
+  { date: '2026-10-14', kind: 'new', area: 'Hub', title: 'Notifications bell', detail: 'Assistant replies, shift summaries and new updates.' },
+  { date: '2026-10-14', kind: 'new', area: 'Hub', title: 'Search everything with Ctrl+K', detail: 'Pages, tasks, chats and updates.' },
+  { date: '2026-10-14', kind: 'new', area: 'Dashboard', title: 'Team adoption numbers', detail: 'Who is using the hub and the assistant, over the last 14 days.' },
+  { date: '2026-10-14', kind: 'new', area: 'Team members', title: 'A home page for team members', detail: 'Urgent and hot tasks, a to-do list, new Keap contacts, upcoming events and a Claude shift summary.' },
+  { date: '2026-10-14', kind: 'improved', area: 'Hub', title: 'Logo renamed to Admin Hub' },
+  { date: '2026-10-14', kind: 'new', area: 'Quality', title: 'Automatic checks on every change', detail: 'Type check, build and browser smoke tests before anything goes live.' },
+
+  // Oct 13
+  { date: '2026-10-13', kind: 'new', area: 'ISA', title: 'ISA daily stats flow planned', detail: 'Time Doctor and ProspectBoss data into a daily report and on-request answers in Slack.' },
+  { date: '2026-10-13', kind: 'improved', area: 'Dashboard', title: 'Home page redesigned as a dashboard', detail: 'Key numbers, assistant activity, hub progress and a department chart.' },
+  { date: '2026-10-13', kind: 'new', area: 'Client Care', title: 'Overdue balances board for Jizel' },
+  { date: '2026-10-13', kind: 'improved', area: 'Hub', title: 'Faster page loads' },
+  { date: '2026-10-13', kind: 'improved', area: 'Hub', title: 'Departments dropdown in the top bar' },
+  { date: '2026-10-13', kind: 'new', area: 'Council', title: 'CW Hub Council and Executive Judge', detail: 'Six AI agents review the hub every morning; chat with the Judge and hand work to Claude Code.' },
+  { date: '2026-10-13', kind: 'new', area: 'Keap', title: 'Find new clients and members in Keap', detail: 'Read-only.' },
+  { date: '2026-10-13', kind: 'new', area: 'Social Media', title: 'Canva for Jay, Andrea and Liz', detail: 'Uses the company Canva account.' },
+  { date: '2026-10-13', kind: 'new', area: 'Social Media', title: 'Referral Prospecting board' },
+  { date: '2026-10-13', kind: 'new', area: 'Social Media', title: 'New Client Welcome Posts board', detail: 'Welcome posts are prepared automatically from new Keap clients.' },
+  { date: '2026-10-13', kind: 'new', area: 'Social Media', title: 'Content prompt templates beside the assistant' },
+  { date: '2026-10-13', kind: 'new', area: 'Social Media', title: 'Attached files and graphics in the assistant' },
+  { date: '2026-10-13', kind: 'new', area: 'Social Media', title: 'Content calendar' },
+  { date: '2026-10-13', kind: 'new', area: 'Hub', title: 'Updates and announcements' },
+  { date: '2026-10-13', kind: 'new', area: 'Help', title: 'Help page, guides and a first sign-in tour' },
+  { date: '2026-10-13', kind: 'new', area: 'Admin', title: '“Preview as” for super admins', detail: 'See the hub exactly as a team member does.' },
+  { date: '2026-10-13', kind: 'new', area: 'Integrations', title: 'Google Sheets, read-only' },
+  { date: '2026-10-13', kind: 'new', area: 'Assistant', title: 'Open email drafts in Outlook or Gmail' },
+  { date: '2026-10-13', kind: 'new', area: 'Assistant', title: 'Daily limit of 20 messages per person' },
+  { date: '2026-10-13', kind: 'removed', area: 'Integrations', title: 'Buildium removed' },
+
+  // Oct 12
+  { date: '2026-10-12', kind: 'new', area: 'Tasks', title: 'Process form answers become tasks with build plans and flowcharts' },
+  { date: '2026-10-12', kind: 'new', area: 'Integrations', title: 'Zapier connected', detail: 'An inbox for Zap updates, a live feed, and starting approved Zaps.' },
+  { date: '2026-10-12', kind: 'new', area: 'Hub', title: 'A personal access code for everyone' },
+  { date: '2026-10-12', kind: 'new', area: 'Integrations', title: 'Eventbrite connected, read-only' },
+  { date: '2026-10-12', kind: 'new', area: 'Integrations', title: 'Keap connected, read-only', detail: 'A Keap tab, a contact panel and live data for the assistant.' },
+  { date: '2026-10-12', kind: 'new', area: 'Hub', title: 'Department workspaces', detail: 'Team members only see their own tasks.' },
+  { date: '2026-10-12', kind: 'new', area: 'Assistant', title: 'CW Assistant chat bubble', detail: 'Answered by a Claude routine.' },
+  { date: '2026-10-12', kind: 'removed', area: 'Integrations', title: 'Recruit CRM removed' },
+  { date: '2026-10-12', kind: 'new', area: 'Hub', title: 'CW AI Task Hub launched', detail: 'Department workspaces, the audit automations, and Keap, Zapier and custom integrations.' },
+];

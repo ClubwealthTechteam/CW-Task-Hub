@@ -9,7 +9,7 @@ import { SearchButton } from './CommandPalette';
 import { NotificationBell } from './NotificationBell';
 
 // White top bar in the CW University style. Team members see their workspace; super admins also get
-// every department and Integrations.
+// every department, Integrations and Admin settings.
 export function Header({ user, current }: { user: Person; current?: string }) {
   const depts = visibleDepartments(user);
   const admin = isSuperAdmin(user);
@@ -21,9 +21,9 @@ export function Header({ user, current }: { user: Person; current?: string }) {
   const apps: MenuApp[] = [
     admin && { id: 'keap', name: 'Keap', note: 'Club Wealth’s database · view-only', href: '/keap', connected: status.keap },
     canViewEventbrite(user) && { id: 'eventbrite', name: 'Eventbrite', note: 'Events, tickets and attendees · view-only', href: '/eventbrite', connected: status.eventbrite },
-    admin && { id: 'google-sheets', name: 'Google Sheets', note: 'Read the sheets people list · view-only', href: '/integrations', connected: status['google-sheets'] },
+    admin && { id: 'google-sheets', name: 'Google Sheets', note: 'Read the sheets people list · view-only', href: '/admin/integrations', connected: status['google-sheets'] },
     admin && { id: 'zapier', name: 'Zapier', note: 'Updates from Zaps, and starting Zaps', href: '/zapier', connected: status.zapier || Boolean(process.env.ZAPIER_INBOUND_SECRET) },
-    admin && { id: 'claude', name: 'Claude', note: 'AI inside automations', href: '/integrations', connected: status.claude },
+    admin && { id: 'claude', name: 'Claude', note: 'AI inside automations', href: '/admin/integrations', connected: status.claude },
   ].filter(Boolean) as MenuApp[];
   return (
     <header className="topbar">
@@ -41,7 +41,8 @@ export function Header({ user, current }: { user: Person; current?: string }) {
           {admin && <Link href="/council" aria-current={cur('council')}>Council</Link>}
           <Link href="/updates" aria-current={cur('updates')}>Updates</Link>
           <Link href="/help" aria-current={cur('help')}>Help</Link>
-          {apps.length > 0 && <IntegrationsMenu apps={apps} manage={canManageIntegrations(user)} active={['keap', 'eventbrite', 'zapier', 'integrations'].includes(current ?? '')} />}
+          {apps.length > 0 && <IntegrationsMenu apps={apps} manage={canManageIntegrations(user)} active={['keap', 'eventbrite', 'zapier'].includes(current ?? '')} />}
+          {admin && <Link href="/admin" aria-current={cur('settings')}>Admin settings</Link>}
         </nav>
         <SearchButton />
         <NotificationBell />

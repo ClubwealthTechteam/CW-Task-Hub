@@ -44,7 +44,7 @@ export default async function AutomationPage({ params }: { params: { id: string 
             </dl>
             {a.integrations.includes('keap') && (
               <p className="note" style={{ margin: 0 }}>
-                Uses Keap. Once built, it will run through the hub&apos;s Keap shortcuts (tags, campaigns and API goals){isSuperAdmin(user) ? <> — see <Link href="/integrations">Integrations</Link></> : null}.
+                Uses Keap. Once built, it will run through the hub&apos;s Keap shortcuts (tags, campaigns and API goals){isSuperAdmin(user) ? <> — see <Link href="/admin/integrations">Integrations</Link></> : null}.
               </p>
             )}
           </section>

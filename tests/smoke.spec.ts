@@ -71,7 +71,7 @@ test('super admin overview shows adoption and errors', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Team adoption' })).toBeVisible();
   await expect(page.getByText('Errors · last 24 hours')).toBeVisible();
-  for (const path of ['/w/events', '/w/client-care', '/w/social-media', '/w/admin', '/updates', '/help', '/council', '/integrations']) {
+  for (const path of ['/w/events', '/w/client-care', '/w/social-media', '/w/admin', '/updates', '/help', '/council', '/admin/integrations', '/admin/updates']) {
     const res = await page.goto(path);
     expect(res?.status(), path).toBeLessThan(400);
     await expect(page.locator('.topbar')).toBeVisible();

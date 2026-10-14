@@ -57,14 +57,10 @@ export default async function Home() {
             <h1>Overview</h1>
             <p className="muted">Hi {first}. Here’s the hub at a glance · {today}</p>
           </div>
-          <div className="row">
-            <Link href="/updates" className="dbtn">Updates</Link>
-            <Link href="/council" className="dbtn primary">Open the Council</Link>
-          </div>
         </div>
 
         <section className="dkpis" aria-label="Key numbers">
-          <div className="dkpi hi">
+          <div className="dkpi">
             <div className="dkpi-top"><span>Live automations</span><span className="dico"><Icon name="spark" size={18} /></span></div>
             <b>{counts.live}</b>
             <small>of {counts.total} · {counts.building} in progress</small>
@@ -108,7 +104,7 @@ export default async function Home() {
                 <>
                   <p className="small" style={{ margin: 0 }}>{c.headline}</p>
                   {c.top.length > 0 && <ul className="dg-list">{c.top.map((t, i) => <li key={i}><span className={`dtag t-${t.tag}`}>{t.tag === 'hot' ? 'Hot' : 'Attention'}</span>{t.title}</li>)}</ul>}
-                  <Link href="/council" className="linkbtn">Open the Council and the Judge</Link>
+                  <Link href="/council" className="textlink">Open the Council and the Judge →</Link>
                 </>
               ) : <p className="muted small" style={{ margin: 0 }}>No review yet. The council runs every morning.</p>}
             </div>
@@ -155,9 +151,9 @@ export default async function Home() {
 
         <section className="dcard">
           <div className="dcard-h"><div><h2>Preview someone’s view</h2><p className="muted small">See the hub exactly as a team member does. Read-only: nothing can be sent or changed, and their chats stay hidden.</p></div></div>
-          <div className="row">
-            {PEOPLE.filter((p) => p.role !== 'super_admin').map((p) => <a key={p.id} className="chip" href={`/api/preview?as=${p.id}`}>{p.name}</a>)}
-          </div>
+          <p className="dpreview">
+            {PEOPLE.filter((p) => p.role !== 'super_admin').map((p) => <a key={p.id} className="textlink" href={`/api/preview?as=${p.id}`}>{p.name}</a>)}
+          </p>
         </section>
       </main>
     </>

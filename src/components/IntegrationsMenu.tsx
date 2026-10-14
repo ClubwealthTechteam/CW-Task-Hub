@@ -39,7 +39,7 @@ export function IntegrationsMenu({ apps, manage, active }: { apps: MenuApp[]; ma
           {manage && (
             <>
               <div className="im-sep" />
-              <Link href="/integrations" role="menuitem" className="im-item im-manage" onClick={() => setOpen(false)}>
+              <Link href="/admin/integrations" role="menuitem" className="im-item im-manage" onClick={() => setOpen(false)}>
                 <span className="im-txt"><b>Manage integrations</b><small>Connections, shortcuts and adding a new app</small></span>
               </Link>
             </>

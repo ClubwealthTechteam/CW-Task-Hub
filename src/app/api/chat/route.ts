@@ -19,12 +19,15 @@ import { arContext, canUseAr } from '@/lib/billing/ar';
 import { canvaOnTask, canvaConfigured, status as canvaStatus } from '@/lib/canva/client';
 import { countMessage, usageFor } from '@/lib/chat/usage';
 import { logError } from '@/lib/errors';
+import { canAnswerQuickly, streamQuickReply } from '@/lib/chat/quick';
 import { chatIsConfigured, buildPayload, fireChatRoutine } from '@/lib/chat/routine';
 import {
-  createConversation, getConversation, listConversations, newId, saveConversation, touchIndex, type ChatMessage,
+  createConversation, getConversation, listConversations, newId, saveConversation, touchIndex, type ChatMessage, type Conversation,
 } from '@/lib/chat/store';
+import type { Person } from '@/config/people';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 const MAX_TEXT = 4000;
 
@@ -96,9 +99,13 @@ export async function POST(req: Request) {
   conv.messages.push(asked, reply);
   conv.updated = now;
 
+  // Build what the assistant reads, then either stream a quick reply or start the routine.
+  let routinePayload = '';
+  let quick = false;
+  let quickPayload = '';
   try {
     if (judge) {
-      await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, undefined, '', await judgeContext()));
+      routinePayload = await buildPayload(user, conv, asked.id, reply.id, undefined, '', await judgeContext());
     } else {
       const contact = task ? cleanContact(body.contact) : undefined;
       const [keapBlock, eventsBlock, zapBlock, sheetsBlock, calendarBlock, welcomeBlock, referralsBlock, arBlock] = await Promise.all([
@@ -113,9 +120,14 @@ export async function POST(req: Request) {
       ]);
       const canvaOn = canvaOnTask(user, task) && canvaConfigured() && (await canvaStatus(user.id)).connected;
       const filesBlock = await filesContext(conv, canUseFiles(user), canvaOn);
-      await fireChatRoutine(await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, eventsBlock + zapBlock + sheetsBlock + calendarBlock + welcomeBlock + referralsBlock + arBlock + taskGuide(task?.id) + filesBlock));
+      const extra = eventsBlock + zapBlock + sheetsBlock + calendarBlock + welcomeBlock + referralsBlock + arBlock + taskGuide(task?.id);
+      quick = body.stream === true && canAnswerQuickly(conv, text, { judge, attachments: attached.length });
+      if (quick) quickPayload = await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, extra, true);
+      routinePayload = await buildPayload(user, conv, asked.id, reply.id, contact, keapBlock, extra + filesBlock);
     }
+    if (!quick) await fireChatRoutine(routinePayload);
   } catch (e) {
+    quick = false;
     reply.status = 'error';
     reply.text = (e as Error).message;
     await logError('server', `Chat: ${(e as Error).message}`, { path: '/api/chat', user: user.id });
@@ -123,5 +135,45 @@ export async function POST(req: Request) {
   if (reply.status !== 'error') await countMessage(user);
   await saveConversation(conv);
   await touchIndex(conv);
+  if (quick) return streamReply(user, conv, reply, quickPayload, routinePayload);
   return NextResponse.json({ conversation: conv, usage: await usageFor(user) });
 }
+
+/**
+ * Quick path: newline-delimited JSON. {type:"start", conversation, usage}, then {type:"text", text} pieces,
+ * then {type:"done", conversation}. If the API fails before any text, the routine takes over and the
+ * stream ends with {type:"handoff", conversation} (the reply then arrives the usual way).
+ */
+function streamReply(user: Person, conv: Conversation, reply: ChatMessage, quickPayload: string, routinePayload: string) {
+  const enc = new TextEncoder();
+  const body = new ReadableStream({
+    async start(controller) {
+      const send = (obj: unknown) => controller.enqueue(enc.encode(`${JSON.stringify(obj)}\n`));
+      send({ type: 'start', conversation: conv, usage: await usageFor(user) });
+      let got = '';
+      try {
+        const result = await streamQuickReply(quickPayload, (delta) => { got += delta; send({ type: 'text', text: delta }); });
+        reply.text = result.text.trim() || (result.refused ? 'I can’t help with that one. Try asking another way, or ask Miguel.' : 'I don’t have an answer for that. Try asking another way.');
+        reply.status = 'done';
+        reply.at = Date.now();
+      } catch (e) {
+        await logError('server', `Quick reply: ${(e as Error).message}`, { path: '/api/chat', user: user.id });
+        if (!got) {
+          // Nothing shown yet: let the routine answer instead.
+          try { await fireChatRoutine(routinePayload); }
+          catch (err) { reply.status = 'error'; reply.text = (err as Error).message; }
+        } else {
+          reply.status = 'done';
+          reply.text = `${got.trim()}\n\n_(The reply was cut off. Ask again to get the rest.)_`;
+        }
+      }
+      conv.updated = Date.now();
+      await saveConversation(conv);
+      await touchIndex(conv);
+      send({ type: reply.status === 'pending' ? 'handoff' : 'done', conversation: conv });
+      controller.close();
+    },
+  });
+  return new Response(body, { headers: { 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no' } });
+}
+

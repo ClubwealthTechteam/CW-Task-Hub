@@ -32,14 +32,13 @@ async function automationLines(user: Person) {
   return mine.slice(0, 60).map((a) => `- ${a.title} (${departmentById(a.department)?.name}, ${a.stage})`).join('\n');
 }
 
-export async function buildPayload(user: Person, conv: Conversation, userMessageId: string, replyId: string, contact?: ChatContact, keapBlock = '', eventsBlock = '') {
+export async function buildPayload(user: Person, conv: Conversation, userMessageId: string, replyId: string, contact?: ChatContact, keapBlock = '', eventsBlock = '', direct = false) {
   const depts = user.departments.map((d) => departmentById(d)?.name ?? d).join(', ');
   const asked = conv.messages.find((m) => m.id === userMessageId)?.text ?? '';
   const header = [
     'CW Task Hub chat message (sent by the hub relay).',
-    `CONVERSATION_ID: ${conv.id}`,
-    `MESSAGE_ID: ${replyId}`,
-    `REPLY_TOKEN: ${await replyToken(conv.id, replyId)}`,
+    // The quick (streamed) path answers directly, so it gets no delivery details.
+    ...(direct ? [] : [`CONVERSATION_ID: ${conv.id}`, `MESSAGE_ID: ${replyId}`, `REPLY_TOKEN: ${await replyToken(conv.id, replyId)}`]),
     `PERSON: ${user.name}${user.title ? ` (${user.title})` : ''} · department: ${depts} · ${isSuperAdmin(user) ? 'super admin (sees every department)' : 'team member'}`,
     `DATE: ${new Date().toISOString().slice(0, 10)}`,
     '',

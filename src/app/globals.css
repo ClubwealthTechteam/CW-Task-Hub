@@ -1225,3 +1225,9 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
 .bell-dot { width: 8px; height: 8px; border-radius: 50%; background: #c2413a; margin-top: 6px; }
 .bell-none { margin: 0; padding: 18px 16px; color: var(--muted); font-size: 13.5px; }
 @media (max-width: 760px) { .bell { order: 2; } }
+
+/* Streaming replies */
+.cwa-live::after { content: "▍"; display: inline; color: var(--gold); animation: cwa-blink 1s steps(2) infinite; }
+.draft-live { border: 1px dashed var(--line-strong); border-radius: 10px; padding: 8px 10px; background: var(--surface-2); }
+@keyframes cwa-blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .cwa-live::after { animation: none; } }

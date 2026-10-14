@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Conversation, ConversationSummary } from '@/lib/chat/store';
 import { Markdown } from './Markdown';
 import { bubbleMax, useAutoGrow } from './autogrow';
+import { postChat } from './post';
 
 type Size = 'closed' | 'open' | 'max';
 
@@ -50,6 +51,7 @@ export function ChatWidget({ firstName }: { firstName: string }) {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [unread, setUnread] = useState(false);
   const [now, setNow] = useState(Date.now());
+  const [live, setLive] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   useAutoGrow(inputRef, text, bubbleMax);
@@ -97,7 +99,7 @@ export function ChatWidget({ firstName }: { firstName: string }) {
 
   // While a reply is on its way, check for it every few seconds (even when minimized).
   useEffect(() => {
-    if (!pending || !conv) return;
+    if (!pending || !conv || live !== null) return;
     const t = setInterval(async () => {
       setNow(Date.now());
       const res = await fetch(`/api/chat/${conv.id}`, { cache: 'no-store' });
@@ -110,10 +112,10 @@ export function ChatWidget({ firstName }: { firstName: string }) {
       }
     }, POLL_MS);
     return () => clearInterval(t);
-  }, [pending, conv, size, loadList]);
+  }, [pending, conv, size, loadList, live]);
 
   useEffect(() => { if (isOpen) { setUnread(false); endRef.current?.scrollIntoView({ block: 'end' }); } },
-    [isOpen, conv?.messages.length, pending]);
+    [isOpen, conv?.messages.length, pending, live]);
 
   useEffect(() => { if (isOpen && !showList) inputRef.current?.focus(); }, [isOpen, showList, conv?.id]);
 
@@ -121,14 +123,14 @@ export function ChatWidget({ firstName }: { firstName: string }) {
     const msg = message.trim();
     if (!msg || busy || pending) return;
     setBusy(true); setError('');
-    const res = await fetch('/api/chat', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversationId: conv?.id, text: msg }),
-    });
-    const body = await res.json().catch(() => ({}));
-    if (body.usage) setUsage(body.usage);
-    if (res.ok) { setConv(body.conversation); setText(''); setNow(Date.now()); loadList(); }
-    else setError(body.error || 'Something went wrong');
+    const result = await postChat({ conversationId: conv?.id, text: msg }, {
+      start: (c, u) => { setConv(c); if (u) setUsage(u); setText(''); setNow(Date.now()); setLive(''); setBusy(false); },
+      text: (soFar) => setLive(soFar),
+    }).catch(() => ({ ok: false, error: 'The connection dropped. Check the chat in a moment.' }) as Awaited<ReturnType<typeof postChat>>);
+    setLive(null);
+    if (result.usage) setUsage(result.usage);
+    if (result.ok && result.conversation) { setConv(result.conversation); setText(''); setNow(Date.now()); loadList(); }
+    else if (!result.ok) setError(result.error || 'Something went wrong');
     setBusy(false);
   }
 
@@ -224,7 +226,7 @@ export function ChatWidget({ firstName }: { firstName: string }) {
                 <div key={m.id} className={`cwa-msg ${m.role} ${m.status}`}>
                   {m.role === 'assistant' && <div className="cwa-badge sm" aria-hidden="true">CW</div>}
                   <div className="cwa-bub">
-                    {m.status === 'pending' ? (
+                    {m.status === 'pending' && live ? <div className="cwa-live"><Markdown text={live} /></div> : m.status === 'pending' ? (
                       <span className="cwa-typing" aria-label="CW Assistant is writing">
                         <i /><i /><i />
                         {now - m.at > SLOW_MS && <small>Taking a little longer…</small>}

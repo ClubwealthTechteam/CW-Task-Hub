@@ -12,6 +12,7 @@ import { CONTACT_EVENT, loadContact, type ChatContact } from '@/lib/chat/contact
 import { ACCEPT, MessageFiles, PendingFiles, useAttachments } from '@/components/chat/Attachments';
 import { halfScreen, useAutoGrow } from '@/components/chat/autogrow';
 import { CanvaBar, useCanva } from '@/components/chat/CanvaBar';
+import { postChat } from '@/components/chat/post';
 
 const POLL_MS = 3000;
 const SLOW_MS = 3 * 60 * 1000;
@@ -94,6 +95,7 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
   const inputRef = useRef<HTMLTextAreaElement>(null);
   useAutoGrow(inputRef, text, halfScreen);
   const pending = conv?.messages.some((m) => m.status === 'pending') ?? false;
+  const [live, setLive] = useState<string | null>(null);
 
   const open = useCallback(async (id: string) => {
     const res = await fetch(`/api/chat/${id}`, { cache: 'no-store' });
@@ -140,26 +142,26 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
   }, [taskId, open, preview]);
 
   useEffect(() => {
-    if (!pending || !conv) return;
+    if (!pending || !conv || live !== null) return;
     const t = setInterval(() => { setNow(Date.now()); open(conv.id); }, POLL_MS);
     return () => clearInterval(t);
-  }, [pending, conv, open]);
+  }, [pending, conv, open, live]);
 
-  useEffect(() => { endRef.current?.scrollIntoView({ block: 'end' }); }, [conv?.messages.length, pending]);
+  useEffect(() => { endRef.current?.scrollIntoView({ block: 'end' }); }, [conv?.messages.length, pending, live]);
 
   async function send(message = text) {
     const msg = message.trim();
     const attachments = message === text ? files.ready : [];
     if ((!msg && !attachments.length) || busy || pending || files.uploading) return;
     setBusy(true); setError('');
-    const res = await fetch('/api/chat', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversationId: conv?.id, automationId: taskId, text: msg, contact, attachments }),
-    });
-    const body = await res.json().catch(() => ({}));
-    if (body.usage) setUsage(body.usage);
-    if (res.ok) { setConv(body.conversation); setText(''); if (attachments.length) files.clear(); setNow(Date.now()); }
-    else setError(body.error || 'Something went wrong');
+    const result = await postChat({ conversationId: conv?.id, automationId: taskId, text: msg, contact, attachments }, {
+      start: (c, u) => { setConv(c); if (u) setUsage(u); setText(''); if (attachments.length) files.clear(); setNow(Date.now()); setLive(''); setBusy(false); },
+      text: (soFar) => setLive(soFar),
+    }).catch(() => ({ ok: false, error: 'The connection dropped. Check the chat in a moment.' }) as Awaited<ReturnType<typeof postChat>>);
+    setLive(null);
+    if (result.usage) setUsage(result.usage);
+    if (result.ok && result.conversation) { setConv(result.conversation); setText(''); if (attachments.length) files.clear(); setNow(Date.now()); }
+    else if (!result.ok) setError(result.error || 'Something went wrong');
     setBusy(false);
   }
 
@@ -218,7 +220,9 @@ export function TaskChat({ taskId, title, approveTool, starters, firstName, read
         {conv?.messages.map((m) => (
           m.role === 'user'
             ? <div key={m.id} className="m me">{m.files?.length ? <MessageFiles files={m.files} /> : null}{m.text}</div>
-            : m.status === 'pending'
+            : m.status === 'pending' && live
+              ? <div key={m.id} className="m ai">{parts(live).map((p, i) => (p.kind === 'draft' ? <div key={i} className="cwa-live draft-live"><Markdown text={p.text} /></div> : <Markdown key={i} text={p.text} />))}</div>
+              : m.status === 'pending'
               ? (
                 <div key={m.id} className="m ai">
                   <span className="cwa-typing" aria-label="The assistant is writing"><i /><i /><i />{now - m.at > SLOW_MS && <small>Taking a little longer…</small>}</span>

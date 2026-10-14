@@ -4,60 +4,97 @@
 <meta charset="utf-8">
 <title>Club Wealth poster</title>
 <!--
-  Club Wealth celebration posters (1080 x 1350, 4:5), rendered to PNG by the Slack celebrations routine:
-    chromium --headless --screenshot --window-size=1080,1350 --virtual-time-budget=8000 "<this url>?..."
-  ?type=anniversary&name=Ana%20Reyes&position=ISA&years=2&since=2024-10-14&photo=<image url>
-  ?type=birthday&name=Ana%20Reyes&position=ISA&date=2026-10-14&photo=<image url>
-  ?type=holiday&key=christmas            (keys: newyear valentines easter july4 ph-independence halloween thanksgiving christmas general)
-  ?type=holiday&key=general&title=Happy%20Labor%20Day&message=...
-  Design follows the Club Wealth 1st Anniversary poster: low-poly blue background, navy card, white type.
+  Club Wealth celebration posters (1080 x 1350, 4:5), rendered to PNG by the Slack celebrations routine (render.cjs).
+    ?type=birthday&name=Ana%20Reyes&position=ISA&date=2026-10-14&photo=<image url>
+    ?type=anniversary&name=Ana%20Reyes&position=ISA&years=2&since=2024-10-14&photo=<image url>
+    ?type=holiday&key=christmas            (keys: newyear valentines easter july4 ph-independence halloween thanksgiving christmas general)
+    ?type=holiday&key=general&title=Happy%20Labor%20Day&message=...
+  Look: deep Club Wealth navy lit by soft blue light, gold hairlines, an editorial serif (Fraunces) with a wide sans (Outfit).
+  No cards, frames or pills: the photo is cut out of the background and the type carries the layout.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700;800&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,400;1,9..144,600&family=Outfit:wght@300;400;500;700;800&display=block" rel="stylesheet">
 <style>
-  :root { --navy: #0e1c4c; --navy-2: #13306e; --ice: #c9d4e3; --accent: #d6b46a; }
+  :root {
+    --ink: #050d24; --navy: #0a1d4f; --royal: #1f56d6; --sky: #8fb4ff;
+    --gold: #e3c27e; --gold-2: #b8913f; --paper: #f4f1ea; --mute: #b9c6e4;
+    --accent: var(--gold);
+  }
   * { box-sizing: border-box; }
-  html, body { margin: 0; width: 1080px; height: 1350px; overflow: hidden; background: #0a3d7a; }
-  body { font-family: "Poppins", "Helvetica Neue", Arial, sans-serif; color: #fff; position: relative; -webkit-font-smoothing: antialiased; }
-  #bg { position: absolute; inset: 0; width: 1080px; height: 1350px; }
-  .layer { position: absolute; inset: 0; }
-  .logo { position: absolute; top: 46px; left: 50%; transform: translateX(-50%); width: 360px; filter: drop-shadow(0 3px 2px rgba(0,0,0,.45)) drop-shadow(0 6px 14px rgba(0,0,0,.25)); }
-  .script { font-family: "Great Vibes", "Snell Roundhand", cursive; font-weight: 400; text-align: center; line-height: 1; text-shadow: 0 4px 10px rgba(0,0,0,.35); }
-  .bold { font-weight: 800; text-align: center; letter-spacing: .02em; text-transform: uppercase; text-shadow: 0 3px 0 rgba(0,0,0,.18), 0 8px 20px rgba(0,0,0,.35); }
-  .bold sup { font-size: .5em; vertical-align: .9em; margin-left: .04em; letter-spacing: 0; }
+  html, body { margin: 0; width: 1080px; height: 1350px; overflow: hidden; background: var(--ink); }
+  body { font-family: "Outfit", "Helvetica Neue", Arial, sans-serif; color: var(--paper); position: relative; -webkit-font-smoothing: antialiased; }
+  .abs { position: absolute; }
 
-  /* People posters */
-  .people .script { position: absolute; top: 158px; left: 0; right: 0; font-size: 150px; }
-  .people .bold { position: absolute; top: 300px; left: 0; right: 0; font-size: 88px; line-height: 1.05; }
-  .card { position: absolute; left: 212px; top: 420px; width: 656px; height: 830px; background: var(--navy); border-radius: 40px; box-shadow: 0 30px 60px rgba(3,12,40,.45); }
-  .photo { position: absolute; left: 52px; top: 56px; width: 552px; height: 488px; border-radius: 32px; background: var(--ice); overflow: hidden; display: grid; place-items: center; }
-  .photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 28%; }
-  .initials { width: 230px; height: 230px; border-radius: 50%; background: linear-gradient(145deg, #95a6c1, #7d90b0); display: grid; place-items: center; font-weight: 700; font-size: 92px; color: #fff; letter-spacing: .02em; }
-  .pill { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 999px; padding: 0 30px; white-space: nowrap; }
-  .name { top: 580px; width: 556px; height: 80px; background: rgba(150,170,205,.28); border: 2px solid rgba(220,230,245,.75); font-size: 38px; font-weight: 700; }
-  .position { top: 680px; max-width: 556px; min-width: 300px; height: 48px; background: rgba(150,170,205,.24); font-size: 23px; font-weight: 500; color: #e6ecf6; letter-spacing: .03em; }
-  .divider { position: absolute; top: 742px; left: 102px; right: 102px; display: flex; align-items: center; gap: 22px; }
-  .divider i { flex: 1; height: 2px; background: rgba(205,217,236,.55); }
-  .divider svg { flex: none; }
-  .date { top: 782px; height: 44px; min-width: 260px; background: rgba(150,170,205,.24); font-size: 22px; font-weight: 500; color: #e6ecf6; }
-  .pearl { position: absolute; left: 818px; top: 1196px; width: 78px; height: 78px; border-radius: 50%; background: radial-gradient(circle at 34% 30%, #ffffff 0 10%, #f3efe4 24%, #d9d2c0 52%, #a99f86 78%, #8c826a 100%); box-shadow: 0 10px 22px rgba(0,0,0,.35); }
-  .foot { position: absolute; left: 90px; right: 90px; top: 1268px; text-align: center; font-size: 26px; line-height: 1.45; font-weight: 400; color: #f2f5fb; text-shadow: 0 2px 8px rgba(0,0,0,.35); }
-
-  /* Holiday posters: the text sits centred in a navy panel */
-  .holiday .panel { position: absolute; left: 110px; right: 110px; top: 280px; height: 860px; border-radius: 44px; background: linear-gradient(180deg, rgba(14,28,76,.6), rgba(14,28,76,.8)); border: 1.5px solid rgba(214,180,106,.35); box-shadow: 0 30px 70px rgba(3,12,40,.45); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 70px 60px; gap: 6px; }
-  .holiday .script { font-size: 168px; margin-bottom: 8px; }
-  .holiday .bold { line-height: 1.04; }
-  .holiday .rule { width: 260px; height: 3px; border-radius: 3px; background: var(--accent); box-shadow: 0 0 18px var(--accent); margin: 34px 0 30px; }
-  .holiday .msg { text-align: center; font-size: 31px; line-height: 1.5; font-weight: 500; color: #f2f5fb; text-shadow: 0 2px 10px rgba(0,0,0,.4); max-width: 700px; }
-  .holiday .brand { position: absolute; left: 0; right: 0; top: 1236px; text-align: center; font-size: 30px; font-weight: 700; letter-spacing: .32em; text-transform: uppercase; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.4); }
-  .holiday .brand::before, .holiday .brand::after { content: ""; display: inline-block; width: 70px; height: 2px; background: var(--accent); vertical-align: middle; margin: 0 22px 6px; }
+  /* light, grain */
+  #light { position: absolute; inset: 0;
+    background:
+      radial-gradient(900px 700px at 78% 18%, rgba(46,104,240,.55), transparent 62%),
+      radial-gradient(700px 600px at 12% 88%, rgba(24,70,190,.45), transparent 60%),
+      radial-gradient(1200px 900px at 50% 45%, #0c2766 0%, #071640 55%, var(--ink) 100%); }
+  #grain { position: absolute; inset: 0; opacity: .14; mix-blend-mode: overlay; }
   #deco { position: absolute; inset: 0; pointer-events: none; }
+
+  .logo { position: absolute; top: 58px; left: 64px; width: 230px; opacity: .96; }
+  .tag { position: absolute; top: 74px; right: 64px; font-size: 20px; font-weight: 500; letter-spacing: .32em; text-transform: uppercase; color: var(--gold); text-align: right; }
+  .hello { white-space: nowrap; }
+  .serif { font-family: "Fraunces", Georgia, serif; font-optical-sizing: auto; }
+  .gold-text { background: linear-gradient(180deg, #fbe9bf 0%, var(--gold) 45%, var(--gold-2) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+  /* photo: a cut-out, no frame */
+  .cut { position: absolute; overflow: hidden; background: radial-gradient(circle at 35% 30%, #2d5fd8, #0e2a72 70%); }
+  .cut img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+  .initials { width: 100%; height: 100%; display: grid; place-items: center; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 400; color: var(--paper); letter-spacing: -.02em; }
+
+  .name { font-weight: 800; text-transform: uppercase; letter-spacing: .035em; line-height: 1; white-space: nowrap; }
+  .role { font-size: 24px; font-weight: 500; letter-spacing: .34em; text-transform: uppercase; color: var(--gold); white-space: nowrap; }
+  .note { font-size: 25px; font-weight: 300; line-height: 1.5; color: var(--mute); text-wrap: balance; }
+  .hair { height: 1.5px; background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent); opacity: .7; }
+
+  /* ---- birthday ---- */
+  .bd .num { position: absolute; right: -60px; top: 150px; font-family: "Outfit"; font-weight: 800; font-size: 780px; line-height: .8; letter-spacing: -.04em; color: transparent; -webkit-text-stroke: 1.5px rgba(227,194,126,.22); }
+  .bd .halo { position: absolute; left: 540px; top: 560px; width: 980px; height: 980px; transform: translate(-50%,-50%); border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,214,140,.30) 0%, rgba(120,160,255,.18) 34%, transparent 62%); }
+  .bd .cut { left: 255px; top: 270px; width: 570px; height: 570px; border-radius: 50%; box-shadow: 0 40px 90px rgba(0,6,30,.65); }
+  .bd .initials { font-size: 230px; }
+  .bd .hello { position: absolute; left: 0; right: 0; top: 818px; text-align: center; font-size: 150px; font-style: italic; font-weight: 400; line-height: 1; letter-spacing: -.02em; text-shadow: 0 10px 40px rgba(0,8,40,.6); }
+  .bd .hello em { font-style: italic; font-weight: 600; }
+  .bd .name { position: absolute; left: 0; right: 0; top: 1004px; text-align: center; font-size: 72px; }
+  .bd .role { position: absolute; left: 0; right: 0; top: 1098px; text-align: center; }
+  .bd .hair { position: absolute; left: 300px; right: 300px; top: 1170px; }
+  .bd .note { position: absolute; left: 140px; right: 140px; top: 1196px; text-align: center; }
+
+  /* ---- anniversary ---- */
+  .an .years { position: absolute; left: 50px; top: 150px; font-family: "Fraunces"; font-weight: 700; font-size: 560px; line-height: .78; letter-spacing: -.05em; }
+  .an .ylabel { position: absolute; left: 70px; top: 610px; font-size: 26px; font-weight: 500; letter-spacing: .34em; text-transform: uppercase; color: var(--paper); line-height: 1.6; }
+  .an .ylabel b { color: var(--gold); font-weight: 500; }
+  .an .glow { position: absolute; left: 760px; top: 520px; width: 900px; height: 900px; transform: translate(-50%,-50%); border-radius: 50%;
+    background: radial-gradient(circle, rgba(120,165,255,.35), transparent 60%); }
+  .an .cut { left: 500px; top: 168px; width: 520px; height: 690px; border-radius: 260px 260px 0 0;
+    -webkit-mask-image: linear-gradient(180deg, #000 72%, transparent 100%); mask-image: linear-gradient(180deg, #000 72%, transparent 100%); }
+  .an .initials { font-size: 220px; padding-bottom: 80px; }
+  .an .hello { position: absolute; left: 64px; right: 64px; top: 812px; font-size: 104px; font-style: italic; font-weight: 400; line-height: 1.02; letter-spacing: -.015em; text-shadow: 0 10px 40px rgba(0,8,40,.6); }
+  .an .hello em { font-weight: 600; }
+  .an .name { position: absolute; left: 64px; top: 1020px; font-size: 64px; }
+  .an .role { position: absolute; left: 66px; top: 1106px; }
+  .an .hair { position: absolute; left: 64px; width: 420px; top: 1172px; background: linear-gradient(90deg, var(--gold), transparent); }
+  .an .note { position: absolute; left: 64px; right: 120px; top: 1194px; }
+
+  /* ---- holiday ---- */
+  .hd .logo { left: 50%; transform: translateX(-50%); top: 70px; width: 270px; }
+  .hd .block { position: absolute; left: 90px; right: 90px; top: 330px; height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .hd .pre { font-family: "Fraunces"; font-style: italic; font-weight: 400; font-size: 150px; line-height: 1; letter-spacing: -.02em; }
+  .hd .title { font-weight: 800; text-transform: uppercase; letter-spacing: .02em; line-height: .98; margin-top: 18px; text-shadow: 0 12px 40px rgba(0,8,40,.55); }
+  .hd .rule { width: 220px; height: 2px; margin: 44px 0 34px; background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+  .hd .msg { font-size: 31px; font-weight: 300; line-height: 1.5; color: #e6ecf8; max-width: 760px; text-wrap: balance; }
+  .hd .foot { position: absolute; left: 0; right: 0; bottom: 70px; text-align: center; font-size: 20px; font-weight: 500; letter-spacing: .4em; text-transform: uppercase; color: var(--accent); }
 </style>
 </head>
 <body>
-<svg id="bg" viewBox="0 0 1080 1350" preserveAspectRatio="none" aria-hidden="true"></svg>
-<div id="poster" class="layer"></div>
+<div id="light"></div>
+<svg id="grain" width="1080" height="1350" aria-hidden="true"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .9 0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+<svg id="back" class="abs" style="inset:0" viewBox="0 0 1080 1350" aria-hidden="true"></svg>
+<div id="poster" class="abs" style="inset:0"></div>
 <svg id="deco" viewBox="0 0 1080 1350" aria-hidden="true"></svg>
 <script>
 (function () {
@@ -65,161 +102,156 @@
   const get = (k, d = '') => (q.get(k) || d).trim();
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const type = get('type', 'anniversary');
-
-  /* ---------- low-poly background (deterministic) ---------- */
-  let seed = 20240131;
-  const rnd = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
-  const W = 1080, H = 1350, cols = 9, rows = 11, pts = [];
-  for (let r = 0; r <= rows; r++) {
-    const row = [];
-    for (let c = 0; c <= cols; c++) {
-      const edgeX = c === 0 || c === cols, edgeY = r === 0 || r === rows;
-      row.push([c * W / cols + (edgeX ? 0 : (rnd() - .5) * 90), r * H / rows + (edgeY ? 0 : (rnd() - .5) * 90)]);
-    }
-    pts.push(row);
-  }
-  const shade = (x, y) => {
-    // lighter toward the upper right and lower left, deep blue in the middle (like the reference)
-    const t = Math.min(1, Math.max(0, .55 + .25 * Math.sin(x / 300 + 1) + .2 * Math.cos(y / 260) + (rnd() - .5) * .35));
-    const a = [9, 52, 118], b = [52, 120, 186];
-    return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`;
-  };
-  let tri = '';
-  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-    const p = pts[r][c], q1 = pts[r][c + 1], q2 = pts[r + 1][c], q3 = pts[r + 1][c + 1];
-    const flip = rnd() > .5;
-    const A = flip ? [p, q1, q3] : [p, q1, q2], B = flip ? [p, q3, q2] : [q1, q3, q2];
-    for (const t of [A, B]) {
-      const cx = (t[0][0] + t[1][0] + t[2][0]) / 3, cy = (t[0][1] + t[1][1] + t[2][1]) / 3;
-      tri += `<polygon points="${t.map((v) => v.join(',')).join(' ')}" fill="${shade(cx, cy)}" stroke="${shade(cx, cy)}" stroke-width="1"/>`;
-    }
-  }
-  tri += '<rect width="1080" height="1350" fill="url(#vig)"/>';
-  document.getElementById('bg').innerHTML = `<defs><radialGradient id="vig" cx="50%" cy="45%" r="75%"><stop offset="60%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#020b24" stop-opacity=".45"/></radialGradient></defs>${tri}`;
-
-  const logo = '<img class="logo" src="logo.png" alt="Club Wealth">';
   const poster = document.getElementById('poster');
   const deco = document.getElementById('deco');
+  const back = document.getElementById('back');
+  const logo = '<img class="logo" src="logo.png" alt="Club Wealth">';
 
-  /* ---------- people posters ---------- */
-  const ordinal = (n) => { const s = ['TH', 'ST', 'ND', 'RD'], v = n % 100; return n + '<sup>' + (s[(v - 20) % 10] || s[v] || s[0]) + '</sup>'; };
-  const longDate = (iso) => { const d = new Date(iso + 'T12:00:00'); return isNaN(d) ? iso : d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }); };
-  const monthDay = (iso) => { const d = new Date(iso + 'T12:00:00'); return isNaN(d) ? iso : d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }); };
-  const calendar = '<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#dfe7f3" stroke-width="1.6" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="8.5" cy="13.5" r=".6" fill="#dfe7f3"/><circle cx="12" cy="13.5" r=".6" fill="#dfe7f3"/><circle cx="15.5" cy="13.5" r=".6" fill="#dfe7f3"/><circle cx="8.5" cy="16.8" r=".6" fill="#dfe7f3"/><circle cx="12" cy="16.8" r=".6" fill="#dfe7f3"/></svg>';
+  let seed = 7 + [...(get('name') + get('key') + type)].reduce((a, c) => a + c.charCodeAt(0), 0);
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
+  const parseDay = (iso) => { const d = new Date(iso + 'T12:00:00'); return isNaN(d) ? null : d; };
 
-  function people() {
-    const name = get('name', 'Team Member');
-    const position = get('position');
-    const photo = get('photo');
-    const initials = name.split(/\s+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
-    let headline, sub, dateText, foot;
-    if (type === 'birthday') {
-      headline = 'Happy Birthday!';
-      sub = 'Celebrating You';
-      dateText = monthDay(get('date'));
-      foot = 'Wishing you a year filled with happiness, success<br>and exciting new opportunities.';
-    } else {
-      const years = Math.max(1, parseInt(get('years', '1'), 10) || 1);
-      headline = 'Congratulations!';
-      sub = ordinal(years) + ' Anniversary';
-      dateText = 'Since ' + longDate(get('since'));
-      foot = 'Your hard work and dedication never go unnoticed.<br>Thank you for being part of what we’re building.';
-    }
-    document.body.classList.add('people');
-    const scriptSize = headline.length > 15 ? 132 : 150;
-    const nameSize = name.length > 26 ? 28 : name.length > 20 ? 32 : 38;
-    poster.innerHTML = `${logo}
-      <div class="script" style="font-size:${scriptSize}px">${headline}</div>
-      <div class="bold">${sub}</div>
-      <div class="card">
-        <div class="photo">${photo ? `<img src="${esc(photo)}" alt="" onerror="this.parentNode.innerHTML='<div class=&quot;initials&quot;>${esc(initials)}</div>'">` : `<div class="initials">${esc(initials)}</div>`}</div>
-        <div class="pill name" style="font-size:${nameSize}px">${esc(name)}</div>
-        ${position ? `<div class="pill position">${esc(position)}</div>` : ''}
-        <div class="divider"><i></i>${calendar}<i></i></div>
-        <div class="pill date">${esc(dateText)}</div>
-      </div>
-      <div class="pearl"></div>
-      <div class="foot">${foot}</div>`;
-    if (type === 'birthday') confetti();
+  // Shrink a single-line element until it fits its box.
+  function fit(el, max) {
+    // measure the text itself (the element box may be wider than its text)
+    const r = document.createRange();
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    r.selectNodeContents(el);
+    while (r.getBoundingClientRect().width > max && size > 20) { size -= 2; el.style.fontSize = size + 'px'; }
   }
 
-  /* ---------- holiday posters ---------- */
+  function photoHtml(name) {
+    const photo = get('photo');
+    const initials = name.split(/\s+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+    const fallback = `<div class="initials">${esc(initials)}</div>`;
+    return photo ? `<img src="${esc(photo)}" alt="" onerror="this.outerHTML='${fallback.replace(/"/g, '&quot;')}'">` : fallback;
+  }
+
+  /* ---------- decorative pieces ---------- */
+  const sparkle = (x, y, r, c, op = .95) => `<path d="M${x},${y - r} Q${x + r * .14},${y - r * .14} ${x + r},${y} Q${x + r * .14},${y + r * .14} ${x},${y + r} Q${x - r * .14},${y + r * .14} ${x - r},${y} Q${x - r * .14},${y - r * .14} ${x},${y - r}Z" fill="${c}" opacity="${op}"/>`;
+  const streamer = (x, y, len, rot, c, w = 3) => `<path transform="translate(${x} ${y}) rotate(${rot})" d="M0,0 c${len * .25},-${len * .18} ${len * .5},${len * .18} ${len * .75},0 s${len * .2},-${len * .1} ${len * .25},0" stroke="${c}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
+  // confetti that stays out of the keep-out boxes (photo and text)
+  function confetti(n, keep) {
+    const cols = ['#e3c27e', '#f4f1ea', '#8fb4ff', '#e3c27e'];
+    let s = '', placed = 0, tries = 0;
+    while (placed < n && tries++ < 4000) {
+      const x = 30 + rnd() * 1020, y = 170 + rnd() * 1120;
+      if (keep.some(([l, t, r, b]) => x > l && x < r && y > t && y < b)) continue;
+      const c = cols[placed % cols.length], k = rnd();
+      if (k < .45) s += streamer(x, y, 26 + rnd() * 34, rnd() * 360, c, 2.5);
+      else if (k < .8) s += `<circle cx="${x}" cy="${y}" r="${2 + rnd() * 4}" fill="${c}" opacity="${.5 + rnd() * .5}"/>`;
+      else s += sparkle(x, y, 7 + rnd() * 10, c);
+      placed++;
+    }
+    return s;
+  }
+
+  /* ---------- birthday ---------- */
+  function birthday() {
+    const name = get('name', 'Team Member');
+    const d = parseDay(get('date'));
+    const day = d ? d.getDate() : '';
+    const month = d ? d.toLocaleDateString('en-US', { month: 'long' }) : '';
+    document.body.classList.add('bd');
+    poster.innerHTML = `
+      <div class="num">${day}</div>
+      <div class="halo"></div>
+      ${logo}
+      <div class="tag">${esc(month)} ${day}</div>
+      <div class="cut">${photoHtml(name)}</div>
+      <div class="hello serif">Happy <em class="gold-text">Birthday</em></div>
+      <div class="name">${esc(name)}</div>
+      ${get('position') ? `<div class="role">${esc(get('position'))}</div>` : ''}
+      <div class="hair"></div>
+      <div class="note">Here’s to a year of happiness, success and new adventures.</div>`;
+    fit(poster.querySelector('.name'), 940);
+    fit(poster.querySelector('.hello'), 980);
+    deco.innerHTML = confetti(34, [[190, 220, 890, 890], [40, 790, 1040, 1350], [40, 40, 1040, 140]])
+      + sparkle(232, 300, 26, '#e3c27e') + sparkle(842, 812, 18, '#f4f1ea') + sparkle(880, 300, 12, '#8fb4ff');
+  }
+
+  /* ---------- anniversary ---------- */
+  function anniversary() {
+    const name = get('name', 'Team Member');
+    const years = Math.max(1, parseInt(get('years', '1'), 10) || 1);
+    const since = parseDay(get('since'));
+    const sinceText = since ? since.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '';
+    document.body.classList.add('an');
+    poster.innerHTML = `
+      <div class="glow"></div>
+      ${logo}
+      <div class="tag">Work Anniversary</div>
+      <div class="years gold-text">${years}</div>
+      <div class="ylabel">${years === 1 ? 'Year' : 'Years'}<br><b>with Club Wealth</b></div>
+      <div class="cut">${photoHtml(name)}</div>
+      <div class="hello serif">Happy <em class="gold-text">Anniversary</em></div>
+      <div class="name">${esc(name)}</div>
+      ${get('position') ? `<div class="role">${esc(get('position'))}</div>` : ''}
+      <div class="hair"></div>
+      <div class="note">${sinceText ? `Part of the team since ${esc(sinceText)}. ` : ''}Thank you for everything you build with us.</div>`;
+    fit(poster.querySelector('.name'), 950);
+    fit(poster.querySelector('.hello'), 960);
+    // the numeral can be wide (10+ years): keep it clear of the photo
+    const y = poster.querySelector('.years');
+    let fs = 560; while (y.getBoundingClientRect().right > 520 && fs > 200) { fs -= 20; y.style.fontSize = fs + 'px'; }
+    deco.innerHTML = confetti(28, [[0, 150, 1080, 1350], [40, 40, 1040, 140]])
+      + sparkle(470, 190, 22, '#e3c27e') + sparkle(1010, 760, 14, '#f4f1ea') + sparkle(440, 700, 10, '#8fb4ff');
+    back.innerHTML = [0, 1, 2].map((i) => `<circle cx="760" cy="520" r="${380 + i * 70}" fill="none" stroke="#e3c27e" stroke-opacity="${.16 - i * .04}" stroke-width="1.5" stroke-dasharray="${i === 1 ? '2 10' : ''}"/>`).join('');
+  }
+
+  /* ---------- holidays ---------- */
+  const star = (x, y, r, fill, op = 1) => { let d = ''; for (let i = 0; i < 10; i++) { const a = Math.PI / 5 * i - Math.PI / 2, rr = i % 2 ? r * .42 : r; d += `${i ? 'L' : 'M'}${(x + rr * Math.cos(a)).toFixed(1)},${(y + rr * Math.sin(a)).toFixed(1)}`; } return `<path d="${d}Z" fill="${fill}" opacity="${op}"/>`; };
+  const heart = (x, y, s, c, rot = 0, op = 1) => `<path transform="translate(${x} ${y}) rotate(${rot}) scale(${s})" d="M0,6 C-8,-4 -20,2 -12,12 L0,24 L12,12 C20,2 8,-4 0,6Z" fill="${c}" opacity="${op}"/>`;
+  const burst = (x, y, r, c) => { let s = ''; for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2, l = r * (.7 + (i % 3) * .15); s += `<line x1="${x + Math.cos(a) * r * .2}" y1="${y + Math.sin(a) * r * .2}" x2="${x + Math.cos(a) * l}" y2="${y + Math.sin(a) * l}" stroke="${c}" stroke-width="2" stroke-linecap="round" opacity="${.45 + (i % 3) * .2}"/><circle cx="${x + Math.cos(a) * l * 1.08}" cy="${y + Math.sin(a) * l * 1.08}" r="2.6" fill="${c}"/>`; } return s; };
+  const ornament = (x, y, r) => `<line x1="${x}" y1="0" x2="${x}" y2="${y - r}" stroke="#e3c27e" stroke-width="1.5" opacity=".7"/><rect x="${x - r * .25}" y="${y - r - 8}" width="${r * .5}" height="10" rx="3" fill="#cfa955"/><circle cx="${x}" cy="${y}" r="${r}" fill="url(#orn)"/>`;
+  const leaf = (x, y, s, rot, c) => `<path transform="translate(${x} ${y}) rotate(${rot}) scale(${s})" d="M0,-30 C14,-18 22,-4 14,10 C10,18 4,24 0,30 C-4,24 -10,18 -14,10 C-22,-4 -14,-18 0,-30Z" fill="${c}" opacity=".9"/><path transform="translate(${x} ${y}) rotate(${rot}) scale(${s})" d="M0,-24 L0,28" stroke="rgba(0,0,0,.25)" stroke-width="1.5"/>`;
+  const egg = (x, y, s, c1, c2, rot) => `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${s})"><ellipse rx="22" ry="29" fill="${c1}"/><path d="M-21,-4 q7,-7 14,0 t14,0 t14,0" stroke="${c2}" stroke-width="4" fill="none"/></g>`;
+  const flower = (x, y, s, c) => { let p = ''; for (let i = 0; i < 5; i++) p += `<ellipse cx="0" cy="-12" rx="7" ry="12" fill="${c}" transform="rotate(${i * 72})"/>`; return `<g transform="translate(${x} ${y}) scale(${s})">${p}<circle r="6" fill="#f6d66b"/></g>`; };
+  const pumpkin = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><ellipse cx="-14" rx="18" ry="22" fill="#e9781e"/><ellipse cx="14" rx="18" ry="22" fill="#e9781e"/><ellipse rx="18" ry="24" fill="#f5902e"/><rect x="-3" y="-32" width="6" height="12" rx="2" fill="#5b7a2e"/></g>`;
+  const bat = (x, y, s, op = .85) => `<path transform="translate(${x} ${y}) scale(${s})" d="M0,0 C-6,-8 -16,-10 -30,-4 C-22,-2 -20,4 -18,8 C-14,4 -10,4 -6,8 C-4,4 -2,2 0,4 C2,2 4,4 6,8 C10,4 14,4 18,8 C20,4 22,-2 30,-4 C16,-10 6,-8 0,0Z" fill="#02061a" opacity="${op}"/>`;
+  const sun = (x, y, r, c) => { let s = `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`; for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; s += `<path d="M${x + Math.cos(a - .12) * r * 1.3},${y + Math.sin(a - .12) * r * 1.3} L${x + Math.cos(a) * r * 2.1},${y + Math.sin(a) * r * 2.1} L${x + Math.cos(a + .12) * r * 1.3},${y + Math.sin(a + .12) * r * 1.3}Z" fill="${c}"/>`; } return s; };
+
   const HOLIDAYS = {
-    newyear: { script: 'Happy', bold: 'New Year!', msg: 'Wishing everyone a year filled with growth, success, new opportunities and exciting milestones.', accent: '#e2c27a', deco: 'fireworks' },
-    valentines: { script: 'Happy', bold: 'Valentine’s Day', msg: 'A reminder to appreciate the people who make our lives and work more meaningful.', accent: '#f08aa6', deco: 'hearts' },
-    easter: { script: 'Happy', bold: 'Easter', msg: 'May this special day bring renewed hope, peace and happiness to you and your loved ones.', accent: '#bfe3c8', deco: 'spring' },
-    july4: { script: 'Happy', bold: 'Fourth of July', msg: 'Wishing everyone a wonderful and safe Independence Day with family and friends.', accent: '#ef5b5b', deco: 'stars-us' },
-    'ph-independence': { script: 'Happy', bold: 'Philippine Independence Day', msg: 'Honoring the courage, freedom and sacrifices that shaped our nation.', accent: '#f6c945', deco: 'sun-ph' },
-    halloween: { script: 'Happy', bold: 'Halloween', msg: 'Wishing everyone a fun-filled day of treats, laughter and spooky good vibes.', accent: '#f08a24', deco: 'halloween' },
-    thanksgiving: { script: 'Happy', bold: 'Thanksgiving', msg: 'Grateful for a dedicated team and everything you contribute to the Club Wealth family.', accent: '#e0a24a', deco: 'autumn' },
-    christmas: { script: 'Merry', bold: 'Christmas', msg: 'Wishing you a joyful season filled with love, peace and happiness.', accent: '#e2c27a', deco: 'christmas' },
-    general: { script: 'Happy', bold: 'Holidays', msg: 'Wishing everyone celebrating a wonderful and meaningful holiday.', accent: '#e2c27a', deco: 'sparkles' },
+    newyear: { pre: 'Happy', title: 'New Year', msg: 'Here’s to a year of growth, new opportunities and milestones worth celebrating.', accent: '#e3c27e', deco: (c) => burst(170, 260, 110, c) + burst(910, 230, 130, '#f4f1ea') + burst(930, 1130, 90, c) + burst(150, 1140, 80, '#8fb4ff') },
+    valentines: { pre: 'Happy', title: 'Valentine’s Day', msg: 'To the people who make our work and our lives more meaningful.', accent: '#f39ab2', deco: (c) => heart(150, 250, 3, c, -18, .9) + heart(930, 240, 2.2, '#f7c2d0', 16) + heart(180, 1110, 2, '#f7c2d0', 12) + heart(910, 1100, 3, c, -10, .9) },
+    easter: { pre: 'Happy', title: 'Easter', msg: 'May this season bring renewed hope, peace and happiness to you and your loved ones.', accent: '#bfe3c8', deco: () => egg(160, 1140, 1.8, '#f7c9d6', '#9ad1b5', -14) + egg(920, 1130, 2, '#c7dcf7', '#f2d27a', 12) + flower(150, 260, 2.2, '#f7c9d6') + flower(930, 250, 2.5, '#c3e6cf') },
+    july4: { pre: 'Happy', title: 'Fourth of July', msg: 'Wishing everyone a safe and happy Independence Day with family and friends.', accent: '#ef6b6b', deco: (c) => star(160, 260, 36, '#f4f1ea') + star(920, 250, 42, c) + star(150, 1120, 28, c) + star(930, 1110, 32, '#f4f1ea') + burst(860, 1180, 60, '#8fb4ff') + burst(220, 1180, 50, c) },
+    'ph-independence': { pre: 'Happy', title: 'Philippine Independence Day', msg: 'Honoring the courage, freedom and sacrifice that shaped our nation.', accent: '#f6c945', deco: (c) => sun(160, 260, 36, c) + star(930, 250, 24, c) + star(870, 320, 14, c) + star(960, 330, 12, c) + star(170, 1130, 20, c) + star(920, 1140, 20, c) },
+    halloween: { pre: 'Happy', title: 'Halloween', msg: 'A day of treats, laughter and spooky good vibes. Stay safe and enjoy!', accent: '#f08a24', deco: () => `<circle cx="900" cy="250" r="90" fill="#f6e6b0" opacity=".18"/>` + bat(170, 260, 2.6) + bat(900, 240, 3) + bat(810, 330, 1.5, .7) + pumpkin(170, 1150, 2.6) + pumpkin(920, 1160, 2.1) },
+    thanksgiving: { pre: 'Happy', title: 'Thanksgiving', msg: 'Grateful for this team and everything you bring to the Club Wealth family.', accent: '#e0a24a', deco: () => leaf(150, 260, 2.4, -30, '#d9822b') + leaf(230, 200, 1.5, 25, '#e7b14d') + leaf(930, 250, 2.6, 35, '#b5532a') + leaf(160, 1130, 2.4, 40, '#e7b14d') + leaf(920, 1120, 2.6, -35, '#d9822b') },
+    christmas: { pre: 'Merry', title: 'Christmas', msg: 'Wishing you a season full of love, peace and happiness with the people you love.', accent: '#e3c27e', deco: () => `<defs><radialGradient id="orn" cx="35%" cy="35%" r="70%"><stop offset="0" stop-color="#fff3cf"/><stop offset=".45" stop-color="#e3c27e"/><stop offset="1" stop-color="#8a6a2a"/></radialGradient></defs>` + ornament(150, 230, 40) + ornament(240, 160, 24) + ornament(930, 220, 46) + ornament(845, 150, 22) },
+    general: { pre: 'Happy', title: 'Holidays', msg: 'Wishing everyone celebrating a wonderful and meaningful day.', accent: '#e3c27e', deco: (c) => sparkle(170, 260, 30, c) + sparkle(910, 250, 34, '#f4f1ea') + sparkle(160, 1120, 24, '#f4f1ea') + sparkle(930, 1110, 28, c) },
   };
 
   function holiday() {
     const key = HOLIDAYS[get('key')] ? get('key') : 'general';
     const h = { ...HOLIDAYS[key] };
-    // A custom title like "Happy Labor Day" splits into the script word and the bold name.
     const title = get('title');
     if (title) {
       const m = title.match(/^(happy|merry|blessed|joyous)\s+(.+)$/i);
-      if (m) { h.script = m[1][0].toUpperCase() + m[1].slice(1).toLowerCase(); h.bold = m[2]; } else { h.script = ''; h.bold = title; }
+      if (m) { h.pre = m[1][0].toUpperCase() + m[1].slice(1).toLowerCase(); h.title = m[2]; } else { h.pre = ''; h.title = title; }
     }
     if (get('message')) h.msg = get('message');
     document.documentElement.style.setProperty('--accent', h.accent);
-    document.body.classList.add('holiday');
-    const boldSize = h.bold.length > 22 ? 64 : h.bold.length > 15 ? 76 : 92;
+    document.body.classList.add('hd');
+    const size = h.title.length > 22 ? 84 : h.title.length > 14 ? 104 : 140;
     poster.innerHTML = `${logo}
-      <div class="panel">
-        ${h.script ? `<div class="script">${esc(h.script)}</div>` : ''}
-        <div class="bold" style="font-size:${boldSize}px">${esc(h.bold)}</div>
+      <div class="block">
+        ${h.pre ? `<div class="pre serif" style="color:${h.accent}">${esc(h.pre)}</div>` : ''}
+        <div class="title" style="font-size:${size}px">${esc(h.title)}</div>
         <div class="rule"></div>
         <div class="msg">${esc(h.msg)}</div>
       </div>
-      <div class="brand">Club Wealth</div>`;
-    DECO[h.deco](h.accent);
+      <div class="foot">From the Club Wealth family</div>`;
+    deco.innerHTML = h.deco(h.accent) + sparkle(880, 900, 14, h.accent) + sparkle(200, 560, 10, '#f4f1ea');
   }
 
-  /* ---------- decorations (SVG, kept to the edges so the text stays clear) ---------- */
-  const add = (s) => { deco.innerHTML += s; };
-  const star = (x, y, r, fill, op = 1) => { let d = ''; for (let i = 0; i < 10; i++) { const a = Math.PI / 5 * i - Math.PI / 2, rr = i % 2 ? r * .42 : r; d += `${i ? 'L' : 'M'}${(x + rr * Math.cos(a)).toFixed(1)},${(y + rr * Math.sin(a)).toFixed(1)}`; } return `<path d="${d}Z" fill="${fill}" opacity="${op}"/>`; };
-  const sparkle = (x, y, r, c, op = .9) => `<path d="M${x},${y - r} Q${x + r * .18},${y - r * .18} ${x + r},${y} Q${x + r * .18},${y + r * .18} ${x},${y + r} Q${x - r * .18},${y + r * .18} ${x - r},${y} Q${x - r * .18},${y - r * .18} ${x},${y - r}Z" fill="${c}" opacity="${op}"/>`;
-  const heart = (x, y, s, c, rot = 0, op = 1) => `<path transform="translate(${x} ${y}) rotate(${rot}) scale(${s})" d="M0,6 C-8,-4 -20,2 -12,12 L0,24 L12,12 C20,2 8,-4 0,6Z" fill="${c}" opacity="${op}"/>`;
-  const burst = (x, y, r, c) => { let s = ''; for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2; s += `<line x1="${x + Math.cos(a) * r * .25}" y1="${y + Math.sin(a) * r * .25}" x2="${x + Math.cos(a) * r}" y2="${y + Math.sin(a) * r}" stroke="${c}" stroke-width="3" stroke-linecap="round" opacity="${.55 + (i % 3) * .15}"/><circle cx="${x + Math.cos(a) * r * 1.12}" cy="${y + Math.sin(a) * r * 1.12}" r="3.5" fill="${c}"/>`; } return s; };
-  const ornament = (x, y, r, c, len) => `<line x1="${x}" y1="0" x2="${x}" y2="${y - r}" stroke="${c}" stroke-width="2" opacity=".8"/><rect x="${x - r * .28}" y="${y - r - 10}" width="${r * .56}" height="12" rx="3" fill="#cfa955"/><circle cx="${x}" cy="${y}" r="${r}" fill="url(#orn)" /><path d="M${x - r * .55},${y - r * .35} q${r * .3},-${r * .35} ${r * .6},-${r * .2}" stroke="#fff" stroke-width="3" fill="none" opacity=".55"/>`;
-  const leaf = (x, y, s, rot, c) => `<path transform="translate(${x} ${y}) rotate(${rot}) scale(${s})" d="M0,-30 C14,-18 22,-4 14,10 C10,18 4,24 0,30 C-4,24 -10,18 -14,10 C-22,-4 -14,-18 0,-30Z M0,-26 L0,28" fill="${c}" stroke="rgba(0,0,0,.25)" stroke-width="1.5"/>`;
-  const egg = (x, y, s, c1, c2, rot) => `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${s})"><ellipse cx="0" cy="0" rx="22" ry="29" fill="${c1}"/><path d="M-21,-4 q7,-7 14,0 t14,0 t14,0" stroke="${c2}" stroke-width="4" fill="none"/><path d="M-19,10 q6,-5 12,0 t12,0 t12,0" stroke="#fff" stroke-width="3" fill="none" opacity=".8"/></g>`;
-  const flower = (x, y, s, c) => { let p = ''; for (let i = 0; i < 5; i++) p += `<ellipse cx="0" cy="-12" rx="7" ry="12" fill="${c}" transform="rotate(${i * 72})"/>`; return `<g transform="translate(${x} ${y}) scale(${s})">${p}<circle r="6" fill="#f6d66b"/></g>`; };
-  const pumpkin = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><ellipse cx="-14" cy="0" rx="18" ry="22" fill="#e9781e"/><ellipse cx="14" cy="0" rx="18" ry="22" fill="#e9781e"/><ellipse cx="0" cy="0" rx="18" ry="24" fill="#f5902e"/><rect x="-3" y="-32" width="6" height="12" rx="2" fill="#5b7a2e"/><path d="M-10,-4 l5,-6 l5,6Z M5,-4 l5,-6 l5,6Z" fill="#3a1d05"/><path d="M-12,8 q12,10 24,0 l-4,3 l-4,-3 l-4,3 l-4,-3 l-4,3Z" fill="#3a1d05"/></g>`;
-  const bat = (x, y, s, op = .8) => `<path transform="translate(${x} ${y}) scale(${s})" d="M0,0 C-6,-8 -16,-10 -30,-4 C-22,-2 -20,4 -18,8 C-14,4 -10,4 -6,8 C-4,4 -2,2 0,4 C2,2 4,4 6,8 C10,4 14,4 18,8 C20,4 22,-2 30,-4 C16,-10 6,-8 0,0Z" fill="#0b0f24" opacity="${op}"/>`;
-  const sun = (x, y, r, c) => { let s = `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`; for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; s += `<path d="M${x + Math.cos(a - .12) * r * 1.3},${y + Math.sin(a - .12) * r * 1.3} L${x + Math.cos(a) * r * 2.1},${y + Math.sin(a) * r * 2.1} L${x + Math.cos(a + .12) * r * 1.3},${y + Math.sin(a + .12) * r * 1.3}Z" fill="${c}"/>`; } return s; };
-  const lights = (c) => { let s = '<path d="M110,1180 Q300,1230 540,1192 T970,1180" stroke="#cfa955" stroke-width="2" fill="none" opacity=".7"/>'; const cols = ['#e2c27a', '#ffffff', c]; for (let i = 0; i < 13; i++) { const t = i / 12, x = 110 + t * 860, y = 1180 + Math.sin(t * Math.PI * 2) * 14 + 16; s += `<circle cx="${x}" cy="${y}" r="6" fill="${cols[i % 3]}"/><circle cx="${x}" cy="${y}" r="16" fill="${cols[i % 3]}" opacity=".18"/>`; } return s; };
-
-  const DECO = {
-    fireworks: (c) => add(burst(170, 300, 90, c) + burst(910, 250, 110, '#ffffff') + burst(930, 1080, 80, c) + burst(150, 1110, 70, '#9cc4ff') + sparkle(250, 1000, 14, c) + sparkle(830, 900, 12, '#fff') + sparkle(880, 480, 10, c)),
-    hearts: (c) => add(heart(150, 330, 2.6, c, -18, .9) + heart(925, 300, 2, '#f7c2d0', 16) + heart(190, 1060, 1.7, '#f7c2d0', 12) + heart(900, 1050, 2.8, c, -10, .9) + heart(860, 560, 1.1, c, 20, .7) + heart(220, 640, 1, '#f7c2d0', -14, .7)),
-    spring: (c) => add(egg(165, 1110, 1.6, '#f7c9d6', '#9ad1b5', -14) + egg(915, 1100, 1.8, '#c7dcf7', '#f2d27a', 12) + egg(250, 1160, 1.2, '#f6ecb2', '#c3a6e6', 8) + flower(150, 320, 2, '#f7c9d6') + flower(930, 300, 2.3, '#c3e6cf') + flower(880, 1180, 1.4, '#f7c9d6') + flower(210, 420, 1.2, '#c7dcf7') + sparkle(860, 430, 12, c)),
-    'stars-us': (c) => add(star(160, 320, 34, '#fff') + star(230, 260, 18, c) + star(920, 300, 40, c) + star(860, 380, 16, '#fff') + star(150, 1100, 26, c) + star(930, 1090, 30, '#fff') + star(880, 1170, 16, c) + burst(200, 1180, 50, c) + burst(860, 230, 46, '#9cc4ff')),
-    'sun-ph': (c) => add(sun(160, 310, 34, c) + star(930, 290, 22, c) + star(870, 360, 14, c) + star(960, 380, 12, c) + `<path d="M110,1170 L250,1170 L180,1110Z" fill="#ffffff" opacity=".9"/>` + star(180, 1150, 10, c) + `<rect x="830" y="1110" width="140" height="22" rx="4" fill="#3a6ed8"/><rect x="830" y="1136" width="140" height="22" rx="4" fill="#d8413a"/>`),
-    halloween: () => add(pumpkin(170, 1110, 2.6) + pumpkin(920, 1130, 2) + bat(170, 300, 2.4) + bat(900, 260, 2.8) + bat(820, 360, 1.4, .7) + `<circle cx="920" cy="250" r="70" fill="#f6e6b0" opacity=".16"/>` + sparkle(250, 420, 10, '#f08a24')),
-    autumn: (c) => add(leaf(150, 320, 2.2, -30, '#d9822b') + leaf(220, 260, 1.4, 25, '#e7b14d') + leaf(930, 300, 2.4, 35, '#b5532a') + leaf(880, 380, 1.3, -20, '#e7b14d') + leaf(160, 1110, 2.2, 40, '#e7b14d') + leaf(240, 1170, 1.4, -15, '#b5532a') + leaf(920, 1100, 2.4, -35, '#d9822b') + sparkle(850, 1180, 10, c)),
-    christmas: (c) => { add(`<defs><radialGradient id="orn" cx="35%" cy="35%" r="70%"><stop offset="0" stop-color="#fff3cf"/><stop offset=".45" stop-color="#e2c27a"/><stop offset="1" stop-color="#8a6a2a"/></radialGradient></defs>` + ornament(160, 250, 38, '#cfa955') + ornament(250, 180, 24, '#cfa955') + ornament(920, 230, 44, '#cfa955') + ornament(835, 160, 22, '#cfa955') + star(190, 1010, 18, c) + star(900, 1000, 22, c) + sparkle(140, 470, 12, '#fff') + sparkle(950, 520, 14, '#fff') + lights('#9cc4ff')); },
-    sparkles: (c) => add(sparkle(170, 310, 26, c) + sparkle(240, 380, 12, '#fff') + sparkle(910, 290, 30, '#fff') + sparkle(850, 370, 14, c) + sparkle(160, 1110, 20, '#fff') + sparkle(930, 1100, 26, c) + star(240, 1170, 12, c) + star(860, 1180, 14, '#fff')),
-  };
-
-  function confetti() {
-    const cols = ['#e2c27a', '#ffffff', '#9cc4ff', '#f08aa6'];
-    let s = '';
-    for (let i = 0; i < 46; i++) {
-      const left = rnd() > .5;
-      const x = left ? 20 + rnd() * 170 : 890 + rnd() * 170, y = 380 + rnd() * 900;
-      s += `<rect x="${x}" y="${y}" width="${6 + rnd() * 8}" height="${3 + rnd() * 5}" rx="1.5" fill="${cols[i % 4]}" opacity="${.5 + rnd() * .5}" transform="rotate(${rnd() * 180} ${x} ${y})"/>`;
-    }
-    add(s + sparkle(120, 470, 16, '#e2c27a') + sparkle(960, 470, 20, '#fff'));
-  }
-
-  if (type === 'holiday') holiday(); else people();
-  document.title = 'ready';
+  if (type === 'holiday') holiday(); else if (type === 'birthday') birthday(); else anniversary();
+  document.fonts.ready.then(() => {
+    // re-fit once the web fonts are in (they are wider than the fallbacks)
+    for (const el of poster.querySelectorAll('.name, .hello')) fit(el, el.classList.contains('name') ? 940 : 970);
+    document.title = 'ready';
+  });
 })();
 </script>
 </body>

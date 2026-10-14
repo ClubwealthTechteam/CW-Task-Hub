@@ -117,6 +117,12 @@ export default async function Home() {
               <ul className="dg-ints">{dash.integrations.map((i) => <li key={i.name}><i className={i.ok ? 'ok' : 'off'} />{i.name}{i.note && <span className="muted"> · {i.note}</span>}</li>)}</ul>
             </div>
             <div className="dg-block">
+              <h3>Errors · last 24 hours</h3>
+              {dash.errors.count ? (
+                <ul className="dg-list">{dash.errors.items.map((e, i) => <li key={i}><span className="dtag t-hot">{e.count > 1 ? `${e.count}×` : e.where === 'browser' ? 'Page' : 'Server'}</span><span>{e.message}{e.path && <span className="muted"> · {e.path}</span>}</span></li>)}</ul>
+              ) : <p className="muted small" style={{ margin: 0 }}>None. Page crashes and failed sends show up here.</p>}
+            </div>
+            <div className="dg-block">
               <h3>Waiting on process forms</h3>
               {dash.forms.waiting.length ? <p className="small" style={{ margin: 0 }}>{dash.forms.waiting.join(', ')}</p> : <p className="muted small" style={{ margin: 0 }}>Everyone has sent theirs.</p>}
             </div>

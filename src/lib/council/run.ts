@@ -1,6 +1,7 @@
 // Starts a council run: records it and fires the "CW Hub Council" Claude routine with a short-lived run
 // token. The routine reads /api/council/snapshot and posts its report to /api/council/report.
 
+import { logError } from '@/lib/errors';
 import type { Person } from '@/config/people';
 import { listRuns, newRunId, runToken, saveRuns } from './store';
 import type { Run } from './agents';
@@ -42,6 +43,7 @@ export async function startRun(by: Person | 'schedule') {
   } catch (e) {
     run.status = 'error';
     run.error = (e as Error).message;
+    await logError('server', `Council: ${run.error}`, { path: '/api/council/run' });
   }
   await saveRuns([run, ...runs]);
   return { run, started: run.status === 'running' };

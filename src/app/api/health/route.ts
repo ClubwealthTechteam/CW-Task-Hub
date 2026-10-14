@@ -9,18 +9,22 @@ import { sheetsConfigured, sheetsKeyState } from '@/lib/integrations/google/shee
 import { zapierHooks } from '@/lib/integrations/zapier';
 import { canvaConfigured } from '@/lib/canva/client';
 import { councilConfigured } from '@/lib/council/run';
+import { recentErrors } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
 // Public: says only whether each piece is switched on, never any values.
+// errors24h: how many errors the hub logged in the last day (the count only).
 // ?speed=1 also times one storage read, to show how far the server is from the storage (for tuning).
 export const GET = async (req: Request) => {
   let storageMs: number | undefined;
   if (new URL(req.url).searchParams.has('speed') && storeIsPersistent()) {
     const t = Date.now(); await getJSON('health:ping', null).catch(() => null); storageMs = Date.now() - t;
   }
+  const errors24h = storeIsPersistent() ? (await recentErrors(24)).count : null;
   return NextResponse.json({
   ok: true,
+  errors24h,
   app: 'cw-task-hub',
   signIn: signInMode(),
   storage: storeIsPersistent(),

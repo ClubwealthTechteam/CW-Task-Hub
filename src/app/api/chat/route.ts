@@ -18,6 +18,7 @@ import { taskGuide } from '@/lib/chat/task-guides';
 import { arContext, canUseAr } from '@/lib/billing/ar';
 import { canvaOnTask, canvaConfigured, status as canvaStatus } from '@/lib/canva/client';
 import { countMessage, usageFor } from '@/lib/chat/usage';
+import { logError } from '@/lib/errors';
 import { chatIsConfigured, buildPayload, fireChatRoutine } from '@/lib/chat/routine';
 import {
   createConversation, getConversation, listConversations, newId, saveConversation, touchIndex, type ChatMessage,
@@ -117,6 +118,7 @@ export async function POST(req: Request) {
   } catch (e) {
     reply.status = 'error';
     reply.text = (e as Error).message;
+    await logError('server', `Chat: ${(e as Error).message}`, { path: '/api/chat', user: user.id });
   }
   if (reply.status !== 'error') await countMessage(user);
   await saveConversation(conv);

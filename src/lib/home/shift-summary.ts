@@ -7,6 +7,7 @@ import { allAutomations } from '@/data/catalog';
 import { buildPayload, fireChatRoutine } from '@/lib/chat/routine';
 import { createConversation, getConversation, listConversations, newId, saveConversation, type ChatMessage } from '@/lib/chat/store';
 import { listItems } from './items';
+import { logError } from '@/lib/errors';
 
 const MAX_NOTES = 3000;
 const pacificDay = (t: number) => new Date(t).toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
@@ -71,6 +72,7 @@ export async function startShiftSummary(user: Person, notesRaw: unknown, hoursRa
     reply.status = 'error';
     reply.text = (e as Error).message;
     await saveConversation(conv);
+    await logError('server', `Shift summary: ${(e as Error).message}`, { path: '/api/me/shift-summary', user: user.id });
     throw e;
   }
   return { conversationId: conv.id, messageId: reply.id };

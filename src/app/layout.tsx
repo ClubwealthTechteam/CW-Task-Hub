@@ -4,6 +4,7 @@ import './globals.css';
 import { getViewer } from '@/lib/auth/current-user';
 import { ChatWidget } from '@/components/chat/ChatWidget';
 import { CommandPalette } from '@/components/CommandPalette';
+import { ErrorReporter } from '@/components/ErrorReporter';
 
 export const metadata: Metadata = {
   title: 'CW AI Task Hub',
@@ -26,6 +27,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
         )}
         {children}
+        {user && <ErrorReporter />}
         {user && <CommandPalette />}
         {user && !viewer?.preview && <ChatWidget firstName={user.name.split(/\s+/)[0]} />}
       </body>

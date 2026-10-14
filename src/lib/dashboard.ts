@@ -16,6 +16,7 @@ import { inboxConfigured } from '@/lib/integrations/zapier-feed';
 import { canvaConfigured } from '@/lib/canva/client';
 import type { Automation } from '@/data/automations';
 import { adoptionData, type PersonUse } from '@/lib/adoption';
+import { recentErrors } from '@/lib/errors';
 
 const DAY = 86_400_000;
 const pacific = (t: number) => new Date(t).toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
@@ -62,7 +63,7 @@ async function activity(taskTitle: Map<string, string>) {
 export async function dashboardData(all: Automation[]) {
   const taskTitle = new Map(all.map((a) => [a.id, a.title]));
   const act = await cached('dashboard:activity', 5 * 60, () => activity(taskTitle));
-  const [subs, reports, adoption] = await Promise.all([getSubmissions(), listReports(), adoptionData(act.use ?? {}, all.length)]);
+  const [subs, reports, adoption, errors] = await Promise.all([getSubmissions(), listReports(), adoptionData(act.use ?? {}, all.length), recentErrors(24)]);
 
   const thisWeek = act.days.slice(-7).reduce((n, d) => n + d.questions, 0);
   const lastWeek = act.days.slice(-14, -7).reduce((n, d) => n + d.questions, 0);
@@ -87,6 +88,7 @@ export async function dashboardData(all: Automation[]) {
     forms: { submitted: PEOPLE.filter((p) => submitted.has(p.id)).map((p) => p.name), waiting: owesForm.map((p) => p.name), total: submitted.size + owesForm.length },
     integrations,
     adoption,
+    errors: { count: errors.count, items: errors.items.slice(0, 4) },
   };
 }
 export type DashboardData = Awaited<ReturnType<typeof dashboardData>>;

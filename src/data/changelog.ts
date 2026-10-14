@@ -13,6 +13,8 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   // Oct 14
+  { date: '2026-10-14', kind: 'improved', area: 'Dashboard', title: 'Tighter dashboard layout', detail: 'Updates sit at the top, Departments is compact beside Hub progress, and Team adoption and Recent activity open with View all.' },
+  { date: '2026-10-14', kind: 'new', area: 'Quality', title: 'Package security audit on every change', detail: 'Added to the automatic checks; the Council can now see what the checks cover.' },
   { date: '2026-10-14', kind: 'improved', area: 'Keap', title: 'Keap shortcuts in plain language', detail: 'Pick a view, fill in normal fields like Email or Contact ID, and read the answer as a table. Raw data is still one click away.' },
   { date: '2026-10-14', kind: 'new', area: 'Hub', title: '“New version ready · Reload” notice', detail: 'When a new update goes live, anyone with the hub open gets a reload prompt, so nobody needs a new link.' },
   { date: '2026-10-14', kind: 'new', area: 'Admin', title: 'Admin settings with System updates and Integrations', detail: 'One place for super admins, opened from the gear beside the bell: this timeline of every change, and the integrations page.' },

@@ -82,20 +82,13 @@ export default async function Home() {
           </div>
         </section>
 
-        <div className="drow">
-          <ActivityChart days={dash.days} />
-          <section className="dcard dgauge-card" aria-labelledby="pg-title">
-            <div className="dcard-h"><div><h2 id="pg-title">Hub progress</h2><p className="muted small">Share of all automations that are live</p></div></div>
-            <Gauge pct={pct} label="live" />
-            <div className="dminis">
-              <div><span>Live</span><b>{counts.live}</b><em className="seg-live" /></div>
-              <div><span>In progress</span><b>{counts.building}</b><em className="seg-building" /></div>
-            </div>
-          </section>
-        </div>
+        <section className="dcard dupdates" aria-labelledby="updates-title">
+          <div className="dcard-h"><div><h2 id="updates-title">Updates &amp; announcements</h2><p className="muted small">Team members see these at the top of their workspace</p></div></div>
+          <Announcements items={updates} admin limit={3} preview={preview} departments={DEPARTMENTS.filter((d) => !d.hidden).map((d) => ({ id: d.id, name: d.name }))} />
+        </section>
 
         <div className="drow">
-          <DeptOverview depts={depts} all={all} />
+          <ActivityChart days={dash.days} />
           <section className="dcard dglance" aria-labelledby="qg-title">
             <div className="dcard-h"><div><h2 id="qg-title">Quick glance</h2><p className="muted small">What needs you today</p></div></div>
             <div className="dg-block">
@@ -125,14 +118,21 @@ export default async function Home() {
           </section>
         </div>
 
+        <div className="drow">
+          <DeptOverview depts={depts} all={all} />
+          <section className="dcard dgauge-card" aria-labelledby="pg-title">
+            <div className="dcard-h"><div><h2 id="pg-title">Hub progress</h2><p className="muted small">Share of all automations that are live</p></div></div>
+            <Gauge pct={pct} label="live" />
+            <div className="dminis">
+              <div><span>Live</span><b>{counts.live}</b><em className="seg-live" /></div>
+              <div><span>In progress</span><b>{counts.building}</b><em className="seg-building" /></div>
+            </div>
+          </section>
+        </div>
+
         <Adoption data={dash.adoption} />
 
         <ActivityTable rows={dash.rows} />
-
-        <section className="dcard" aria-labelledby="updates-title">
-          <div className="dcard-h"><div><h2 id="updates-title">Updates &amp; announcements</h2><p className="muted small">Team members see these at the top of their workspace</p></div></div>
-          <Announcements items={updates} admin limit={5} preview={preview} departments={DEPARTMENTS.filter((d) => !d.hidden).map((d) => ({ id: d.id, name: d.name }))} />
-        </section>
 
         {mine.length > 0 && (
           <section className="dcard">

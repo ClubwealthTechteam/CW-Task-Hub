@@ -1,4 +1,4 @@
-# Checks every push and pull request: type check, production build, then the smoke tests in a real
+# Checks every push and pull request: type check, production build, a package security audit, then the smoke tests in a real
 # browser. A red check here means the change would break the hub; fix it before it reaches Vercel.
 name: CI
 
@@ -29,6 +29,11 @@ jobs:
         run: npm run typecheck
       - name: Build
         run: npm run build
+      # Known security problems in the packages the live site uses. Reported here (and in the run's
+      # annotations) without failing the check until the Next.js 15 upgrade clears the current ones.
+      - name: Security audit (packages)
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true
       - name: Install the test browser
         run: npx playwright install --with-deps chromium
       - name: Smoke tests

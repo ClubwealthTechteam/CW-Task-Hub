@@ -28,7 +28,9 @@ export type FileRef = Pick<ChatFile, 'id' | 'name' | 'type' | 'size' | 'source'>
 
 export const MAX_FILE_BYTES = 4 * 1024 * 1024;   // Vercel request bodies stop at 4.5 MB
 export const MAX_FILES_PER_MESSAGE = 5;
-const TTL = 30 * 24 * 60 * 60;
+/** Chat files delete themselves this long after upload. */
+export const FILE_DAYS = 30;
+const TTL = FILE_DAYS * 24 * 60 * 60;
 const CHUNK = 700_000;                           // characters of base64 per stored value
 
 const metaKey = (id: string) => `chat:file:${id}`;

@@ -9,10 +9,12 @@ import type { ActivityRow } from '@/lib/dashboard';
 type Sort = 'newest' | 'person' | 'dept' | 'messages';
 const when = (t: number) => new Date(t).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/Los_Angeles' });
 const STATUS = { done: 'Answered', waiting: 'Waiting', failed: 'Failed' } as const;
+const FEW = 5;
 
 export function ActivityTable({ rows }: { rows: ActivityRow[] }) {
   const [q, setQ] = useState('');
   const [sort, setSort] = useState<Sort>('newest');
+  const [all, setAll] = useState(false);
   const shown = useMemo(() => {
     const words = q.toLowerCase().split(/\s+/).filter(Boolean);
     const list = rows.filter((r) => words.every((w) => `${r.person} ${r.dept} ${r.task}`.toLowerCase().includes(w)));
@@ -20,8 +22,9 @@ export function ActivityTable({ rows }: { rows: ActivityRow[] }) {
       newest: (a, b) => b.at - a.at, person: (a, b) => a.person.localeCompare(b.person) || b.at - a.at,
       dept: (a, b) => a.dept.localeCompare(b.dept) || b.at - a.at, messages: (a, b) => b.messages - a.messages,
     };
-    return [...list].sort(by[sort]).slice(0, 12);
+    return [...list].sort(by[sort]).slice(0, 50);
   }, [rows, q, sort]);
+  const visible = all ? shown : shown.slice(0, FEW);
 
   return (
     <section className="dcard" aria-labelledby="ra-title">
@@ -41,7 +44,7 @@ export function ActivityTable({ rows }: { rows: ActivityRow[] }) {
           <table>
             <thead><tr><th>Person</th><th>Department</th><th>Task</th><th>Last activity</th><th className="num">Questions</th><th>Status</th></tr></thead>
             <tbody>
-              {shown.map((r) => (
+              {visible.map((r) => (
                 <tr key={r.id}>
                   <td><span className="dwho"><span className="dava">{r.person.replace(/\(.*?\)/g, '').trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()}</span>{r.person}</span></td>
                   <td>{r.dept}</td>
@@ -54,6 +57,11 @@ export function ActivityTable({ rows }: { rows: ActivityRow[] }) {
             </tbody>
           </table>
         </div>
+      )}
+      {shown.length > FEW && (
+        <button type="button" className="textlink dmore" aria-expanded={all} onClick={() => setAll(!all)}>
+          {all ? 'Hide' : `View all ${shown.length}`} <span aria-hidden="true">{all ? '▴' : '▾'}</span>
+        </button>
       )}
     </section>
   );

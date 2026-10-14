@@ -1,6 +1,7 @@
 // Super admin home: how the team is taking to the hub. Who opened it, who used the assistant, which tasks.
 
 import type { AdoptionData } from '@/lib/adoption';
+import { ShowMore } from './ShowMore';
 
 const short = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 const LABEL = ['Didn’t open the hub', 'Opened the hub', 'Used the assistant'];
@@ -23,6 +24,7 @@ export function Adoption({ data }: { data: AdoptionData }) {
         <div><span>Tasks people used</span><b>{data.tasksUsed}<small> / {data.totalTasks}</small></b><em>chatted with in the last 4 weeks</em></div>
         <div><span>Haven’t opened it yet</span><b>{data.neverOpened.length}</b><em title={data.neverOpened.join(', ')}>{data.neverOpened.length ? data.neverOpened.slice(0, 3).map((n) => n.split(/\s+/)[0]).join(', ') + (data.neverOpened.length > 3 ? '…' : '') : 'everyone has'}</em></div>
       </div>
+      <ShowMore label={`View all ${data.rows.length} people`}>
       <div className="dtable-wrap">
         <table className="dtable ad-table">
           <thead><tr><th>Person</th><th>Last 14 days</th><th className="num">Days active</th><th className="num">Messages · 7d</th><th className="num">Tasks used</th><th>Last active</th></tr></thead>
@@ -43,6 +45,7 @@ export function Adoption({ data }: { data: AdoptionData }) {
         </table>
       </div>
       <p className="muted small" style={{ margin: 0 }}>Counting started with this update, so days before it only show assistant messages.</p>
+      </ShowMore>
     </section>
   );
 }

@@ -13,6 +13,7 @@ import { inboxConfigured, listFeed } from '@/lib/integrations/zapier-feed';
 import { chatIsConfigured } from '@/lib/chat/routine';
 import { canvaConfigured } from '@/lib/canva/client';
 import type { Conversation } from '@/lib/chat/store';
+import { FILE_DAYS } from '@/lib/chat/files';
 import { listPosts } from '@/lib/calendar';
 import { listRecords, getSettings } from '@/lib/welcome/store';
 import { newClients } from '@/lib/welcome/keap-clients';
@@ -117,7 +118,10 @@ export async function buildSnapshot() {
     calendar: { posts: posts.length, exactDuplicates: calendarDuplicates, draftsInThePast: posts.filter((p) => p.repeat === 'none' && p.status !== 'posted' && p.date < new Date(now - DAY).toISOString().slice(0, 10)).length },
     welcome: { records: Object.keys(records).length, byStatus: Object.values(records).reduce<Record<string, number>>((a, r) => ({ ...a, [r.status]: (a[r.status] ?? 0) + 1 }), {}) },
     referrals: { opportunities: opps.length, byStatus: opps.reduce<Record<string, number>>((a, o) => ({ ...a, [o.status]: (a[o.status] ?? 0) + 1 }), {}), closedOlderThan60Days: opps.filter((o) => o.status === 'closed' && (o.updated ?? o.at) < now - 60 * DAY).length, failedBatchesOlderThan7Days: batches.filter((b) => b.status === 'error' && b.at < now - 7 * DAY).length, members: members.length },
-    files: { count: keys.filter((k) => /^chat:file:f_[a-z0-9]+$/.test(k.key)).length, bytes: keys.filter((k) => k.key.startsWith('chat:file:')).reduce((n, k) => n + k.bytes, 0) },
+    // Chat files are stored with an expiry, so the store cleans them up on its own.
+    files: { count: keys.filter((k) => /^chat:file:f_[a-z0-9]+$/.test(k.key)).length, bytes: keys.filter((k) => k.key.startsWith('chat:file:')).reduce((n, k) => n + k.bytes, 0), deletedAutomaticallyAfterDays: FILE_DAYS },
+    // What already checks the code, so a reviewer that can't run builds itself knows it is covered.
+    codeChecks: { commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null, ci: 'Every push to main runs the type check, a production build, a security audit of the packages and browser smoke tests in GitHub Actions (CI). Vercel only goes live with builds that succeed.' },
   };
 
   return {

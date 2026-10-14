@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { StagePill } from '@/components/Bits';
 import { Icon } from '@/components/Icon';
@@ -15,6 +14,7 @@ import { ActivityChart } from '@/components/dash/ActivityChart';
 import { ActivityTable } from '@/components/dash/ActivityTable';
 import { Gauge } from '@/components/dash/Gauge';
 import { dashboardData } from '@/lib/dashboard';
+import { MemberHome } from '@/components/home/MemberHome';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,8 +29,11 @@ function Change({ now, before }: { now: number; before: number }) {
 
 export default async function Home() {
   const user = await requireUser();
-  // Team members go straight to their department workspace; this dashboard is for super admins.
-  if (!isSuperAdmin(user)) redirect(`/w/${user.departments[0]}`);
+  // Team members get their own home: urgent tasks, to-dos, shift summary, new Keap contacts, events.
+  if (!isSuperAdmin(user)) {
+    const v = await getViewer();
+    return (<><Header user={user} current="home" /><MemberHome user={user} preview={Boolean(v?.preview)} /></>);
+  }
   const depts = visibleDepartments(user);
   // Read everything at the same time rather than one after another.
   const [all, announcements, viewer] = await Promise.all([allAutomations(), announcementsFor(user), getViewer()]);

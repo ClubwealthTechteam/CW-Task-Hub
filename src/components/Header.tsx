@@ -13,7 +13,6 @@ export function Header({ user, current }: { user: Person; current?: string }) {
   const admin = isSuperAdmin(user);
   const initials = user.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('');
   const cur = (key: string) => (current === key ? 'page' : undefined);
-  const home = admin ? '/' : `/w/${user.departments[0]}`;
   // External apps this person can open: Keap and Eventbrite have their own read-only tabs; the rest
   // are managed on the Integrations page (super admins).
   const status = Object.fromEntries(builtinIntegrations().map((i) => [i.id, i.status === 'connected']));
@@ -27,12 +26,13 @@ export function Header({ user, current }: { user: Person; current?: string }) {
   return (
     <header className="topbar">
       <div className="topbar-inner">
-        <Link href={home} className="brand" aria-label="CW AI Task Hub home">
+        <Link href="/" className="brand" aria-label="CW AI Task Hub home">
           <b>CLUBWEALTH</b>
-          <span>UNIVERSITY</span>
+          <span>ADMIN HUB</span>
         </Link>
         <nav className="nav" aria-label="AI Task Hub">
-          <Link href={home} className="hub" aria-current={cur(admin ? 'home' : user.departments[0])}>AI Task Hub <em>NEW</em></Link>
+          <Link href="/" className="hub" aria-current={cur('home')}>AI Task Hub <em>NEW</em></Link>
+          {!admin && depts.length === 1 && <Link href={`/w/${depts[0].id}`} aria-current={cur(depts[0].id)}>My workspace</Link>}
           {(admin || depts.length > 1) && (
             <DepartmentsMenu depts={depts.map((d) => ({ id: d.id, name: d.name, blurb: d.blurb, adminsOnly: d.hidden }))} current={current} />
           )}

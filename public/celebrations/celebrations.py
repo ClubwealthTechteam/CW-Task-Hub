@@ -204,7 +204,7 @@ def is_leap(y):
 def slack_index(members):
     idx = []
     for m in members or []:
-        if m.get('deleted') or m.get('is_bot') or m.get('id') == 'USLACKBOT':
+        if m.get('is_bot') or m.get('id') == 'USLACKBOT':
             continue
         prof = m.get('profile') or {}
         names = {norm(prof.get('real_name')), norm(prof.get('display_name')), norm(m.get('real_name')), norm(m.get('name', '').replace('.', ' '))}
@@ -212,7 +212,7 @@ def slack_index(members):
         photo = prof.get('image_original') or prof.get('image_1024') or prof.get('image_512') or ''
         if prof.get('is_custom_image') is False or 'gravatar.com' in photo:
             photo = ''  # Slack's default avatar: use initials on the poster instead
-        idx.append({'id': m['id'], 'names': names, 'photo': photo})
+        idx.append({'id': m['id'], 'names': names, 'photo': photo, 'deactivated': bool(m.get('deleted'))})
     return idx
 
 
@@ -252,7 +252,13 @@ def main():
     today = dt.date.fromisoformat(a.date)
     sheets = [fetch_csv(sid, gid) for _, sid, gid in SOURCES] if a.fetch else [load(f) for f in a.sheet]
     team = people(sheets)
-    idx = slack_index(json.load(open(a.slack_users)) if a.slack_users else [])
+    everyone = slack_index(json.load(open(a.slack_users)) if a.slack_users else [])
+    idx = [u for u in everyone if not u['deactivated']]
+    gone = [u for u in everyone if u['deactivated']]
+
+    # Never greet someone whose Slack account is deactivated (no active match, but a deactivated one).
+    def deactivated(p):
+        return match(p, idx) is None and match(p, gone) is not None
 
     def entry(p, kind):
         u = match(p, idx)
@@ -266,8 +272,8 @@ def main():
         return e
 
     # Skip obvious typos in the sheets: a birth date less than 15 years ago, or a start date over 20 years ago.
-    birthdays = [entry(p, 'birthday') for p in team if same_day(p['birthday'], today) and p['birthday'].year <= today.year - 15]
-    anniversaries = [entry(p, 'anniversary') for p in team if same_day(p['start'], today) and today.year - 20 <= p['start'].year < today.year]
+    birthdays = [entry(p, 'birthday') for p in team if same_day(p['birthday'], today) and not deactivated(p) and p['birthday'].year <= today.year - 15]
+    anniversaries = [entry(p, 'anniversary') for p in team if same_day(p['start'], today) and not deactivated(p) and today.year - 20 <= p['start'].year < today.year]
     plan = {'date': today.isoformat(), 'working_people': len(team), 'holiday': holiday_for(today), 'birthdays': birthdays, 'anniversaries': anniversaries, 'messages': []}
 
     if birthdays:
@@ -280,6 +286,7 @@ def main():
     if plan['holiday']:
         plan['messages'].append({'kind': 'holiday', 'text': plan['holiday']['text']})
     plan['unmatched'] = [x['name'] for x in birthdays + anniversaries if not x['slack_id']]
+    plan['skipped_deactivated'] = [p['name'] for p in team if deactivated(p) and (same_day(p['birthday'], today) or same_day(p['start'], today))]
     json.dump(plan, sys.stdout, indent=2, ensure_ascii=False)
 
 

@@ -1411,9 +1411,10 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
 .eod-extras textarea { border: 1px solid var(--line-strong); border-radius: 8px; padding: 7px 9px; resize: vertical; }
 .eod-extra p { margin: 2px 0 0; white-space: pre-wrap; }
 .eod-view { display: flex; flex-direction: column; gap: 10px; }
-.eod-dailies { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.eod-dailies { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 12px; }
 .eod-dgroup { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
-.eod-dgroup ul { margin: 6px 0 0; padding-left: 18px; font-size: 13.5px; }
+.eod-dgroup ul { margin: 6px 0 0; padding-left: 18px; font-size: 13.5px; display: flex; flex-direction: column; gap: 4px; }
+.eod-dgroup { min-width: 0; }
 @media (max-width: 760px) { .eod-extras { grid-template-columns: 1fr; } }
 .eod .chip-btn.on { background: var(--navy); color: #fff; border-color: var(--navy); }
 .eod-how { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -1446,3 +1447,4 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
   .nav { order: 3; flex-basis: 100%; flex-wrap: wrap; gap: 2px 16px; }
   .nav a, .nav .im-btn { padding: 10px 0 9px; font-size: 14px; }
 }
+.eod-sent { margin: 0; }

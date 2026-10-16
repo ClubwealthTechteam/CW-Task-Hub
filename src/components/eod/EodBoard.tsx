@@ -21,6 +21,7 @@ const addMin = (t: string, n: number) => {
   const v = Math.min(23 * 60 + 59, Number(m[1]) * 60 + Number(m[2]) + n);
   return `${String(Math.floor(v / 60)).padStart(2, '0')}:${String(v % 60).padStart(2, '0')}`;
 };
+const nextDay = (d: string) => new Date(Date.parse(`${d}T12:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
 const askAssistant = (text: string) => window.dispatchEvent(new CustomEvent('cwa:new', { detail: { text } }));
 
 async function copyText(text: string) {
@@ -56,6 +57,8 @@ function ReportView({ r }: { r: EodReport }) {
 
 function Writer({ readOnly }: { readOnly: boolean }) {
   const [date, setDate] = useState(pacificDate());
+  const [sent, setSent] = useState<EodReport | null>(null);
+  const opened = useRef(false);
   const [report, setReport] = useState<EodReport | null>(null);
   const [recent, setRecent] = useState<EodReport[]>([]);
   const [saving, setSaving] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -67,11 +70,16 @@ function Writer({ readOnly }: { readOnly: boolean }) {
   const dirty = useRef(false);
 
   const load = useCallback(async (d: string) => {
-    setError(''); setReport(null); dirty.current = false;
+    setError(''); setReport(null); setSaving('idle'); dirty.current = false;
     const res = await fetch(`/api/eod?date=${d}`, { cache: 'no-store' });
     const b = await res.json().catch(() => ({}));
     if (!res.ok) return setError(b.error || 'Couldn’t load your report');
     const r: EodReport = b.report;
+    // Opening the page after today's report went in: start clean on the next day's report.
+    if (!opened.current) {
+      opened.current = true;
+      if (r.status === 'submitted') { setSent(r); setDate(nextDay(d)); return; }
+    }
     setReport(r.entries.length ? r : { ...r, entries: [blankEntry('05:30', '06:00')] });
     // An empty day starts on "Paste my EOD sheet"; a day already filled in opens its rows.
     setHow(r.entries.length ? 'type' : 'paste'); setPasted(''); setDay(undefined);
@@ -118,7 +126,9 @@ function Writer({ readOnly }: { readOnly: boolean }) {
     setBusy(true);
     const r = await save(report, true);
     setBusy(false);
-    if (r) setReport(r);
+    if (!r) return;
+    // A first submit clears the form for the next report; edits to a submitted one stay open.
+    if (!submitted) { setSent(r); setDate(nextDay(r.date)); } else setReport(r);
   }
 
   const parsed = pasted.trim() ? parsePasted(pasted, day) : null;
@@ -137,6 +147,12 @@ function Writer({ readOnly }: { readOnly: boolean }) {
   const filled = report.entries.filter((e) => e.task.trim());
   return (
     <>
+      {sent && (
+        <p className="note ok eod-sent" role="status">
+          ✓ Your EOD report for {longDate(sent.date)} was submitted, so the form below is cleared for your next one.
+          To view or edit it, open {longDate(sent.date).replace(/, \d{4}$/, '')} under My reports.
+        </p>
+      )}
       <section className="card eod-card" aria-label="My EOD report">
         <div className="eod-head">
           <div>
@@ -148,7 +164,7 @@ function Writer({ readOnly }: { readOnly: boolean }) {
           </div>
           <div className="row">
             <label className="field eod-date"><span>Date</span>
-              <input type="date" value={date} max={pacificDate()} onChange={(e) => e.target.value && setDate(e.target.value)} />
+              <input type="date" value={date} max={nextDay(pacificDate())} onChange={(e) => { if (e.target.value) { setSent(null); setDate(e.target.value); } }} />
             </label>
             <span className={`pill${submitted ? ' live' : ''}`}>{submitted ? 'Submitted' : 'Draft'}</span>
           </div>
@@ -245,7 +261,7 @@ function Writer({ readOnly }: { readOnly: boolean }) {
           <h3>My reports</h3>
           <div className="row">
             {recent.slice(0, 14).map((r) => (
-              <button key={r.id} className={`chip-btn${r.date === date ? ' on' : ''}`} aria-pressed={r.date === date} onClick={() => setDate(r.date)}>
+              <button key={r.id} className={`chip-btn${r.date === date ? ' on' : ''}`} aria-pressed={r.date === date} onClick={() => { setSent(null); setDate(r.date); }}>
                 {longDate(r.date).replace(/, \d{4}$/, '')}{r.status === 'draft' ? ' · draft' : ''}
               </button>
             ))}

@@ -100,7 +100,11 @@ test('EOD report: a team member submits it and a super admin sees it in the feed
   await member.getByLabel('Row 1: I do this every day').check();
   await expect(member.getByText('Draft saved')).toBeVisible();
   await member.getByRole('button', { name: 'Submit EOD report' }).click();
-  await expect(member.locator('.pill', { hasText: 'Submitted' })).toBeVisible();
+  // Submitting clears the form for the next report; the sent one stays under My reports.
+  await expect(member.getByRole('status')).toContainText('was submitted');
+  await expect(member.getByLabel('Paste your EOD sheet')).toHaveValue('');
+  await member.reload();
+  await expect(member.getByLabel('Paste your EOD sheet')).toBeVisible();
   expect(errors).toEqual([]);
 
   const admin = await browser.newPage();
@@ -117,7 +121,7 @@ test('EOD report: a team member submits it and a super admin sees it in the feed
   await admin.getByRole('tab', { name: 'Type it in' }).click();
   await admin.getByLabel('Row 1 task').fill('Smoke test admin task');
   await admin.getByRole('button', { name: 'Submit EOD report' }).click();
-  await expect(admin.locator('.pill', { hasText: 'Submitted' })).toBeVisible();
+  await expect(admin.getByRole('status')).toContainText('was submitted');
   await admin.getByRole('tab', { name: 'Team reports' }).click();
   await expect(admin.getByRole('button', { name: /Miguel Ababon/ })).toBeVisible();
 });

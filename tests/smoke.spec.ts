@@ -30,38 +30,26 @@ test('a wrong access code is refused', async ({ request }) => {
   expect(res.status()).toBe(401);
 });
 
-test('team member home: lists save, search finds tasks, workspace opens', async ({ page }) => {
+test('team members only have EOD reports for now: other pages send them there, the rest of the menu is greyed out', async ({ page }) => {
   const errors = watchErrors(page);
   await signIn(page, 'jaymar');
-  await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Jay');
-  await expect(page.locator('.brand span')).toHaveText('ADMIN HUB');
-
-  await page.fill('#hm-urgent-text', 'Smoke test urgent item');
-  await page.press('#hm-urgent-text', 'Enter');
-  await page.fill('#hm-todo-text', 'Smoke test to-do');
-  await page.press('#hm-todo-text', 'Enter');
-  await expect(page.locator('.hm-item', { hasText: 'Smoke test urgent item' })).toBeVisible();
-  await page.reload();
-  await expect(page.locator('.hm-item', { hasText: 'Smoke test to-do' })).toBeVisible();
-  await page.getByLabel('Mark done: Smoke test to-do').click(); // done items leave the list
-  await expect(page.locator('.hm-item', { hasText: 'Smoke test to-do' })).toHaveCount(0);
-
-  await page.keyboard.press('Control+k');
-  await page.getByRole('combobox', { name: 'Search' }).fill('welcome');
-  await expect(page.getByRole('option', { name: /New Client Welcome Posts/ })).toBeVisible();
-  await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/\/w\/social-media\?t=/);
-
-  await page.locator('.bell-btn').click();
-  await expect(page.getByRole('menu', { name: 'Notifications' })).toBeVisible();
+  for (const path of ['/', '/w/social-media', '/w/events', '/updates', '/help', '/keap']) {
+    await page.goto(path);
+    await expect(page, path).toHaveURL(/\/eod$/);
+  }
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('My EOD report');
+  const soon = page.locator('.soon', { hasText: 'My workspace' });
+  await expect(soon).toHaveAttribute('aria-disabled', 'true');
+  await expect(soon).toHaveAttribute('data-tip', 'This feature will be available soon');
+  await expect(page.locator('.cwa-bubble')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
-test('team members cannot open other departments', async ({ page }) => {
+test('team members cannot open other departments or the team EOD feed', async ({ page }) => {
   await signIn(page, 'jaymar');
-  const res = await page.goto('/w/events');
-  expect(res?.status()).toBe(404);
+  await page.goto('/w/events');
+  await expect(page).toHaveURL(/\/eod$/);
+  expect((await page.request.get('/api/eod?feed=1')).status()).toBe(404);
 });
 
 test('super admin overview shows adoption and errors', async ({ page }) => {

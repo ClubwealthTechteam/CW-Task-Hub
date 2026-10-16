@@ -21,5 +21,13 @@ export function canViewAutomation(user: Person | null | undefined, a: { ownerId:
   return isSuperAdmin(user) || (a.ownerId === user.id && canViewDepartment(user, a.department));
 }
 
+/**
+ * For now team members only use EOD reports: every other page sends them to /eod, and the menu shows the rest
+ * greyed out ("available soon"). Set to false to open the whole hub to them again.
+ */
+export const MEMBERS_EOD_ONLY = true;
+export const EOD_HOME = '/eod';
+export const eodOnly = (user: Person | null | undefined) => MEMBERS_EOD_ONLY && Boolean(user) && !isSuperAdmin(user);
+
 /** Only super admins add, edit or test integrations. */
 export const canManageIntegrations = isSuperAdmin;

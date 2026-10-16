@@ -6,6 +6,7 @@ import { ChatWidget } from '@/components/chat/ChatWidget';
 import { CommandPalette } from '@/components/CommandPalette';
 import { ErrorReporter } from '@/components/ErrorReporter';
 import { UpdateNotice } from '@/components/UpdateNotice';
+import { eodOnly } from '@/lib/access';
 
 export const metadata: Metadata = {
   title: 'CW AI Task Hub',
@@ -30,8 +31,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {children}
         {user && <ErrorReporter />}
         {user && <UpdateNotice />}
-        {user && <CommandPalette />}
-        {user && !viewer?.preview && <ChatWidget firstName={user.name.split(/\s+/)[0]} />}
+        {user && !eodOnly(user) && <CommandPalette />}
+        {user && !viewer?.preview && !eodOnly(user) && <ChatWidget firstName={user.name.split(/\s+/)[0]} />}
       </body>
     </html>
   );

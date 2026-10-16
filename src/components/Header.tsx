@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Person } from '@/config/people';
-import { visibleDepartments, canManageIntegrations, isSuperAdmin } from '@/lib/access';
+import { visibleDepartments, canManageIntegrations, isSuperAdmin, eodOnly } from '@/lib/access';
 import { canViewEventbrite } from '@/lib/integrations/eventbrite/access';
 import { builtinIntegrations } from '@/lib/integrations/registry';
 import { IntegrationsMenu, type MenuApp } from './IntegrationsMenu';
@@ -9,12 +9,50 @@ import { SearchButton } from './CommandPalette';
 import { NotificationBell } from './NotificationBell';
 import { Icon } from './Icon';
 
+const SOON = 'This feature will be available soon';
+/** A menu item that's shown but not usable yet; hovering (or focusing) it says so. */
+const Soon = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
+  <span className={`soon ${className}`} tabIndex={0} aria-disabled="true" data-tip={SOON} title={SOON}>{children}</span>
+);
+
+/** Team members' header while only EOD reports are open to them: everything else is greyed out. */
+function LockedHeader({ user, initials }: { user: Person; initials: string }) {
+  return (
+    <header className="topbar">
+      <div className="topbar-inner">
+        <Link href="/eod" className="brand" aria-label="CW AI Task Hub · EOD reports">
+          <b>CLUBWEALTH</b>
+          <span>ADMIN HUB</span>
+        </Link>
+        <nav className="nav" aria-label="AI Task Hub">
+          <Soon className="hub">AI Task Hub <em>NEW</em></Soon>
+          <Soon>My workspace</Soon>
+          <Link href="/eod" aria-current="page">EOD reports</Link>
+          <Soon>Updates</Soon>
+          <Soon>Help</Soon>
+          <Soon>Integrations ▾</Soon>
+        </nav>
+        <Soon className="hdr-search hdr-soon"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" /><path d="m20 20-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg><span>Search</span></Soon>
+        <Soon className="bell-soon"><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15L6 16Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="M10 20.5a2.2 2.2 0 0 0 4 0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg></Soon>
+        <div className="who">
+          <span className="avatar" aria-hidden="true">{initials}</span>
+          <span>{user.name}</span>
+          <form action="/api/auth/logout" method="post">
+            <button className="linkbtn" type="submit">Sign out</button>
+          </form>
+        </div>
+      </div>
+    </header>
+  );
+}
+
 // White top bar in the CW University style. Team members see their workspace; super admins also get
 // every department, Integrations and Admin settings.
 export function Header({ user, current }: { user: Person; current?: string }) {
   const depts = visibleDepartments(user);
   const admin = isSuperAdmin(user);
   const initials = user.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('');
+  if (eodOnly(user)) return <LockedHeader user={user} initials={initials} />;
   const cur = (key: string) => (current === key ? 'page' : undefined);
   // External apps this person can open: Keap and Eventbrite have their own read-only tabs; the rest
   // are managed on the Integrations page (super admins).

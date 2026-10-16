@@ -33,6 +33,9 @@ export const PEOPLE: Person[] = [
   // #3 Social Media
   { id: 'jaymar', name: 'Jay Mar', role: 'member', departments: ['social-media'], auditKey: 'jaymar' },
 
+  // #5 Video Editing
+  { id: 'randy', name: 'Randy Lopez', role: 'member', departments: ['video-editing'] },
+
   // #4 Admin
   { id: 'kathleen', name: 'Kathleen', role: 'member', departments: ['admin'], auditKey: 'kathleen' },
   { id: 'amrissa', name: 'Amrissa', role: 'member', departments: ['admin'], auditKey: 'amrissa' },

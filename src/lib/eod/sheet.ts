@@ -16,7 +16,7 @@ const PERSON_HEADER = ['Date', 'Time', 'Task', 'Notes', 'Daily', 'Highlights', '
 const STATUS_KEY = 'eod:sheet:status';
 
 // Tab names as they appear in the sheet (first names; Jay Mar keeps both).
-const TAB: Record<string, string> = { ali: 'Ali', jowee: 'Jowee', jaymar: 'Jay Mar', jp: 'JP', miguel: 'Miguel', omerson: 'Omerson', camille: 'Camille' };
+const TAB: Record<string, string> = { ali: 'Ali', jowee: 'Jowee', jaymar: 'Jay Mar', miguel: 'Miguel', omerson: 'Omerson', camille: 'Camille' };
 export const tabFor = (p: Person) => TAB[p.id] ?? p.name.split(/\s+/)[0];
 
 const when = (at?: number) => (at ? new Date(at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/Los_Angeles' }) : '');

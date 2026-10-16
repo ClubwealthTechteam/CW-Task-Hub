@@ -12,7 +12,7 @@ import { Icon } from './Icon';
 const SOON = 'This feature will be available soon';
 /** A menu item that's shown but not usable yet; hovering (or focusing) it says so. */
 const Soon = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <span className={`soon ${className}`} tabIndex={0} aria-disabled="true" data-tip={SOON} title={SOON}>{children}</span>
+  <span className={`soon ${className}`} tabIndex={0} aria-disabled="true" data-tip={SOON} aria-description={SOON}>{children}</span>
 );
 
 /** Team members' header while only EOD reports are open to them: everything else is greyed out. */

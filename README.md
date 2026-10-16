@@ -10,7 +10,7 @@ Stack: **Next.js 14 (App Router) + TypeScript**, deployed on **Vercel**. The bac
 |---|---|
 | Events | Ali, Andrea, Liz |
 | Client Care | Jowee, Jizel, Joshua |
-| Social Media | Jay Mar, JP |
+| Social Media | Jay Mar |
 | Admin | Kathleen, Amrissa, Camille |
 | Tech *(admins only)* | Miguel, Omerson |
 
@@ -26,7 +26,7 @@ Every request from the **CW AI AUDIT** sheet (10 per person) is an automation, f
 - **Live**: already runs elsewhere (e.g. the Half-Day attendance automation, run by a Claude routine + Zapier).
 - To build one, add a handler for its id in `HANDLERS` in `src/lib/automations/runner.ts`. It receives the automation, the user's input and the signed-in person, and can call `keap.*`, `triggerZap()` or `callCustom()`.
 
-Joshua and JP have no audit requests yet; their sections fill in once their data is added to `audit.json`.
+Joshua has no audit requests yet; that section fills in once the data is added to `audit.json`.
 
 ## Integrations
 

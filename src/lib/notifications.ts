@@ -9,7 +9,7 @@ import { announcementsFor } from '@/lib/announcements';
 import { findAutomation } from '@/data/catalog';
 import type { Conversation } from '@/lib/chat/store';
 
-export type NotifKind = 'reply' | 'summary' | 'update' | 'graphic';
+export type NotifKind = 'reply' | 'summary' | 'update' | 'graphic' | 'eod';
 export interface Notification { id: string; at: number; kind: NotifKind; title: string; body?: string; href?: string; chatId?: string; read?: boolean }
 
 const MAX = 40;

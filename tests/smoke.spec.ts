@@ -82,3 +82,27 @@ test('super admin overview shows adoption and errors', async ({ page }) => {
 test('backup refuses requests without the secret', async ({ request }) => {
   expect([403, 503]).toContain((await request.get('/api/backup')).status());
 });
+
+test('EOD report: a team member submits it and a super admin sees it in the feed', async ({ browser }) => {
+  const member = await browser.newPage();
+  const errors = watchErrors(member);
+  await signIn(member, 'ali');
+  await member.goto('/eod');
+  await expect(member.getByRole('heading', { level: 1 })).toHaveText('My EOD report');
+  await member.getByLabel('Row 1 task').fill('Smoke test DHR pulls');
+  await member.getByLabel('Row 1 notes').fill('Pulled and reviewed numbers');
+  await member.getByLabel('Row 1: I do this every day').check();
+  await expect(member.getByText('Draft saved')).toBeVisible();
+  await member.getByRole('button', { name: 'Submit EOD report' }).click();
+  await expect(member.locator('.pill', { hasText: 'Submitted' })).toBeVisible();
+  expect(errors).toEqual([]);
+
+  const admin = await browser.newPage();
+  await signIn(admin, 'miguel');
+  await admin.goto('/eod');
+  await expect(admin.getByRole('heading', { level: 1 })).toHaveText('Team EOD reports');
+  await admin.getByRole('button', { name: /Ali-Ace Berico/ }).click();
+  await expect(admin.getByRole('cell', { name: /Smoke test DHR pulls/ })).toBeVisible();
+  await admin.getByRole('button', { name: 'Find automation ideas' }).click();
+  await expect(admin.locator('#cwa-input')).toHaveValue(/EOD report/);
+});

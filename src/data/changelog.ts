@@ -12,6 +12,8 @@ export interface ChangeEntry {
 }
 
 export const CHANGELOG: ChangeEntry[] = [
+  // Oct 16
+  { date: '2026-10-16', kind: 'new', area: 'EOD reports', title: 'EOD reports in the hub instead of email', detail: 'Team members log each task with its time and numbers through the day, tick the ones they do every day, and submit at the end of the shift. Super admins see every report the moment it’s submitted, a daily-tasks shortlist, and a Find automation ideas button that asks the CW Assistant.' },
   // Oct 14
   { date: '2026-10-14', kind: 'fixed', area: 'Safety', title: 'Security update: Next.js 15', detail: 'Upgraded the framework the hub runs on (Next.js 14 → 15.5) and its CSS tool, closing every known security advisory. The package audit now finds 0 issues and runs on every change.' },
   { date: '2026-10-14', kind: 'improved', area: 'Dashboard', title: 'Tighter dashboard layout', detail: 'Updates sit at the top, Departments is compact beside Hub progress, and Team adoption and Recent activity open with View all.' },

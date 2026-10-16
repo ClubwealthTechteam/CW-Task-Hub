@@ -97,6 +97,18 @@ export function ChatWidget({ firstName }: { firstName: string }) {
     return () => window.removeEventListener('cwa:open', onOpen);
   }, [open]);
 
+  // Other pages (e.g. EOD reports) can start a new chat with a prompt filled in, ready to review and send.
+  useEffect(() => {
+    const onNew = (e: Event) => {
+      const t = (e as CustomEvent<{ text: string }>).detail?.text;
+      if (!t) return;
+      setConv(null); setShowList(false); setError(''); setText(t);
+      setSize((s) => (s === 'closed' ? 'open' : s));
+    };
+    window.addEventListener('cwa:new', onNew);
+    return () => window.removeEventListener('cwa:new', onNew);
+  }, []);
+
   // While a reply is on its way, check for it every few seconds (even when minimized).
   useEffect(() => {
     if (!pending || !conv || live !== null) return;

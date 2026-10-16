@@ -27,6 +27,7 @@ export async function GET() {
     ...visibleDepartments(user).map((d) => ({ kind: 'page' as const, title: admin ? `${d.name} workspace` : 'My workspace', sub: d.blurb ?? d.name, href: `/w/${d.id}` })),
     ...visibleDepartments(user).map((d) => ({ kind: 'page' as const, title: `${d.name} · sheets`, sub: 'Linked Google Sheets', href: `/w/${d.id}/sheets` })),
     ...visibleDepartments(user).map((d) => ({ kind: 'page' as const, title: `${d.name} · process forms`, sub: 'Workflow process forms', href: `/w/${d.id}/forms` })),
+    { kind: 'page', title: 'EOD reports', sub: 'End-of-day reports', href: '/eod' },
     { kind: 'page', title: 'Updates', sub: 'Announcements from the tech team', href: '/updates' },
     { kind: 'page', title: 'Help', sub: 'How the hub works, tutorials', href: '/help' },
     ...(admin ? [

@@ -13,7 +13,7 @@ const ago = (t: number) => {
   const h = Math.round(m / 60); if (h < 24) return `${h} h ago`;
   return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
-const ICON: Record<Notification['kind'], string> = { reply: '💬', summary: '📝', update: '📣', graphic: '🖼' };
+const ICON: Record<Notification['kind'], string> = { reply: '💬', summary: '📝', update: '📣', graphic: '🖼', eod: '🗒' };
 
 export function NotificationBell() {
   const router = useRouter();

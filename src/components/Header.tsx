@@ -39,6 +39,7 @@ export function Header({ user, current }: { user: Person; current?: string }) {
           {(admin || depts.length > 1) && (
             <DepartmentsMenu depts={depts.map((d) => ({ id: d.id, name: d.name, blurb: d.blurb, adminsOnly: d.hidden }))} current={current} />
           )}
+          <Link href="/eod" aria-current={cur('eod')}>EOD reports</Link>
           {admin && <Link href="/council" aria-current={cur('council')}>Council</Link>}
           <Link href="/updates" aria-current={cur('updates')}>Updates</Link>
           <Link href="/help" aria-current={cur('help')}>Help</Link>

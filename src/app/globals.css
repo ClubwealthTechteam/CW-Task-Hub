@@ -1419,3 +1419,30 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
 .eod-how { display: flex; gap: 8px; flex-wrap: wrap; }
 .eod-paste { display: flex; flex-direction: column; gap: 10px; }
 .eod-paste textarea { width: 100%; border: 1px solid var(--line-strong); border-radius: 8px; padding: 10px 12px; font: 13px/1.5 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; resize: vertical; tab-size: 12; }
+.eod-tabs .chip-btn { font-size: 14px; padding: 7px 14px; }
+/* Header on narrower desktops: tighter spacing, then search and the name shrink to icons, so the
+   menu never runs into the search button. */
+@media (max-width: 1600px) and (min-width: 761px) { .topbar-inner { gap: 24px; } .nav { gap: 18px; } }
+@media (max-width: 1440px) and (min-width: 761px) {
+  .hdr-search span, .hdr-search kbd { display: none; }
+  .hdr-search { padding: 7px 9px; }
+  .who > span:not(.avatar) { display: none; }
+}
+@media (max-width: 1200px) and (min-width: 761px) {
+  .topbar-inner { padding-inline: 18px; gap: 16px; }
+  .nav { gap: 14px; }
+  .nav a, .nav .im-btn { font-size: 14px; }
+}
+/* Small laptops and tablets: the menu drops to its own row (same as on phones). */
+@media (max-width: 1080px) {
+  .topbar-inner { height: auto; flex-wrap: wrap; gap: 4px 12px; padding: 10px 16px 0; }
+  .brand { order: 1; }
+  .who { order: 2; }
+  .who > span:not(.avatar) { display: none; }
+  .hdr-search span, .hdr-search kbd { display: none; }
+  .hdr-search { order: 2; margin-left: auto; padding: 7px 9px; }
+  .bell, .hdr-gear { order: 2; }
+  .hdr-search ~ .who { margin-left: 0; }
+  .nav { order: 3; flex-basis: 100%; flex-wrap: wrap; gap: 2px 16px; }
+  .nav a, .nav .im-btn { padding: 10px 0 9px; font-size: 14px; }
+}

@@ -23,10 +23,10 @@ export default async function EodPage() {
           <span className="eyebrow">EOD reports</span>
           <h1>{read ? 'Team EOD reports' : 'My EOD report'}</h1>
           <p>{read
-            ? 'Every end-of-day report in one place, live as each person submits. Open one and ask the CW Assistant which tasks could be automated.'
+            ? 'Every end-of-day report in one place, live as each person submits, including ours. Open one and ask the CW Assistant which tasks could be automated, or switch to My EOD report to fill in yours.'
             : 'Your end-of-day report lives here now, instead of email. Paste it straight from your EOD sheet or type it in, tick the tasks you do every day, and submit at the end of your shift.'}</p>
         </section>
-        <EodBoard mode={read ? 'read' : 'write'} people={people} readOnly={preview} />
+        <EodBoard team={read} people={people} readOnly={preview} />
       </main>
     </>
   );

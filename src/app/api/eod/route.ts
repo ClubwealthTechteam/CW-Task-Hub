@@ -18,8 +18,12 @@ const str = (v: unknown, max: number) => String(v ?? '').replace(/\r/g, '').slic
 export async function GET(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
-  if (canReadAllEod(user)) return NextResponse.json({ feed: await submittedFeed() });
-  const date = new URL(req.url).searchParams.get('date') || pacificDate();
+  const q = new URL(req.url).searchParams;
+  if (q.get('feed')) {
+    if (!canReadAllEod(user)) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    return NextResponse.json({ feed: await submittedFeed() });
+  }
+  const date = q.get('date') || pacificDate();
   if (!validDate(date)) return NextResponse.json({ error: 'Pick a date within the last 30 days' }, { status: 400 });
   const mine = await reportsOf(user.id);
   return NextResponse.json({
@@ -57,7 +61,7 @@ export async function POST(req: Request) {
 
   if (submit && !wasSubmitted) {
     const first = user.name.split(/\s+/)[0];
-    await Promise.all(PEOPLE.filter((p) => canReadAllEod(p)).map((p) =>
+    await Promise.all(PEOPLE.filter((p) => canReadAllEod(p) && p.id !== user.id).map((p) =>
       notify(p.id, { kind: 'eod', title: `EOD report · ${first}`, body: `${entries.length} task${entries.length === 1 ? '' : 's'} · ${date}`, href: `/eod#${report.id.replace(':', '-')}` }).catch(() => null)));
   }
   return NextResponse.json({ report });

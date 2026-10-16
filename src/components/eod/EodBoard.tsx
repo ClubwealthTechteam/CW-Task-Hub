@@ -267,7 +267,7 @@ function Feed({ people }: { people: EodPerson[] }) {
   const name = useCallback((uid: string) => people.find((p) => p.id === uid)?.name ?? uid, [people]);
 
   const load = useCallback(async () => {
-    const res = await fetch('/api/eod', { cache: 'no-store' });
+    const res = await fetch('/api/eod?feed=1', { cache: 'no-store' });
     const b = await res.json().catch(() => ({}));
     if (!res.ok) return setError(b.error || 'Couldn’t load reports');
     setFeed(b.feed ?? []); setError('');
@@ -379,6 +379,17 @@ function Feed({ people }: { people: EodPerson[] }) {
   );
 }
 
-export function EodBoard({ mode, people, readOnly }: { mode: 'write' | 'read'; people: EodPerson[]; readOnly: boolean }) {
-  return mode === 'write' ? <Writer readOnly={readOnly} /> : <Feed people={people} />;
+/** Team members get their own report; super admins get theirs plus the team feed, as two tabs. */
+export function EodBoard({ team, people, readOnly }: { team: boolean; people: EodPerson[]; readOnly: boolean }) {
+  const [tab, setTab] = useState<'team' | 'mine'>('team');
+  if (!team) return <Writer readOnly={readOnly} />;
+  return (
+    <>
+      <div className="eod-how eod-tabs" role="tablist" aria-label="EOD reports">
+        <button role="tab" aria-selected={tab === 'team'} className={`chip-btn${tab === 'team' ? ' on' : ''}`} onClick={() => setTab('team')}>Team reports</button>
+        <button role="tab" aria-selected={tab === 'mine'} className={`chip-btn${tab === 'mine' ? ' on' : ''}`} onClick={() => setTab('mine')}>My EOD report</button>
+      </div>
+      {tab === 'team' ? <Feed people={people} /> : <Writer readOnly={readOnly} />}
+    </>
+  );
 }

@@ -8,10 +8,11 @@ import type { EodReport } from './report';
 const KEEP = 120;
 const key = (uid: string) => `eod:${uid}`;
 
-/** Team members write their own; super admins read everyone's. */
-export const canWriteEod = (p: Person) => !isSuperAdmin(p);
+/** Everyone writes their own (super admins too); super admins also read everyone's. */
+export const canWriteEod = (p: Person) => Boolean(p);
 export const canReadAllEod = isSuperAdmin;
-export const eodPeople = () => PEOPLE.filter((p) => !isSuperAdmin(p));
+/** Team members first, then the super admins. */
+export const eodPeople = () => [...PEOPLE.filter((p) => !isSuperAdmin(p)), ...PEOPLE.filter((p) => isSuperAdmin(p))];
 
 export const reportsOf = (uid: string) => getJSON<EodReport[]>(key(uid), []);
 

@@ -111,4 +111,13 @@ test('EOD report: a team member submits it and a super admin sees it in the feed
   await expect(admin.getByRole('cell', { name: /Smoke test DHR pulls/ })).toBeVisible();
   await admin.getByRole('button', { name: 'Find automation ideas' }).click();
   await expect(admin.locator('#cwa-input')).toHaveValue(/EOD report/);
+
+  // Super admins fill in their own report too.
+  await admin.getByRole('tab', { name: 'My EOD report' }).click();
+  await admin.getByRole('tab', { name: 'Type it in' }).click();
+  await admin.getByLabel('Row 1 task').fill('Smoke test admin task');
+  await admin.getByRole('button', { name: 'Submit EOD report' }).click();
+  await expect(admin.locator('.pill', { hasText: 'Submitted' })).toBeVisible();
+  await admin.getByRole('tab', { name: 'Team reports' }).click();
+  await expect(admin.getByRole('button', { name: /Miguel Ababon/ })).toBeVisible();
 });

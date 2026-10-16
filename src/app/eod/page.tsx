@@ -4,7 +4,7 @@
 import { Header } from '@/components/Header';
 import { getViewer, requireUser } from '@/lib/auth/current-user';
 import { DEPARTMENTS } from '@/config/departments';
-import { canReadAllEod, eodPeople } from '@/lib/eod/store';
+import { canDeleteEod, canReadAllEod, eodPeople } from '@/lib/eod/store';
 import { EodBoard } from '@/components/eod/EodBoard';
 
 export const dynamic = 'force-dynamic';
@@ -26,7 +26,7 @@ export default async function EodPage() {
             ? 'Every end-of-day report in one place, live as each person submits, including ours. Open one and ask the CW Assistant which tasks could be automated, or switch to My EOD report to fill in yours.'
             : 'Your end-of-day report lives here now, instead of email. Paste it straight from your EOD sheet or type it in, tick the tasks you do every day, and submit at the end of your shift.'}</p>
         </section>
-        <EodBoard team={read} people={people} readOnly={preview} />
+        <EodBoard team={read} people={people} readOnly={preview} canDelete={canDeleteEod(user) && !preview} />
       </main>
     </>
   );

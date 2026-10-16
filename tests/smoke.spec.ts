@@ -112,4 +112,14 @@ test('EOD report: a team member submits it and a super admin sees it in the feed
   await expect(admin.getByRole('status')).toContainText('was submitted');
   await admin.getByRole('tab', { name: 'Team reports' }).click();
   await expect(admin.getByRole('button', { name: /Miguel Ababon/ })).toBeVisible();
+
+  // Only Miguel can delete a report; it disappears from the feed.
+  const other = await browser.newPage();
+  await signIn(other, 'omerson');
+  const day = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+  expect((await other.request.delete(`/api/eod?id=ali:${day}`)).status()).toBe(403);
+  await admin.getByRole('button', { name: /Ali-Ace Berico/ }).click();
+  await admin.getByRole('button', { name: 'Delete report' }).click();
+  await admin.getByRole('button', { name: 'Delete', exact: true }).click();
+  await expect(admin.getByRole('button', { name: /Ali-Ace Berico/ })).toHaveCount(0);
 });

@@ -13,6 +13,7 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   // Oct 16
+  { date: '2026-10-16', kind: 'new', area: 'EOD reports', title: 'Miguel can delete EOD reports', detail: 'A Delete report button (with a confirm) on each report in Team reports, for Miguel only. The report is also removed from the EOD sheet.' },
   { date: '2026-10-16', kind: 'removed', area: 'People', title: 'JP removed from the hub', detail: 'No longer with Club Wealth: removed from Social Media, sign-in, EOD reports and the EOD sheet.' },
   { date: '2026-10-16', kind: 'new', area: 'EOD reports', title: 'EOD reports copied to the EOD Google Sheet', detail: 'Every submitted report (and any edit to it) is written to the EOD Report Submissions sheet: one tab per person with a row per task, plus an All submissions tab with a row per report. This is the hub’s only sheet it writes to.' },
   { date: '2026-10-16', kind: 'new', area: 'EOD reports', title: 'EOD reports in the hub instead of email', detail: 'Team members paste their day straight from their own EOD sheet (or the emailed PDS layout), or type it in, tick the ones they do every day, and submit at the end of the shift. Super admins fill in their own too, and see every report the moment it’s submitted, a daily-tasks shortlist, and a Find automation ideas button that asks the CW Assistant.' },

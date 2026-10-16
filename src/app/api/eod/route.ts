@@ -3,9 +3,9 @@
 
 import { NextResponse, after } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/current-user';
-import { canReadAllEod, canWriteEod, reportsOf, saveReport, submittedFeed } from '@/lib/eod/store';
+import { canDeleteEod, canReadAllEod, canWriteEod, deleteReport, reportsOf, saveReport, submittedFeed } from '@/lib/eod/store';
 import { LIMITS, emptyReport, pacificDate, reportId, type EodEntry, type EodReport } from '@/lib/eod/report';
-import { PEOPLE } from '@/config/people';
+import { PEOPLE, personById } from '@/config/people';
 import { notify } from '@/lib/notifications';
 import { EOD_SHEET_URL, sheetStatus, syncEodSheet } from '@/lib/eod/sheet';
 
@@ -69,4 +69,17 @@ export async function POST(req: Request) {
   // Submitted reports (and edits to them) are copied to the EOD Google Sheet.
   if (report.status === 'submitted') after(() => syncEodSheet(user.id));
   return NextResponse.json({ report });
+}
+
+/** Miguel only: delete one report (?id=<person>:<date>) and take it out of the EOD sheet. */
+export async function DELETE(req: Request) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: 'Sign in first' }, { status: 401 });
+  if (!canDeleteEod(user)) return NextResponse.json({ error: 'Only Miguel can delete EOD reports' }, { status: 403 });
+  const id = new URL(req.url).searchParams.get('id') ?? '';
+  const uid = id.split(':')[0];
+  if (!personById(uid) || !/^[a-z0-9-]+:\d{4}-\d{2}-\d{2}$/.test(id)) return NextResponse.json({ error: 'Unknown report' }, { status: 400 });
+  if (!(await deleteReport(uid, id))) return NextResponse.json({ error: 'That report is already gone' }, { status: 404 });
+  after(() => syncEodSheet(uid));
+  return NextResponse.json({ ok: true });
 }

@@ -280,7 +280,7 @@ function Writer({ readOnly }: { readOnly: boolean }) {
 
 // ───────────── Super admins: live feed ─────────────
 
-function Feed({ people }: { people: EodPerson[] }) {
+function Feed({ people, canDelete }: { people: EodPerson[]; canDelete: boolean }) {
   const [feed, setFeed] = useState<EodReport[] | null>(null);
   const [sheet, setSheet] = useState<{ ok?: boolean; at?: number; error?: string; url: string } | null>(null);
   const [syncing, setSyncing] = useState(false);
@@ -294,6 +294,16 @@ function Feed({ people }: { people: EodPerson[] }) {
   const [who, setWho] = useState<string>('all');
   const [open, setOpen] = useState<string | null>(null);
   const [copied, setCopied] = useState('');
+  const [confirmDel, setConfirmDel] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  async function remove(r: EodReport) {
+    setDeleting(true);
+    const res = await fetch(`/api/eod?id=${encodeURIComponent(r.id)}`, { method: 'DELETE' });
+    const b = await res.json().catch(() => ({}));
+    setDeleting(false); setConfirmDel(null);
+    if (!res.ok) return setError(b.error || 'Couldn’t delete that report');
+    setFeed((f) => (f ?? []).filter((x) => x.id !== r.id)); setOpen(null); setError('');
+  }
   const [error, setError] = useState('');
   const name = useCallback((uid: string) => people.find((p) => p.id === uid)?.name ?? uid, [people]);
 
@@ -388,7 +398,15 @@ function Feed({ people }: { people: EodPerson[] }) {
                       <div className="row">
                         <button className="btn primary" onClick={() => askAssistant(automationPrompt(r, n))}>Find automation ideas</button>
                         <button className="btn" onClick={async () => { if (await copyText(reportText(r, n))) { setCopied(r.id); setTimeout(() => setCopied(''), 1500); } }}>{copied === r.id ? 'Copied ✓' : 'Copy report'}</button>
+                        {canDelete && (confirmDel === r.id ? (
+                          <span className="row eod-del">
+                            <span className="small">Delete {firstName(n)}’s report for {longDate(r.date)}? It’s also removed from the EOD sheet.</span>
+                            <button className="btn danger" disabled={deleting} onClick={() => remove(r)}>{deleting ? 'Deleting…' : 'Delete'}</button>
+                            <button className="btn" onClick={() => setConfirmDel(null)}>Keep</button>
+                          </span>
+                        ) : <button className="linkbtn eod-delbtn" onClick={() => setConfirmDel(r.id)}>Delete report</button>)}
                       </div>
+                      {error && open === domId(r) && <p className="note" role="alert" style={{ margin: 0 }}>{error}</p>}
                     </div>
                   )}
                 </li>
@@ -420,7 +438,7 @@ function Feed({ people }: { people: EodPerson[] }) {
 }
 
 /** Team members get their own report; super admins get theirs plus the team feed, as two tabs. */
-export function EodBoard({ team, people, readOnly }: { team: boolean; people: EodPerson[]; readOnly: boolean }) {
+export function EodBoard({ team, people, readOnly, canDelete = false }: { team: boolean; people: EodPerson[]; readOnly: boolean; canDelete?: boolean }) {
   const [tab, setTab] = useState<'team' | 'mine'>('team');
   if (!team) return <Writer readOnly={readOnly} />;
   return (
@@ -429,7 +447,7 @@ export function EodBoard({ team, people, readOnly }: { team: boolean; people: Eo
         <button role="tab" aria-selected={tab === 'team'} className={`chip-btn${tab === 'team' ? ' on' : ''}`} onClick={() => setTab('team')}>Team reports</button>
         <button role="tab" aria-selected={tab === 'mine'} className={`chip-btn${tab === 'mine' ? ' on' : ''}`} onClick={() => setTab('mine')}>My EOD report</button>
       </div>
-      {tab === 'team' ? <Feed people={people} /> : <Writer readOnly={readOnly} />}
+      {tab === 'team' ? <Feed people={people} canDelete={canDelete} /> : <Writer readOnly={readOnly} />}
     </>
   );
 }

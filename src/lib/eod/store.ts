@@ -14,6 +14,9 @@ export const canReadAllEod = isSuperAdmin;
 /** Team members first, then the super admins. */
 export const eodPeople = () => [...PEOPLE.filter((p) => !isSuperAdmin(p)), ...PEOPLE.filter((p) => isSuperAdmin(p))];
 
+/** Only Miguel can delete EOD reports (anyone's), e.g. a test or a duplicate. */
+export const canDeleteEod = (p: Person | null | undefined) => p?.id === 'miguel';
+
 export const reportsOf = (uid: string) => getJSON<EodReport[]>(key(uid), []);
 
 export async function saveReport(r: EodReport) {
@@ -21,6 +24,14 @@ export async function saveReport(r: EodReport) {
   const next = [r, ...list.filter((x) => x.id !== r.id)].sort((a, b) => b.date.localeCompare(a.date)).slice(0, KEEP);
   await setJSON(key(r.uid), next);
   return r;
+}
+
+export async function deleteReport(uid: string, id: string) {
+  const list = await reportsOf(uid);
+  const next = list.filter((x) => x.id !== id);
+  if (next.length === list.length) return false;
+  await setJSON(key(uid), next);
+  return true;
 }
 
 /** Submitted reports from everyone, newest submission first (the live feed). */

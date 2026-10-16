@@ -19,6 +19,10 @@ export default async function EodPage() {
     <>
       <Header user={user} current="eod" />
       <main className="page eod">
+        <p className="eod-announce" role="note">
+          <span aria-hidden="true">📣</span>
+          <span><b>Be detailed when you log your tasks.</b> Add the numbers, for example “Removed 50 people from the PB list”, “Sent 5 emails”, “Talked to 13 clients”. <span className="eod-announce-by">· Tara</span></span>
+        </p>
         <section className="hero">
           <span className="eyebrow">EOD reports</span>
           <h1>{read ? 'Team EOD reports' : 'My EOD report'}</h1>

@@ -46,6 +46,15 @@ function summaryRow(r: EodReport): (string | number)[] {
 export interface SheetStatus { ok: boolean; at: number; error?: string }
 export const sheetStatus = () => getJSON<SheetStatus | null>(STATUS_KEY, null);
 
+/** Rewrites every person's tab that has submitted reports, plus the summary (a backfill, e.g. after sharing). */
+export async function syncAllEodSheet(): Promise<SheetStatus> {
+  const uids = [...new Set((await submittedFeed(5000)).map((r) => r.uid))];
+  let last: SheetStatus = { ok: true, at: Date.now() };
+  for (const uid of uids) { last = await syncEodSheet(uid); if (!last.ok) break; }
+  if (!uids.length) await setJSON(STATUS_KEY, last).catch(() => null);
+  return last;
+}
+
 /** Rewrites this person's tab and the summary tab. Never throws: the result is kept for the EOD page. */
 export async function syncEodSheet(uid: string): Promise<SheetStatus> {
   const person = personById(uid);

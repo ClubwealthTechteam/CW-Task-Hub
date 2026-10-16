@@ -13,6 +13,7 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   // Oct 16
+  { date: '2026-10-16', kind: 'new', area: 'EOD reports', title: 'EOD reports copied to the EOD Google Sheet', detail: 'Every submitted report (and any edit to it) is written to the EOD Report Submissions sheet: one tab per person with a row per task, plus an All submissions tab with a row per report. This is the hub’s only sheet it writes to.' },
   { date: '2026-10-16', kind: 'new', area: 'EOD reports', title: 'EOD reports in the hub instead of email', detail: 'Team members paste their day straight from their own EOD sheet (or the emailed PDS layout), or type it in, tick the ones they do every day, and submit at the end of the shift. Super admins fill in their own too, and see every report the moment it’s submitted, a daily-tasks shortlist, and a Find automation ideas button that asks the CW Assistant.' },
   // Oct 14
   { date: '2026-10-14', kind: 'fixed', area: 'Safety', title: 'Security update: Next.js 15', detail: 'Upgraded the framework the hub runs on (Next.js 14 → 15.5) and its CSS tool, closing every known security advisory. The package audit now finds 0 issues and runs on every change.' },

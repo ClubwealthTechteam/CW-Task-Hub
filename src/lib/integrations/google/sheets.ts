@@ -1,6 +1,7 @@
 // Google Sheets, read-only, through a Google service account (GOOGLE_SERVICE_ACCOUNT_JSON: the key file's JSON,
 // or the same base64-encoded). A sheet is readable once it's shared with the service account's email as Viewer.
-// The scope is spreadsheets.readonly, so the hub can never change a sheet.
+// Reads use the spreadsheets.readonly scope. The one exception is sheets-write.ts, which writes only to
+// the sheets on its allow-list (the EOD report sheet), and only when they're shared with the hub as Editor.
 
 import crypto from 'node:crypto';
 import { IntegrationError } from '../http';
@@ -32,16 +33,18 @@ export const sheetsKeyState = () => (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON?.t
 export const serviceAccountEmail = () => account()?.client_email ?? null;
 
 const b64url = (b: Buffer | string) => Buffer.from(b).toString('base64url');
-let token: { value: string; exp: number } | null = null;
+const SCOPES = { read: 'https://www.googleapis.com/auth/spreadsheets.readonly', write: 'https://www.googleapis.com/auth/spreadsheets' };
+const tokens: Partial<Record<keyof typeof SCOPES, { value: string; exp: number }>> = {};
 
-async function accessToken() {
+export async function accessToken(kind: keyof typeof SCOPES = 'read') {
+  const token = tokens[kind];
   if (token && token.exp - 60_000 > Date.now()) return token.value;
   const sa = account();
   if (!sa) throw new IntegrationError('Google Sheets is not connected yet. Add GOOGLE_SERVICE_ACCOUNT_JSON in Vercel.', 503);
   const now = Math.floor(Date.now() / 1000);
   const head = b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
   const claim = b64url(JSON.stringify({
-    iss: sa.client_email, scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
+    iss: sa.client_email, scope: SCOPES[kind],
     aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600,
   }));
   const sig = crypto.createSign('RSA-SHA256').update(`${head}.${claim}`).sign(sa.private_key).toString('base64url');
@@ -53,8 +56,8 @@ async function accessToken() {
   });
   const body = await res.json().catch(() => ({}));
   if (!res.ok || !body.access_token) throw new IntegrationError('Google rejected the service account key', 502, body);
-  token = { value: body.access_token, exp: Date.now() + (body.expires_in ?? 3600) * 1000 };
-  return token.value;
+  tokens[kind] = { value: body.access_token, exp: Date.now() + (body.expires_in ?? 3600) * 1000 };
+  return tokens[kind]!.value;
 }
 
 async function get(path: string) {

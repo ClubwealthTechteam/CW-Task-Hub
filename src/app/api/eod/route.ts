@@ -1,12 +1,13 @@
 // EOD reports. Team members load and save their own (a draft through the day, then Submit); super admins
 // get everyone's submitted reports as a live feed.
 
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/current-user';
 import { canReadAllEod, canWriteEod, reportsOf, saveReport, submittedFeed } from '@/lib/eod/store';
 import { LIMITS, emptyReport, pacificDate, reportId, type EodEntry, type EodReport } from '@/lib/eod/report';
 import { PEOPLE } from '@/config/people';
 import { notify } from '@/lib/notifications';
+import { EOD_SHEET_URL, sheetStatus, syncEodSheet } from '@/lib/eod/sheet';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +22,8 @@ export async function GET(req: Request) {
   const q = new URL(req.url).searchParams;
   if (q.get('feed')) {
     if (!canReadAllEod(user)) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    return NextResponse.json({ feed: await submittedFeed() });
+    const [feed, sheet] = await Promise.all([submittedFeed(), sheetStatus()]);
+    return NextResponse.json({ feed, sheet: { ...sheet, url: EOD_SHEET_URL } });
   }
   const date = q.get('date') || pacificDate();
   if (!validDate(date)) return NextResponse.json({ error: 'Pick a date within the last 30 days' }, { status: 400 });
@@ -64,5 +66,7 @@ export async function POST(req: Request) {
     await Promise.all(PEOPLE.filter((p) => canReadAllEod(p) && p.id !== user.id).map((p) =>
       notify(p.id, { kind: 'eod', title: `EOD report · ${first}`, body: `${entries.length} task${entries.length === 1 ? '' : 's'} · ${date}`, href: `/eod#${report.id.replace(':', '-')}` }).catch(() => null)));
   }
+  // Submitted reports (and edits to them) are copied to the EOD Google Sheet.
+  if (report.status === 'submitted') after(() => syncEodSheet(user.id));
   return NextResponse.json({ report });
 }

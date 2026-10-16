@@ -276,6 +276,7 @@ function Writer({ readOnly }: { readOnly: boolean }) {
 
 function Feed({ people }: { people: EodPerson[] }) {
   const [feed, setFeed] = useState<EodReport[] | null>(null);
+  const [sheet, setSheet] = useState<{ ok?: boolean; at?: number; error?: string; url: string } | null>(null);
   const [who, setWho] = useState<string>('all');
   const [open, setOpen] = useState<string | null>(null);
   const [copied, setCopied] = useState('');
@@ -286,7 +287,7 @@ function Feed({ people }: { people: EodPerson[] }) {
     const res = await fetch('/api/eod?feed=1', { cache: 'no-store' });
     const b = await res.json().catch(() => ({}));
     if (!res.ok) return setError(b.error || 'Couldn’t load reports');
-    setFeed(b.feed ?? []); setError('');
+    setFeed(b.feed ?? []); setSheet(b.sheet ?? null); setError('');
   }, []);
   // Live: new submissions show up without a reload.
   useEffect(() => {
@@ -324,7 +325,13 @@ function Feed({ people }: { people: EodPerson[] }) {
             <h2>Today · {longDate(today)}</h2>
             <p className="muted small">Reports appear here the moment someone submits. This page checks for new ones every 30 seconds.</p>
           </div>
+          {sheet && (
+            <a className="btn" href={sheet.url} target="_blank" rel="noreferrer">Open the EOD sheet ↗</a>
+          )}
         </div>
+        {sheet?.at && (sheet.ok
+          ? <p className="muted small" style={{ margin: 0 }}>Google Sheet updated {atTime(sheet.at)}: each person’s tab plus All submissions.</p>
+          : <p className="note" role="alert" style={{ margin: 0 }}>Couldn’t update the Google Sheet: {sheet.error}</p>)}
         <div className="row">
           {people.map((p) => (
             <span key={p.id} className={`pill${inToday.has(p.id) ? ' live' : ''}`} title={inToday.has(p.id) ? 'Submitted today' : 'Not submitted yet'}>

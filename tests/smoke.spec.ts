@@ -89,6 +89,12 @@ test('EOD report: a team member submits it and a super admin sees it in the feed
   await signIn(member, 'ali');
   await member.goto('/eod');
   await expect(member.getByRole('heading', { level: 1 })).toHaveText('My EOD report');
+  // Paste from an EOD sheet (Time column + a day column), then fix one row by hand.
+  await member.getByLabel('Paste your EOD sheet').fill('Time\tThursday\n6:30 AM\tPrepared shift log\n7:00 AM\tConnected Keap\n7:30 AM\tDAILY HUDDLE\n8:00 AM\t');
+  await expect(member.getByText('Found 3 tasks')).toBeVisible();
+  await member.getByRole('button', { name: 'Use these 3 tasks' }).click();
+  await expect(member.getByLabel('Row 3 task')).toHaveValue('DAILY HUDDLE');
+  await member.getByRole('tab', { name: 'Type it in' }).click();
   await member.getByLabel('Row 1 task').fill('Smoke test DHR pulls');
   await member.getByLabel('Row 1 notes').fill('Pulled and reviewed numbers');
   await member.getByLabel('Row 1: I do this every day').check();

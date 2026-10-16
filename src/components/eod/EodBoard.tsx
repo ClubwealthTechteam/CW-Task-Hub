@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  PROMPT_MAX, automationPrompt, blankEntry, longDate, minutes, pacificDate, reportText, slot,
+  PROMPT_MAX, automationPrompt, blankEntry, longDate, minutes, pacificDate, parsePasted, reportText, slot,
   type EodEntry, type EodReport,
 } from '@/lib/eod/report';
 
@@ -61,6 +61,9 @@ function Writer({ readOnly }: { readOnly: boolean }) {
   const [saving, setSaving] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [how, setHow] = useState<'paste' | 'type'>('paste');
+  const [pasted, setPasted] = useState('');
+  const [day, setDay] = useState<number | undefined>(undefined);
   const dirty = useRef(false);
 
   const load = useCallback(async (d: string) => {
@@ -70,6 +73,8 @@ function Writer({ readOnly }: { readOnly: boolean }) {
     if (!res.ok) return setError(b.error || 'Couldn’t load your report');
     const r: EodReport = b.report;
     setReport(r.entries.length ? r : { ...r, entries: [blankEntry('05:30', '06:00')] });
+    // An empty day starts on "Paste my EOD sheet"; a day already filled in opens its rows.
+    setHow(r.entries.length ? 'type' : 'paste'); setPasted(''); setDay(undefined);
     setRecent(b.recent ?? []);
   }, []);
   useEffect(() => { load(date); }, [date, load]);
@@ -116,6 +121,18 @@ function Writer({ readOnly }: { readOnly: boolean }) {
     if (r) setReport(r);
   }
 
+  const parsed = pasted.trim() ? parsePasted(pasted, day) : null;
+  const hasRows = report.entries.some((e) => e.task.trim() || e.notes.trim());
+  // Tasks they ticked as Daily before stay ticked when the same task comes in from the sheet.
+  const knownDaily = new Set(recent.flatMap((r) => r.entries.filter((e) => e.daily).map((e) => e.task.trim().toLowerCase())));
+  const usePasted = (mode: 'replace' | 'add') => {
+    if (!parsed?.rows.length) return;
+    const rows = parsed.rows.map((p) => ({ ...blankEntry(p.start, p.end), task: p.task, notes: p.notes, daily: knownDaily.has(p.task.toLowerCase()) }));
+    const kept = mode === 'add' ? report.entries.filter((e) => e.task.trim() || e.notes.trim()) : [];
+    change({ entries: [...kept, ...rows].sort((a, b) => (a.start || '99').localeCompare(b.start || '99')) });
+    setPasted(''); setHow('type');
+  };
+
   const submitted = report.status === 'submitted';
   const filled = report.entries.filter((e) => e.task.trim());
   return (
@@ -137,6 +154,45 @@ function Writer({ readOnly }: { readOnly: boolean }) {
           </div>
         </div>
 
+        {!readOnly && (
+          <div className="eod-how" role="tablist" aria-label="How to fill in your report">
+            <button role="tab" aria-selected={how === 'paste'} className={`chip-btn${how === 'paste' ? ' on' : ''}`} onClick={() => setHow('paste')}>Paste my EOD sheet</button>
+            <button role="tab" aria-selected={how === 'type'} className={`chip-btn${how === 'type' ? ' on' : ''}`} onClick={() => setHow('type')}>Type it in</button>
+          </div>
+        )}
+
+        {!readOnly && how === 'paste' && (
+          <div className="eod-paste">
+            <p className="muted small" style={{ margin: 0 }}>
+              In your EOD sheet, select the <b>Time</b> column and today’s column (or the whole week), copy, and paste below. The emailed PDS layout works too.
+            </p>
+            <textarea aria-label="Paste your EOD sheet" rows={7} value={pasted} onChange={(e) => { setPasted(e.target.value); setDay(undefined); }}
+              placeholder={'6:30 AM\tPrepared shift log, checked Hot/Urgent list…\n7:00 AM\tConnected Keap to the Monitoring dashboard…\n7:30 AM\tDAILY HUDDLE'} />
+            {parsed && (
+              <div className="row">
+                {parsed.columns.length > 1 && (
+                  <label className="field eod-date"><span>Which day?</span>
+                    <select value={parsed.column} onChange={(e) => setDay(Number(e.target.value))}>
+                      {parsed.columns.map((c, i) => <option key={i} value={i}>{c}</option>)}
+                    </select>
+                  </label>
+                )}
+                <span className="muted small" aria-live="polite">
+                  {parsed.rows.length ? `Found ${parsed.rows.length} task${parsed.rows.length === 1 ? '' : 's'}${parsed.rows[0].start ? ` · ${slot({ ...blankEntry(parsed.rows[0].start), end: parsed.rows.at(-1)!.end })}` : ''}` : 'No tasks found. Make sure the Time column is included.'}
+                </span>
+              </div>
+            )}
+            {parsed && parsed.rows.length > 0 && (
+              <div className="row">
+                <button className="btn primary" onClick={() => usePasted('replace')}>{hasRows ? 'Replace my rows with these' : `Use these ${parsed.rows.length} tasks`}</button>
+                {hasRows && <button className="btn" onClick={() => usePasted('add')}>Add to my rows</button>}
+                <span className="muted small">You can check them, tick Daily and edit before you submit.</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {(readOnly || how === 'type') && (<>
         <div className="eod-tablewrap">
           <table className="eod-table eod-edit">
             <thead><tr><th>Start</th><th>End</th><th>Task</th><th>Notes and numbers</th><th title="I do this every day">Daily</th><th aria-label="Remove" /></tr></thead>
@@ -145,7 +201,7 @@ function Writer({ readOnly }: { readOnly: boolean }) {
                 <tr key={e.id}>
                   <td><input type="time" step={900} value={e.start} aria-label={`Row ${i + 1} start`} disabled={readOnly} onChange={(ev) => setEntry(e.id, { start: ev.target.value })} /></td>
                   <td><input type="time" step={900} value={e.end} aria-label={`Row ${i + 1} end`} disabled={readOnly} onChange={(ev) => setEntry(e.id, { end: ev.target.value })} /></td>
-                  <td><input value={e.task} maxLength={160} placeholder="e.g. Daily Huddle Report pulls" aria-label={`Row ${i + 1} task`} disabled={readOnly} onChange={(ev) => setEntry(e.id, { task: ev.target.value })} /></td>
+                  <td><textarea value={e.task} maxLength={300} rows={Math.min(6, Math.max(1, Math.ceil(e.task.length / 60)))} placeholder="e.g. Daily Huddle Report pulls" aria-label={`Row ${i + 1} task`} disabled={readOnly} onChange={(ev) => setEntry(e.id, { task: ev.target.value.replace(/\n/g, ' ') })} /></td>
                   <td><textarea value={e.notes} rows={Math.min(6, Math.max(1, e.notes.split('\n').length))} placeholder="What you did, counts, who you helped" aria-label={`Row ${i + 1} notes`} disabled={readOnly} onChange={(ev) => setEntry(e.id, { notes: ev.target.value })} /></td>
                   <td className="eod-c"><input type="checkbox" checked={e.daily} aria-label={`Row ${i + 1}: I do this every day`} disabled={readOnly} onChange={(ev) => setEntry(e.id, { daily: ev.target.checked })} /></td>
                   <td className="eod-c">{!readOnly && <button className="linkbtn" aria-label={`Remove row ${i + 1}`} onClick={() => change({ entries: report.entries.filter((x) => x.id !== e.id) })}>×</button>}</td>
@@ -161,6 +217,7 @@ function Writer({ readOnly }: { readOnly: boolean }) {
             <span className="muted small">Tick <b>Daily</b> on tasks you do every day; those are the ones we look at automating first.</span>
           </div>
         )}
+        </>)}
 
         <div className="eod-extras">
           <label className="field"><span>Highlights</span><textarea rows={2} value={report.highlights} disabled={readOnly} placeholder="Wins and numbers worth seeing first" onChange={(e) => change({ highlights: e.target.value })} /></label>

@@ -1399,7 +1399,7 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
 .eod-table th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 .eod-table td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .eod-edit td:nth-child(1), .eod-edit td:nth-child(2) { width: 118px; }
-.eod-edit td:nth-child(3) { width: 26%; }
+.eod-edit td:nth-child(3) { width: 40%; }
 .eod-edit input[type="time"], .eod-edit input:not([type]), .eod-edit textarea { width: 100%; border: 1px solid var(--line-strong); border-radius: 7px; padding: 6px 8px; background: var(--surface); }
 .eod-edit textarea { resize: vertical; min-height: 34px; }
 .eod-c { text-align: center; width: 54px; }
@@ -1416,3 +1416,6 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
 .eod-dgroup ul { margin: 6px 0 0; padding-left: 18px; font-size: 13.5px; }
 @media (max-width: 760px) { .eod-extras { grid-template-columns: 1fr; } }
 .eod .chip-btn.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+.eod-how { display: flex; gap: 8px; flex-wrap: wrap; }
+.eod-paste { display: flex; flex-direction: column; gap: 10px; }
+.eod-paste textarea { width: 100%; border: 1px solid var(--line-strong); border-radius: 8px; padding: 10px 12px; font: 13px/1.5 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; resize: vertical; tab-size: 12; }

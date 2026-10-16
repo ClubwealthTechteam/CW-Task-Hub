@@ -24,7 +24,7 @@ export default async function EodPage() {
           <h1>{read ? 'Team EOD reports' : 'My EOD report'}</h1>
           <p>{read
             ? 'Every end-of-day report in one place, live as each person submits. Open one and ask the CW Assistant which tasks could be automated.'
-            : 'Your end-of-day report lives here now, instead of email. Log each task with its time and numbers as you go, tick the ones you do every day, and submit at the end of your shift.'}</p>
+            : 'Your end-of-day report lives here now, instead of email. Paste it straight from your EOD sheet or type it in, tick the tasks you do every day, and submit at the end of your shift.'}</p>
         </section>
         <EodBoard mode={read ? 'read' : 'write'} people={people} readOnly={preview} />
       </main>

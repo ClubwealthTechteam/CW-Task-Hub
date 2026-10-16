@@ -12,6 +12,7 @@ Stack: **Next.js 14 (App Router) + TypeScript**, deployed on **Vercel**. The bac
 | Client Care | Jowee, Jizel, Joshua |
 | Social Media | Jay Mar |
 | Video Editing | Randy |
+| AIM Team | Becky |
 | Admin | Kathleen, Amrissa, Camille |
 | Tech *(admins only)* | Miguel, Omerson |
 

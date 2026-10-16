@@ -13,6 +13,7 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   // Oct 16
+  { date: '2026-10-16', kind: 'new', area: 'People', title: 'Becky Namarome added (AIM Team)', detail: 'New AIM Team department with Becky, for EOD reports.' },
   { date: '2026-10-16', kind: 'new', area: 'People', title: 'Randy Lopez added (Video Editing)', detail: 'New Video Editing department with Randy, for EOD reports.' },
   { date: '2026-10-16', kind: 'new', area: 'EOD reports', title: 'Miguel can delete EOD reports', detail: 'A Delete report button (with a confirm) on each report in Team reports, for Miguel only. The report is also removed from the EOD sheet.' },
   { date: '2026-10-16', kind: 'removed', area: 'People', title: 'JP removed from the hub', detail: 'No longer with Club Wealth: removed from Social Media, sign-in, EOD reports and the EOD sheet.' },

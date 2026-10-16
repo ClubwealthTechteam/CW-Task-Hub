@@ -198,6 +198,12 @@ function Writer({ readOnly }: { readOnly: boolean }) {
                 </span>
               </div>
             )}
+            {hasRows && !parsed && (
+              <p className="muted small" style={{ margin: 0 }}>
+                You have {report.entries.filter((e) => e.task.trim()).length} tasks in this report. Review and submit them under{' '}
+                <button className="linkbtn" onClick={() => setHow('type')}>Type it in</button>.
+              </p>
+            )}
             {parsed && parsed.rows.length > 0 && (
               <div className="row">
                 <button className="btn primary" onClick={() => usePasted('replace')}>{hasRows ? 'Replace my rows with these' : `Use these ${parsed.rows.length} tasks`}</button>
@@ -233,7 +239,6 @@ function Writer({ readOnly }: { readOnly: boolean }) {
             <span className="muted small">Tick <b>Daily</b> on tasks you do every day; those are the ones we look at automating first.</span>
           </div>
         )}
-        </>)}
 
         <div className="eod-extras">
           <label className="field"><span>Highlights</span><textarea rows={2} value={report.highlights} disabled={readOnly} placeholder="Wins and numbers worth seeing first" onChange={(e) => change({ highlights: e.target.value })} /></label>
@@ -241,7 +246,6 @@ function Writer({ readOnly }: { readOnly: boolean }) {
           <label className="field"><span>Plan for tomorrow</span><textarea rows={2} value={report.tomorrow} disabled={readOnly} onChange={(e) => change({ tomorrow: e.target.value })} /></label>
         </div>
 
-        {error && <p className="note" role="alert" style={{ margin: 0 }}>{error}</p>}
         {!readOnly && (
           <div className="row">
             {submitted
@@ -253,6 +257,8 @@ function Writer({ readOnly }: { readOnly: boolean }) {
             </span>
           </div>
         )}
+        </>)}
+        {error && <p className="note" role="alert" style={{ margin: 0 }}>{error}</p>}
         {readOnly && <p className="muted small">You’re previewing this view, so it’s read-only.</p>}
       </section>
 

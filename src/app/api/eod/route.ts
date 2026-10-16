@@ -47,12 +47,15 @@ export async function POST(req: Request) {
   })).filter((e: EodEntry) => e.task || e.notes.trim());
   const submit = Boolean(b.submit);
   if (submit && !entries.length) return NextResponse.json({ error: 'Add at least one task before submitting' }, { status: 400 });
+  const n = b.tasksCompleted === '' || b.tasksCompleted == null ? null : Number(b.tasksCompleted);
+  const tasksCompleted = n != null && Number.isInteger(n) && n >= 0 && n <= 999 ? n : null;
+  if (submit && tasksCompleted == null) return NextResponse.json({ error: 'Add how many tasks you completed' }, { status: 400 });
 
   const prev = (await reportsOf(user.id)).find((r) => r.id === reportId(user.id, date));
   const wasSubmitted = prev?.status === 'submitted';
   const report: EodReport = {
     id: reportId(user.id, date), uid: user.id, date, entries,
-    highlights: str(b.highlights, LIMITS.text), blockers: str(b.blockers, LIMITS.text), tomorrow: str(b.tomorrow, LIMITS.text),
+    highlights: str(b.highlights, LIMITS.text), blockers: str(b.blockers, LIMITS.text), tomorrow: str(b.tomorrow, LIMITS.text), tasksCompleted,
     // Once submitted it stays submitted; later saves mark it edited.
     status: submit || wasSubmitted ? 'submitted' : 'draft',
     submittedAt: prev?.submittedAt ?? (submit ? Date.now() : undefined),

@@ -38,7 +38,7 @@ function summaryRow(r: EodReport): (string | number)[] {
   const p = personById(r.uid);
   return [
     r.date, p?.name ?? r.uid, DEPARTMENTS.find((d) => d.id === p?.departments[0])?.name ?? '',
-    r.entries.length, hours(r), r.entries.filter((e) => e.daily).map((e) => e.task).join('\n'),
+    r.tasksCompleted ?? r.entries.length, hours(r), r.entries.filter((e) => e.daily).map((e) => e.task).join('\n'),
     r.highlights, r.blockers, r.tomorrow, when(r.submittedAt), r.edited ? 'Yes' : '',
   ];
 }

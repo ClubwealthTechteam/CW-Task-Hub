@@ -18,6 +18,8 @@ export interface EodReport {
   highlights: string;
   blockers: string;
   tomorrow: string;
+  /** "How many tasks have you completed?", answered by the person (not the number of rows). */
+  tasksCompleted?: number | null;
   status: 'draft' | 'submitted';
   submittedAt?: number;
   updatedAt: number;
@@ -65,6 +67,7 @@ export function reportText(r: EodReport, name: string) {
     lines.push(`${slot(e) || '(no time)'} | ${e.task}${e.daily ? ' [daily]' : ''}`);
     for (const n of e.notes.split('\n').filter((l) => l.trim())) lines.push(`   ${n.trim()}`);
   }
+  if (r.tasksCompleted != null) lines.push('', `Tasks completed: ${r.tasksCompleted}`);
   if (r.highlights.trim()) lines.push('', `Highlights: ${r.highlights.trim()}`);
   if (r.blockers.trim()) lines.push('', `Blockers / needs help: ${r.blockers.trim()}`);
   if (r.tomorrow.trim()) lines.push('', `Plan for tomorrow: ${r.tomorrow.trim()}`);

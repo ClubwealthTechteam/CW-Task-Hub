@@ -13,6 +13,7 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   // Oct 16
+  { date: '2026-10-16', kind: 'new', area: 'EOD reports', title: '“How many tasks have you completed?” on EOD reports', detail: 'Asked before submitting. This number (not the number of rows) is what the EOD sheet and the Monitoring Dashboard count as tasks.' },
   { date: '2026-10-16', kind: 'new', area: 'People', title: 'Becky Namarome added (AIM Team)', detail: 'New AIM Team department with Becky, for EOD reports.' },
   { date: '2026-10-16', kind: 'new', area: 'People', title: 'Randy Lopez added (Video Editing)', detail: 'New Video Editing department with Randy, for EOD reports.' },
   { date: '2026-10-16', kind: 'new', area: 'EOD reports', title: 'Miguel can delete EOD reports', detail: 'A Delete report button (with a confirm) on each report in Team reports, for Miguel only. The report is also removed from the EOD sheet.' },

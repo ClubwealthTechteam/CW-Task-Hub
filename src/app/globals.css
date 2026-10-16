@@ -1460,3 +1460,4 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
 .bell-soon::after, .hdr-search.soon::after { top: calc(100% + 6px); left: auto; right: 0; transform: none; }
 @media (max-width: 1080px) { .soon { padding: 10px 0 9px; font-size: 14px; } .bell-soon { order: 2; } }
 .eod-delbtn { margin-left: auto; color: #b3261e; border-color: #e6b8b4; } .eod-del { margin-left: auto; }
+.eod-count { max-width: 280px; } .eod-count input { border: 1px solid var(--line-strong); border-radius: 8px; padding: 7px 9px; }

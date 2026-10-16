@@ -87,6 +87,7 @@ test('EOD report: a team member submits it and a super admin sees it in the feed
   await member.getByLabel('Row 1 notes').fill('Pulled and reviewed numbers');
   await member.getByLabel('Row 1: I do this every day').check();
   await expect(member.getByText('Draft saved')).toBeVisible();
+  await member.getByLabel('How many tasks have you completed?').fill('9');
   await member.getByRole('button', { name: 'Submit EOD report' }).click();
   // Submitting clears the form for the next report; the sent one stays under My reports.
   await expect(member.getByRole('status')).toContainText('was submitted');
@@ -101,6 +102,7 @@ test('EOD report: a team member submits it and a super admin sees it in the feed
   await expect(admin.getByRole('heading', { level: 1 })).toHaveText('Team EOD reports');
   await admin.getByRole('button', { name: /Ali-Ace Berico/ }).click();
   await expect(admin.getByRole('cell', { name: /Smoke test DHR pulls/ })).toBeVisible();
+  await expect(admin.getByText('9 tasks completed', { exact: false })).toBeVisible();
   await admin.getByRole('button', { name: 'Find automation ideas' }).click();
   await expect(admin.locator('#cwa-input')).toHaveValue(/EOD report/);
 
@@ -108,6 +110,7 @@ test('EOD report: a team member submits it and a super admin sees it in the feed
   await admin.getByRole('tab', { name: 'My EOD report' }).click();
   await admin.getByRole('tab', { name: 'Type it in' }).click();
   await admin.getByLabel('Row 1 task').fill('Smoke test admin task');
+  await admin.getByLabel('How many tasks have you completed?').fill('4');
   await admin.getByRole('button', { name: 'Submit EOD report' }).click();
   await expect(admin.getByRole('status')).toContainText('was submitted');
   await admin.getByRole('tab', { name: 'Team reports' }).click();

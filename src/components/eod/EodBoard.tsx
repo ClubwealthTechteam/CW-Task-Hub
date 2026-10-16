@@ -46,7 +46,7 @@ function ReportView({ r }: { r: EodReport }) {
           </tbody>
         </table>
       </div>
-      {[['Highlights', r.highlights], ['Blockers / needs help', r.blockers], ['Plan for tomorrow', r.tomorrow]].filter(([, v]) => v.trim()).map(([k, v]) => (
+      {[['Tasks completed', r.tasksCompleted != null ? String(r.tasksCompleted) : ''], ['Highlights', r.highlights], ['Blockers / needs help', r.blockers], ['Plan for tomorrow', r.tomorrow]].filter(([, v]) => v.trim()).map(([k, v]) => (
         <div key={k} className="eod-extra"><span className="eyebrow">{k}</span><p>{v}</p></div>
       ))}
     </div>
@@ -240,6 +240,11 @@ function Writer({ readOnly }: { readOnly: boolean }) {
           </div>
         )}
 
+        <label className="field eod-count"><span>How many tasks have you completed?</span>
+          <input type="number" min={0} max={999} step={1} inputMode="numeric" value={report.tasksCompleted ?? ''} disabled={readOnly} placeholder="e.g. 12"
+            onChange={(e) => change({ tasksCompleted: e.target.value === '' ? null : Math.max(0, Math.min(999, Math.floor(Number(e.target.value)))) })} />
+        </label>
+
         <div className="eod-extras">
           <label className="field"><span>Highlights</span><textarea rows={2} value={report.highlights} disabled={readOnly} placeholder="Wins and numbers worth seeing first" onChange={(e) => change({ highlights: e.target.value })} /></label>
           <label className="field"><span>Blockers / needs help</span><textarea rows={2} value={report.blockers} disabled={readOnly} placeholder="Anything stuck or waiting on someone" onChange={(e) => change({ blockers: e.target.value })} /></label>
@@ -250,7 +255,7 @@ function Writer({ readOnly }: { readOnly: boolean }) {
           <div className="row">
             {submitted
               ? <button className="btn primary" disabled={busy || !dirty.current} onClick={submit}>{busy ? 'Saving…' : 'Save changes'}</button>
-              : <button className="btn primary" disabled={busy || !filled.length} onClick={submit}>{busy ? 'Submitting…' : 'Submit EOD report'}</button>}
+              : <button className="btn primary" disabled={busy || !filled.length || report.tasksCompleted == null} onClick={submit}>{busy ? 'Submitting…' : 'Submit EOD report'}</button>}
             <span className="muted small" aria-live="polite">
               {saving === 'saving' ? 'Saving…' : saving === 'saved' ? (submitted ? 'Saved' : 'Draft saved') : ''}
               {filled.length ? ` · ${filled.length} task${filled.length === 1 ? '' : 's'}${hours(report) ? ` · ${hours(report)}` : ''}` : ''}
@@ -388,7 +393,7 @@ function Feed({ people, canDelete }: { people: EodPerson[]; canDelete: boolean }
                   <button className="wp-row" onClick={() => setOpen(isOpen ? null : domId(r))} aria-expanded={isOpen}>
                     <span className="wp-ava">{n.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()}</span>
                     <span className="wp-who"><b>{n} · {longDate(r.date)}</b>
-                      <span className="muted small">{r.entries.length} tasks{hours(r) ? ` · ${hours(r)}` : ''}{r.entries.some((e) => e.daily) ? ` · ${r.entries.filter((e) => e.daily).length} daily` : ''} · submitted {atTime(r.submittedAt)}{r.edited ? ' · edited' : ''}</span>
+                      <span className="muted small">{r.tasksCompleted != null ? `${r.tasksCompleted} tasks completed · ` : ''}{r.entries.length} entries{hours(r) ? ` · ${hours(r)}` : ''}{r.entries.some((e) => e.daily) ? ` · ${r.entries.filter((e) => e.daily).length} daily` : ''} · submitted {atTime(r.submittedAt)}{r.edited ? ' · edited' : ''}</span>
                     </span>
                     {r.blockers.trim() && <span className="pill req">Needs help</span>}
                   </button>

@@ -54,7 +54,7 @@ Every signed-in page shows a Messenger-style bubble in the bottom-right corner (
 
 ## Sign-in (temporary)
 
-Until CW University or Google sign-in is connected, people pick their name and type their own access code (`HUB_ACCESS_CODES`, a JSON map of person id → code set only in Vercel; five wrong codes lock that name for 15 minutes). The old shared `HUB_ACCESS_CODE` only works while `HUB_ACCESS_CODES` is unset. The session is an HMAC-signed cookie (`SESSION_SECRET`). Switching to real logins only changes `src/lib/auth/` and `src/app/api/auth/`; pages and APIs read the user from `getCurrentUser()`.
+Until CW University or Google sign-in is connected, people pick their name and type their own access code (`HUB_ACCESS_CODES`, a JSON map of person id → code set only in Vercel; five wrong codes lock that name for 15 minutes). The old shared `HUB_ACCESS_CODE` only works while `HUB_ACCESS_CODES` is unset. `HUB_ACCESS_CODES` is a write-only Secret in Vercel, so changing it means pasting the whole JSON again (Production and Preview); the change only takes effect after a new deploy (Redeploy, or any push to main). The session is an HMAC-signed cookie (`SESSION_SECRET`). Switching to real logins only changes `src/lib/auth/` and `src/app/api/auth/`; pages and APIs read the user from `getCurrentUser()`.
 
 ## Project layout
 

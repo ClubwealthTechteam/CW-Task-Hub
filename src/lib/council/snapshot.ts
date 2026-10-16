@@ -125,7 +125,7 @@ export async function buildSnapshot() {
   };
 
   return {
-    hub: 'https://cw-ai-task-hub.vercel.app',
+    hub: 'https://cw-admin-hub.vercel.app',
     takenAt: new Date(now).toISOString(),
     deployment: { commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null, message: cut(process.env.VERCEL_GIT_COMMIT_MESSAGE, 120) || null, env: process.env.VERCEL_ENV ?? null },
     settingsPresent: Object.fromEntries(ENV_NAMES.map((n) => [n, Boolean(process.env[n])])),

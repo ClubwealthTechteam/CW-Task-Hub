@@ -4,7 +4,7 @@
 import type { Conversation } from './store';
 import { fileToken } from './files';
 
-const HUB = 'https://cw-ai-task-hub.vercel.app';
+const HUB = 'https://cw-admin-hub.vercel.app';
 const MAX = 8;
 
 export async function filesContext(conv: Conversation, canMakeGraphics: boolean, canvaConnected = false): Promise<string> {

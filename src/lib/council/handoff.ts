@@ -30,7 +30,7 @@ export function buildHandoff(report: Report): string {
     `CW Hub Council hand-off — fix list (${date} Pacific)`,
     `Council verdict: ${report.headline}`,
     '',
-    'Context for Claude Code: this is the CW AI Task Hub (repo ClubwealthTechteam/CW-Task-Hub, Next.js on Vercel, https://cw-ai-task-hub.vercel.app). Keap and every other integration stay read-only. Please confirm each item against the code before changing anything, fix the hot items first, and tell me what you changed.',
+    'Context for Claude Code: this is the CW AI Task Hub (repo ClubwealthTechteam/CW-Task-Hub, Next.js on Vercel, https://cw-admin-hub.vercel.app). Keap and every other integration stay read-only. Please confirm each item against the code before changing anything, fix the hot items first, and tell me what you changed.',
     '',
     `🔥 HOT (${hot.length})`,
     hot.length ? hot.map(line).join('\n\n') : 'None.',

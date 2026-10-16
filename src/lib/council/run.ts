@@ -7,7 +7,7 @@ import { listRuns, newRunId, runToken, saveRuns } from './store';
 import type { Run } from './agents';
 
 const DEFAULT_ROUTINE_ID = 'trig_01WpqBqC29kwsC4Lz4HcyXUz'; // "CW Hub Council" routine
-const HUB = 'https://cw-ai-task-hub.vercel.app';
+const HUB = 'https://cw-admin-hub.vercel.app';
 
 export const councilConfigured = () => Boolean(process.env.CLAUDE_COUNCIL_ROUTINE_TOKEN);
 

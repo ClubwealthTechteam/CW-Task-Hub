@@ -1,6 +1,6 @@
 # Nightly backup of the hub's data. Saves it as a private artifact on this repository for 30 days
 # (Actions → Nightly backup → a run → Artifacts). Needs two repository secrets:
-#   HUB_URL        e.g. https://cw-ai-task-hub.vercel.app
+#   HUB_URL        e.g. https://cw-admin-hub.vercel.app
 #   BACKUP_SECRET  the same value as BACKUP_SECRET in Vercel (any long random text)
 name: Nightly backup
 

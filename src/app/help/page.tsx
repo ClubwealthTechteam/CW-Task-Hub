@@ -47,7 +47,7 @@ export default async function HelpPage() {
         </nav>
 
         <Guide id="start" title="Your first sign-in" time="1 min" steps={[
-          <>Go to <b>cw-ai-task-hub.vercel.app</b> (or the AI Task Hub tab in CW University).</>,
+          <>Go to <b>cw-admin-hub.vercel.app</b> (or the AI Task Hub tab in CW University).</>,
           <>Pick <b>your name</b> and type <b>your own access code</b> (Miguel sends it to you). Don’t share it; it’s only for you.</>,
           <>You land in your department’s workspace. On the left are <b>your tasks</b>; nobody else sees them.</>,
           <>A short tour shows you around the first time. You can replay it any time from this page.</>,

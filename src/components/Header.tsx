@@ -15,8 +15,8 @@ const Soon = ({ children, className = '' }: { children: React.ReactNode; classNa
   <span className={`soon ${className}`} tabIndex={0} aria-disabled="true" data-tip={SOON} aria-description={SOON}>{children}</span>
 );
 
-/** Team members' header while only EOD reports are open to them: everything else is greyed out. */
-function LockedHeader({ user, initials }: { user: Person; initials: string }) {
+/** Team members' header while only EOD reports and the SOP Handbook are open to them: everything else is greyed out. */
+function LockedHeader({ user, initials, current }: { user: Person; initials: string; current?: string }) {
   return (
     <header className="topbar">
       <div className="topbar-inner">
@@ -27,7 +27,8 @@ function LockedHeader({ user, initials }: { user: Person; initials: string }) {
         <nav className="nav" aria-label="AI Task Hub">
           <Soon className="hub">AI Task Hub <em>NEW</em></Soon>
           <Soon>My workspace</Soon>
-          <Link href="/eod" aria-current="page">EOD reports</Link>
+          <Link href="/eod" aria-current={current === 'sop' ? undefined : 'page'}>EOD reports</Link>
+          <Link href="/sop" aria-current={current === 'sop' ? 'page' : undefined}>SOP Handbook</Link>
           <Soon>Updates</Soon>
           <Soon>Help</Soon>
           <Soon>Integrations ▾</Soon>
@@ -52,7 +53,7 @@ export function Header({ user, current }: { user: Person; current?: string }) {
   const depts = visibleDepartments(user);
   const admin = isSuperAdmin(user);
   const initials = user.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('');
-  if (eodOnly(user)) return <LockedHeader user={user} initials={initials} />;
+  if (eodOnly(user)) return <LockedHeader user={user} initials={initials} current={current} />;
   const cur = (key: string) => (current === key ? 'page' : undefined);
   // External apps this person can open: Keap and Eventbrite have their own read-only tabs; the rest
   // are managed on the Integrations page (super admins).
@@ -78,6 +79,7 @@ export function Header({ user, current }: { user: Person; current?: string }) {
             <DepartmentsMenu depts={depts.map((d) => ({ id: d.id, name: d.name, blurb: d.blurb, adminsOnly: d.hidden }))} current={current} />
           )}
           <Link href="/eod" aria-current={cur('eod')}>EOD reports</Link>
+          <Link href="/sop" aria-current={cur('sop')}>SOP Handbook</Link>
           {admin && <Link href="/council" aria-current={cur('council')}>Council</Link>}
           <Link href="/updates" aria-current={cur('updates')}>Updates</Link>
           <Link href="/help" aria-current={cur('help')}>Help</Link>

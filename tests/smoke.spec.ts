@@ -45,6 +45,24 @@ test('team members only have EOD reports for now: other pages send them there, t
   expect(errors).toEqual([]);
 });
 
+test('the SOP Handbook is open to team members: index, an article, the POC log and the out switch', async ({ page }) => {
+  const errors = watchErrors(page);
+  await signIn(page, 'ali');
+  await page.goto('/sop');
+  await expect(page).toHaveURL(/\/sop$/);
+  await expect(page.getByRole('link', { name: 'SOP Handbook' })).toHaveAttribute('aria-current', 'page');
+  await page.getByRole('button', { name: 'I’m out today' }).click();
+  await expect(page.locator('tr', { hasText: 'EV-01' }).getByText('Out today')).toBeVisible();
+  await page.getByRole('button', { name: 'I’m back' }).click();
+  await page.getByRole('link', { name: 'EV-01' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Half-Day Event attendance tagging');
+  await page.getByLabel('What was done').fill('Smoke test log row');
+  await page.getByRole('button', { name: 'Add log row' }).click();
+  await expect(page.locator('.sop-log')).toContainText('Smoke test log row');
+  expect((await page.request.post('/api/sop/log', { data: { id: 'XX-99', what: 'x' } })).status()).toBe(404);
+  expect(errors).toEqual([]);
+});
+
 test('team members cannot open other departments or the team EOD feed', async ({ page }) => {
   await signIn(page, 'jaymar');
   await page.goto('/w/events');

@@ -4,7 +4,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { PREVIEW_COOKIE, SESSION_COOKIE, verifySession } from '@/lib/auth/session';
 import { personById } from '@/config/people';
-import { EOD_HOME, eodOnly } from '@/lib/access';
+import { EOD_HOME, eodOnly, membersOpen } from '@/lib/access';
 
 // /api/chat/reply is called by the CW Assistant routine, which proves itself with a per-message token.
 // /api/zapier/inbox is called by Zaps, which prove themselves with ZAPIER_INBOUND_SECRET.
@@ -30,9 +30,9 @@ export async function middleware(req: NextRequest) {
     if (writing && req.cookies.get(PREVIEW_COOKIE)?.value) {
       return NextResponse.json({ error: 'You’re previewing someone’s view, which is read-only. Exit the preview to make changes.' }, { status: 403 });
     }
-    // Team members only have EOD reports for now: any other page (not files or APIs) goes there.
+    // Team members only have EOD reports and the SOP Handbook for now: any other page (not files or APIs) goes to EOD.
     const page = !pathname.startsWith('/api/') && !/\.[a-z0-9]+$/i.test(pathname);
-    if (page && pathname !== EOD_HOME && eodOnly(personById(session.uid))) {
+    if (page && !membersOpen(pathname) && eodOnly(personById(session.uid))) {
       const url = req.nextUrl.clone();
       url.pathname = EOD_HOME; url.search = '';
       return NextResponse.redirect(url);

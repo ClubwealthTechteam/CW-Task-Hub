@@ -94,7 +94,19 @@ export default async function SopArticlePage({ params }: { params: Promise<{ id:
                   const shot2 = pasted[shotRef(n, 2)] ? `/api/sop/shot/${a.id}/${n}?slot=2&v=${pasted[shotRef(n, 2)]}` : null;
                   return (
                     <li key={i} id={`step-${n}`} className={isDecision(s) ? 'is-decision' : undefined}>
-                      {isDecision(s) ? <DecisionStep d={s} /> : isPlain(s) ? <>{s.body}{s.where && <WhereBox where={s.where} />}</> : s}
+                      {isDecision(s) ? <DecisionStep d={s} /> : isPlain(s) ? (
+                        <>
+                          {s.branch && <span className="sop-branch small">{s.branch}</span>}
+                          {s.body}
+                          {s.where && <WhereBox where={s.where} />}
+                          {s.note && <p className="sop-note small"><b>Note:</b> {s.note}</p>}
+                          {s.next && (
+                            <a className="sop-next sop-next-plain" href={`#step-${s.next.step}`} aria-label={`Next: go to step ${s.next.step}, ${s.next.label}`}>
+                              Next → <b>Step {s.next.step}</b>: {s.next.label}
+                            </a>
+                          )}
+                        </>
+                      ) : s}
                       {(canPaste || shot1 || shot2) && (
                         <div className="sop-shots">
                           {(canPaste || shot1) && <StepShot articleId={a.id} step={n} src={shot1} size={sizes[shotRef(n, 1)]} canEdit={canPaste} />}

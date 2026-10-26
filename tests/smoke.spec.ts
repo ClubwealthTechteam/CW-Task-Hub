@@ -62,14 +62,20 @@ test('the SOP Handbook is open to team members: index, an article, the POC log a
   for (const h of ['Prerequisites', 'Additional Information', 'Steps', 'References']) await expect(page.getByRole('heading', { level: 2, name: h })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Contents' }).getByRole('link', { name: 'Step 3', exact: true })).toHaveAttribute('href', '#step-3');
   // Each step says exactly where: sheet (linked to the tab and cells), tab, cells.
-  const callClaude = page.locator('#step-10 .sop-where tr', { hasText: 'S2 (Call Claude checkbox)' });
+  const callClaude = page.locator('#step-24 .sop-where tr', { hasText: 'S2 (Call Claude checkbox)' });
   await expect(callClaude.getByRole('link', { name: /LIST MAKING CHECKLIST/ })).toHaveAttribute('href', /1mwt8MoYtxJIc5mdcDxCa0S8icLTEDWOI7Xl3z74YfPM\/edit#gid=1824377100&range=S2$/);
   await expect(callClaude).toContainText('Attendance Extracted');
   // Two-way steps show both paths, each with a link to the step to continue with.
-  const matched = page.locator('#step-6');
-  await expect(matched.getByText('Did each person match a registration?')).toBeVisible();
-  await expect(matched.getByRole('region', { name: 'If PHONE_EXACT or NAME_EXACT' }).getByRole('link', { name: /Next: go to step 9/ })).toHaveAttribute('href', '#step-9');
-  await expect(matched.getByRole('region', { name: 'If NO_REGISTRATION_MATCH' }).getByRole('link', { name: /Next: go to step 7/ })).toHaveAttribute('href', '#step-7');
+  // EV-01 follows Miguel's flow node for node: 39 steps.
+  await expect(page.locator('.sop-steps > li')).toHaveCount(39);
+  const matched = page.locator('#step-8');
+  await expect(matched.locator('.sop-ask > div > b')).toHaveText('Matched?');
+  await expect(matched.getByRole('region', { name: 'If PHONE_EXACT / NAME_EXACT' }).getByRole('link', { name: /Next: go to step 9/ })).toHaveAttribute('href', '#step-9');
+  await expect(matched.getByRole('region', { name: 'If NO_REGISTRATION_MATCH' }).getByRole('link', { name: /Next: go to step 11/ })).toHaveAttribute('href', '#step-11');
+  // A path's last step jumps to where the paths meet again, and a flow note shows on its step.
+  await expect(page.locator('#step-10').getByRole('link', { name: /Next: go to step 22/ })).toHaveAttribute('href', '#step-22');
+  await expect(page.locator('#step-7 .sop-note')).toContainText('Event Registration');
+  await expect(page.locator('#step-18 .sop-note img')).toBeVisible();
   await page.getByLabel('What was done').fill('Smoke test log row');
   await page.getByRole('button', { name: 'Add log row' }).click();
   await expect(page.locator('.sop-log')).toContainText('Smoke test log row');
@@ -81,7 +87,7 @@ test('only Miguel can paste a step screenshot on an SOP article; everyone signed
   const errors = watchErrors(page);
   await signIn(page, 'miguel');
   await page.goto('/sop/EV-01');
-  await expect(page.locator('.sop-paste')).toHaveCount(40); // two image slots per step
+  await expect(page.locator('.sop-paste')).toHaveCount(78); // two image slots per step (39 steps)
   // A 2x2 PNG, pasted into step 3's box the way a screenshot would be.
   const png = 'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP8z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg==';
   const paste = (name: string) => page.getByRole('button', { name, exact: true }).evaluate(async (el, b64) => {

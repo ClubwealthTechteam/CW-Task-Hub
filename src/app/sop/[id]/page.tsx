@@ -59,7 +59,26 @@ export default async function SopArticlePage({ params }: { params: Promise<{ id:
 
         <section className="card">
           <h2>Steps</h2>
-          <ol className="sop-steps">{a.steps.map((s, i) => <li key={i}>{s}</li>)}</ol>
+          <ol className="sop-steps">
+            {a.steps.map((s, i) => {
+              const shot = a.shots?.[i + 1];
+              return (
+                <li key={i}>
+                  {s}
+                  {shot ? (
+                    <a href={shot} target="_blank" rel="noreferrer" className="sop-shot">
+                      <img src={shot} alt={`${a.id} step ${i + 1}`} loading="lazy" />
+                    </a>
+                  ) : (
+                    <div className="sop-shot sop-shot-empty" role="img" aria-label={`Screenshot for step ${i + 1} not added yet`}>
+                      <span>Screenshot · step {i + 1}</span>
+                      <span className="muted small">To be added by the Main Admin</span>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
         </section>
 
         <section className="card sop-breaks">

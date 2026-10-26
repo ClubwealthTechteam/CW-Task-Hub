@@ -25,6 +25,9 @@ export interface SopArticle {
   gaps?: string;
   summary: string;
   steps: ReactNode[];
+  /** Screenshot per step, by step number (1 = first step): a path under public/, e.g. '/sop/EV-01/step-1.png'.
+   *  Steps without one show a placeholder until the Main Admin sends a screenshot. */
+  shots?: Record<number, string>;
   ifItBreaks: ReactNode[];
 }
 

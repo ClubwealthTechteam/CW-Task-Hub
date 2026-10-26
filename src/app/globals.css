@@ -1531,8 +1531,14 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
   .sop-toc { position: static; max-height: none; order: -1; }
   .sop-toc ul ul { flex-direction: row; flex-wrap: wrap; gap: 4px 12px; }
 }
-@media (max-width: 640px) {
-  .sop-pair { grid-template-columns: 1fr; }
-  .sop-meta th { width: 120px; }
-  .sop-glossary div { grid-template-columns: 1fr; gap: 2px; }
+/* Desktop only (Miguel, 2026-10-26): when someone signed in opens the hub on a phone (narrow screen, or a touch screen
+   held sideways), only the "desktop only" screen shows. */
+.desktop-only { display: none; }
+@media (max-width: 767px), (pointer: coarse) and (max-height: 500px) {
+  .desktop-only { display: flex; position: fixed; inset: 0; z-index: 10000; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; text-align: center; background: var(--navy); color: var(--on-navy); }
+  .desktop-only b { font-family: var(--font-anton), Impact, sans-serif; font-weight: 400; font-size: 34px; letter-spacing: .02em; }
+  .desktop-only p { margin: 0; font-size: 20px; font-weight: 700; }
+  .desktop-only span { opacity: .8; font-size: 14px; }
+  body:has(> .desktop-only) > *:not(.desktop-only) { display: none !important; }
+  body:has(> .desktop-only) { overflow: hidden; }
 }

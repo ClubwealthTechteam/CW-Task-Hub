@@ -101,6 +101,20 @@ test('only Miguel can paste a step screenshot on an SOP article; everyone signed
   expect(errors).toEqual([]);
 });
 
+test('the hub is desktop only: on a phone a signed-in person sees "Admin Hub viewable in desktop only"', async ({ browser }) => {
+  const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await phone.goto('/login');
+  await expect(phone.getByText('Admin Hub viewable in desktop only')).toBeHidden();
+  await signIn(phone, 'ali');
+  await phone.goto('/sop/EV-01');
+  await expect(phone.getByText('Admin Hub viewable in desktop only')).toBeVisible();
+  await expect(phone.getByRole('heading', { level: 1 })).toBeHidden();
+  await phone.setViewportSize({ width: 1440, height: 900 });
+  await expect(phone.getByText('Admin Hub viewable in desktop only')).toBeHidden();
+  await expect(phone.getByRole('heading', { level: 1 })).toBeVisible();
+  await phone.close();
+});
+
 test('team members cannot open other departments or the team EOD feed', async ({ page }) => {
   await signIn(page, 'jaymar');
   await page.goto('/w/events');

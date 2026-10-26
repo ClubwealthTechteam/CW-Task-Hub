@@ -8,6 +8,39 @@ import type { DepartmentId } from '@/config/departments';
 
 export interface SopTool { name: string; url?: string; note?: string }
 
+/** One way out of a decision step: what it looks like, what to do, and which step to go to next. */
+export interface SopPath {
+  /** The answer, short: "Yes", "Not found in Keap", "PHONE_EXACT / NAME_EXACT". */
+  label: string;
+  /** 'yes' paths show green, 'no' paths red, like the YES / NO dots on the Flow Canvas. */
+  tone: 'yes' | 'no';
+  /** What you'll see on this path, e.g. "Column K shows MATCHED_REGISTRANT". */
+  means?: ReactNode;
+  /** The short checklist for this path (can be empty: nothing to do). */
+  todo: ReactNode[];
+  /** The step to continue with. */
+  next: { step: number; label: string };
+}
+
+/** A step where the work splits two ways (a YES / NO node on the flow). */
+export interface SopDecision {
+  kind: 'decision';
+  /** The question, e.g. "Did this person match a registration?" */
+  ask: ReactNode;
+  /** Short name for the Contents panel, e.g. "Matched?" */
+  short: string;
+  /** Where to look to answer it. */
+  check?: ReactNode;
+  /** Shown above the paths, e.g. "Do this for each person still blank." */
+  note?: ReactNode;
+  paths: [SopPath, SopPath];
+}
+
+export type SopStep = ReactNode | SopDecision;
+
+export const isDecision = (s: SopStep): s is SopDecision =>
+  typeof s === 'object' && s !== null && !Array.isArray(s) && (s as SopDecision).kind === 'decision';
+
 export interface SopArticle {
   /** Department prefix + number, e.g. EV-01. Never reuse a number once it's been given out (EV-02, the manual
    *  stats backup, was retired on 2026-10-26: Andrea now covers EV-01 as its POC). */
@@ -41,7 +74,8 @@ export interface SopArticle {
   /** Steps whose details the Main Admin still has to write in. */
   gaps?: string;
   summary: string;
-  steps: ReactNode[];
+  /** Plain steps and decision steps, in order. Step numbers are positions in this list (1 = first). */
+  steps: SopStep[];
   /** Screenshot per step, by step number (1 = first step): a path under public/, e.g. '/sop/EV-01/step-1.png'.
    *  Steps without one show a pasted screenshot if there is one (see src/lib/sop.ts), else a placeholder. */
   shots?: Record<number, string>;
@@ -106,9 +140,79 @@ export const SOP_ARTICLES: SopArticle[] = [
       <>Open <b>DHR → Event_Registrants</b>. In cell <b>A2</b> pick the date of the event Tara’s PDF is for, then copy columns <b>C:K</b>.</>,
       <>Paste them into <b>LIST MAKING CHECKLIST → Event Registration</b>. If this tab doesn’t hold that event’s registrations, nothing will match in the next step.</>,
       <>Back in <b>Attendance Extracted</b>, open the header menu <b>Custom Tools → Match Attendance</b>. A pop-up shows, and columns <b>F:Q</b> fill in from the Event Registration tab.</>,
-      <>Check column <b>J (Match Method)</b> for each row. <b>PHONE_EXACT</b> or <b>NAME_EXACT</b>: column K (Match Status) shows <b>MATCHED_REGISTRANT</b>; that person is done. <b>NO_REGISTRATION_MATCH</b>: columns F:I are blank; note those people for the next steps.</>,
-      <>For each unmatched person, look for their first and last name in columns <b>A:B</b> of the <b>Event Registration</b> tab. If they’re there, copy their Email, Phone Number and Contact ID, paste them into the blank columns <b>F:I</b> of their row in Attendance Extracted, and set column <b>L (Approved)</b> to <b>Yes</b>.</>,
-      <>Not in Event Registration: search for the person by name in <b>Keap</b>. Found: copy their Email, Phone Number and Contact ID (the Contact ID is the number in the browser’s address bar on their contact page) and paste them into columns <b>F:I</b>. Not found: create a new contact in Keap with their details, then fill in columns F:I the same way.</>,
+      {
+        kind: 'decision',
+        short: 'Matched?',
+        ask: <>Did each person match a registration?</>,
+        check: <>Look at column <b>J (Match Method)</b> in Attendance Extracted, row by row.</>,
+        paths: [
+          {
+            label: 'PHONE_EXACT or NAME_EXACT',
+            tone: 'yes',
+            means: <>Column K (Match Status) shows <b>MATCHED_REGISTRANT</b>.</>,
+            todo: [<>Nothing to do for this person. They’re complete.</>],
+            next: { step: 9, label: 'Finalize Attendance' },
+          },
+          {
+            label: 'NO_REGISTRATION_MATCH',
+            tone: 'no',
+            means: <>Columns <b>F:I</b> are blank for this person.</>,
+            todo: [<>Note the person’s name and row.</>],
+            next: { step: 7, label: 'Look them up in Event Registration' },
+          },
+        ],
+      },
+      {
+        kind: 'decision',
+        short: 'In Event Registration?',
+        ask: <>Is the person’s name in the Event Registration tab?</>,
+        check: <>Search columns <b>A:B</b> (first and last name) of <b>LIST MAKING CHECKLIST → Event Registration</b>.</>,
+        note: <>Do steps 7–8 for each person who didn’t match.</>,
+        paths: [
+          {
+            label: 'Yes, found',
+            tone: 'yes',
+            todo: [
+              <>Copy their <b>Email</b>, <b>Phone Number</b> and <b>Contact ID</b>.</>,
+              <>Paste them into the blank columns <b>F:I</b> of their row in Attendance Extracted.</>,
+              <>Set column <b>L (Approved)</b> to <b>Yes</b>.</>,
+            ],
+            next: { step: 9, label: 'Finalize Attendance (once everyone is filled in)' },
+          },
+          {
+            label: 'No, not there',
+            tone: 'no',
+            todo: [<>Nothing to copy from the sheet. Look for them in Keap instead.</>],
+            next: { step: 8, label: 'Look them up in Keap' },
+          },
+        ],
+      },
+      {
+        kind: 'decision',
+        short: 'In Keap?',
+        ask: <>Is the person in Keap?</>,
+        check: <>Search <b>Keap</b> for the person by name.</>,
+        paths: [
+          {
+            label: 'Found in Keap',
+            tone: 'yes',
+            todo: [
+              <>Copy their <b>Email</b>, <b>Phone Number</b> and <b>Contact ID</b>. The Contact ID is the number in the browser’s address bar on their contact page.</>,
+              <>Paste them into the blank columns <b>F:I</b> of their row in Attendance Extracted.</>,
+            ],
+            next: { step: 9, label: 'Finalize Attendance (once everyone is filled in)' },
+          },
+          {
+            label: 'Not found in Keap',
+            tone: 'no',
+            todo: [
+              <>Create a new contact in Keap with their name, email and phone.</>,
+              <>Copy the new contact’s <b>Email</b>, <b>Phone Number</b> and <b>Contact ID</b> into columns <b>F:I</b> of their row.</>,
+            ],
+            next: { step: 9, label: 'Finalize Attendance (once everyone is filled in)' },
+          },
+        ],
+      },
       <>When every row is matched or filled in, open <b>Custom Tools → Finalize Attendance</b>. A pop-up confirms the sheet is finalized.</>,
       <>Tick the <b>Call Claude</b> box (<b>S2</b>). The bot works out Total Attended, CWSocial25 and Opt-Ins with their percentages, writes them in the sheet, and posts the <b>Stat Sheet | Updated</b> report in Tara’s Slack thread.</>,
       <>In <b>Eventbrite</b>, check the event’s check-ins for the tickets bought.</>,
@@ -117,7 +221,29 @@ export const SOP_ARTICLES: SopArticle[] = [
       <>Double-check in <b>Keap</b>: find and filter the event by its date and make sure every CWSocial25 person is there.</>,
       <>Copy the CWSocial25 rows (columns <b>A:F</b>) from Event Registration.</>,
       <>Open <b>CWSocial25 Audit → Tracking Report</b>. Scroll to the last filled row and paste into the first blank row at column <b>E</b>. If column K is blank, type <b>No</b>. Fill in A:D: Month Tag, Date, Location City and Location State.</>,
-      <>Open <b>Event Opt In → Sheet1</b>, scroll to the bottom and check column <b>G (email)</b> for this event’s opt-ins. Present: nothing to do. Blank: search the person in Keap by name or phone number and type their email into the blank cell.</>,
+      {
+        kind: 'decision',
+        short: 'Email there?',
+        ask: <>Does each opt-in from this event have an email?</>,
+        check: <>Open <b>Event Opt In → Sheet1</b>, scroll to the bottom and check column <b>G (email)</b> for this event’s opt-ins.</>,
+        paths: [
+          {
+            label: 'Email present',
+            tone: 'yes',
+            todo: [<>Nothing to do for that row.</>],
+            next: { step: 18, label: 'Update Half Day Event Stats' },
+          },
+          {
+            label: 'Email blank',
+            tone: 'no',
+            todo: [
+              <>Search the person in <b>Keap</b> by name or phone number.</>,
+              <>Type their email into the blank cell in column G.</>,
+            ],
+            next: { step: 18, label: 'Update Half Day Event Stats' },
+          },
+        ],
+      },
       <>Open <b>Half Day Event Stats → LABC 2026</b> and update the event’s numbers in <b>D:F</b>: TX Sold (from Eventbrite), IFS List (from Keap), Total Showup and Eligible (the same number), and Opt-ins (the opt-ins who attended).</>,
       <>Back in <b>LIST MAKING CHECKLIST</b>, open <b>Custom Tools → Archive Event</b>, then <b>Clear Archive Attendance</b> so the tab is ready for the next event.</>,
       <>Log it. Add a row to the POC log at the bottom of this page.</>,

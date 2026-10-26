@@ -8,7 +8,8 @@ import { Header } from '@/components/Header';
 import { requireUser } from '@/lib/auth/current-user';
 import { departmentById } from '@/config/departments';
 import { personById } from '@/config/people';
-import { sopById } from '@/data/sop';
+import { isDecision, sopById } from '@/data/sop';
+import { DecisionStep } from '@/components/sop/DecisionStep';
 import { canEditShots, outToday, sopLog, sopShots } from '@/lib/sop';
 import { LogForm } from '@/components/sop/SopControls';
 import { StepShot } from '@/components/sop/StepShot';
@@ -90,8 +91,8 @@ export default async function SopArticlePage({ params }: { params: Promise<{ id:
                   const n = i + 1;
                   const shot = a.shots?.[n] ?? (pasted[n] ? `/api/sop/shot/${a.id}/${n}?v=${pasted[n]}` : null);
                   return (
-                    <li key={i} id={`step-${n}`}>
-                      {s}
+                    <li key={i} id={`step-${n}`} className={isDecision(s) ? 'is-decision' : undefined}>
+                      {isDecision(s) ? <DecisionStep d={s} /> : s}
                       <StepShot articleId={a.id} step={n} src={shot} canEdit={canPaste} />
                     </li>
                   );
@@ -148,7 +149,7 @@ export default async function SopArticlePage({ params }: { params: Promise<{ id:
               <li><a href="#additional-info">Additional Information</a></li>
               <li>
                 <a href="#steps">Steps</a>
-                <ul>{a.steps.map((_, i) => <li key={i}><a href={`#step-${i + 1}`}>Step {i + 1}</a></li>)}</ul>
+                <ul>{a.steps.map((s, i) => <li key={i}><a href={`#step-${i + 1}`} className={isDecision(s) ? 'toc-decision' : undefined}>Step {i + 1}{isDecision(s) && <> · {s.short}</>}</a></li>)}</ul>
               </li>
               <li><a href="#if-it-breaks">If it breaks</a></li>
               <li>

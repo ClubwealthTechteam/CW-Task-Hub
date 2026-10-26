@@ -61,6 +61,11 @@ test('the SOP Handbook is open to team members: index, an article, the POC log a
   }
   for (const h of ['Prerequisites', 'Additional Information', 'Steps', 'References']) await expect(page.getByRole('heading', { level: 2, name: h })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Contents' }).getByRole('link', { name: 'Step 3', exact: true })).toHaveAttribute('href', '#step-3');
+  // Two-way steps show both paths, each with a link to the step to continue with.
+  const matched = page.locator('#step-6');
+  await expect(matched.getByText('Did each person match a registration?')).toBeVisible();
+  await expect(matched.getByRole('region', { name: 'If PHONE_EXACT or NAME_EXACT' }).getByRole('link', { name: /Next: go to step 9/ })).toHaveAttribute('href', '#step-9');
+  await expect(matched.getByRole('region', { name: 'If NO_REGISTRATION_MATCH' }).getByRole('link', { name: /Next: go to step 7/ })).toHaveAttribute('href', '#step-7');
   await page.getByLabel('What was done').fill('Smoke test log row');
   await page.getByRole('button', { name: 'Add log row' }).click();
   await expect(page.locator('.sop-log')).toContainText('Smoke test log row');

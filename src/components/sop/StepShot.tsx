@@ -34,7 +34,8 @@ function shrink(file: Blob): Promise<string> {
   });
 }
 
-export function StepShot({ articleId, step, src, canEdit }: { articleId: string; step: number; src: string | null; canEdit: boolean }) {
+export function StepShot({ articleId, step, slot = 1, src, canEdit }: { articleId: string; step: number; slot?: 1 | 2; src: string | null; canEdit: boolean }) {
+  const label = slot === 1 ? `step ${step}` : `step ${step} · image ${slot}`;
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -44,7 +45,7 @@ export function StepShot({ articleId, step, src, canEdit }: { articleId: string;
     setBusy(true); setError('');
     try {
       const dataUrl = await shrink(file);
-      const res = await fetch('/api/sop/shot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: articleId, step, dataUrl }) });
+      const res = await fetch('/api/sop/shot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: articleId, step, slot, dataUrl }) });
       if (res.ok) router.refresh();
       else setError((await res.json().catch(() => ({}))).error ?? 'Couldn’t save that. Try again.');
     } catch {
@@ -55,7 +56,7 @@ export function StepShot({ articleId, step, src, canEdit }: { articleId: string;
 
   async function remove() {
     setBusy(true); setError('');
-    const res = await fetch(`/api/sop/shot?id=${encodeURIComponent(articleId)}&step=${step}`, { method: 'DELETE' });
+    const res = await fetch(`/api/sop/shot?id=${encodeURIComponent(articleId)}&step=${step}&slot=${slot}`, { method: 'DELETE' });
     setBusy(false);
     if (res.ok) router.refresh();
     else setError((await res.json().catch(() => ({}))).error ?? 'Couldn’t remove it. Try again.');
@@ -71,14 +72,14 @@ export function StepShot({ articleId, step, src, canEdit }: { articleId: string;
 
   const image = src && (
     <a href={src} target="_blank" rel="noreferrer" className="sop-shot">
-      <img src={src} alt={`${articleId} step ${step}`} loading="lazy" />
+      <img src={src} alt={`${articleId} ${label}`} loading="lazy" />
     </a>
   );
 
   if (!canEdit) {
     return image || (
-      <div className="sop-shot sop-shot-empty" role="img" aria-label={`Screenshot for step ${step} not added yet`}>
-        <span>Screenshot · step {step}</span>
+      <div className="sop-shot sop-shot-empty" role="img" aria-label={`Screenshot for ${label} not added yet`}>
+        <span>Screenshot · {label}</span>
         <span className="muted small">To be added by the Main Admin</span>
       </div>
     );
@@ -88,11 +89,11 @@ export function StepShot({ articleId, step, src, canEdit }: { articleId: string;
     <div className="sop-shot-edit">
       {image}
       <div className={`sop-paste${src ? ' has-shot' : ''}`} tabIndex={0} role="button" onPaste={onPaste}
-        aria-label={`Paste a screenshot for step ${step}`}
+        aria-label={`Paste a screenshot for ${label}`}
         onKeyDown={(e) => { if (e.key === 'Enter') fileRef.current?.click(); }}>
         {busy ? <span>Saving…</span> : (
           <>
-            <span>{src ? 'Replace' : 'Paste image'} · step {step}</span>
+            <span>{src ? 'Replace' : 'Paste image'} · {label}</span>
             <span className="muted small">Click here, then press Ctrl/⌘+V</span>
           </>
         )}

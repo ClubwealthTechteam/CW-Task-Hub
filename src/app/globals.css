@@ -1569,3 +1569,8 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
 @keyframes sop-flash { from { background: color-mix(in srgb, var(--gold, #b08d4a) 22%, transparent); } to { background: transparent; } }
 @media (prefers-reduced-motion: reduce) { .sop-steps li:target { animation: none; } }
 .sop-toc a.toc-decision { color: var(--gold, #b08d4a); font-weight: 700; }
+/* Up to two screenshots per step, side by side. */
+.sop-shots { display: grid; grid-template-columns: repeat(2, minmax(0, 460px)); gap: 12px; align-items: start; }
+.sop-shots > .sop-shot, .sop-shots .sop-shot-edit { max-width: none; margin-top: 10px; }
+.sop-shots .sop-shot-edit > .sop-shot { margin-top: 0; }
+.sop-shots .sop-paste, .sop-shots .sop-shot-empty { max-width: none; }

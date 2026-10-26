@@ -10,7 +10,7 @@ import { departmentById } from '@/config/departments';
 import { personById } from '@/config/people';
 import { isDecision, sopById } from '@/data/sop';
 import { DecisionStep } from '@/components/sop/DecisionStep';
-import { canEditShots, outToday, sopLog, sopShots } from '@/lib/sop';
+import { canEditShots, outToday, shotRef, sopLog, sopShots } from '@/lib/sop';
 import { LogForm } from '@/components/sop/SopControls';
 import { StepShot } from '@/components/sop/StepShot';
 
@@ -89,11 +89,15 @@ export default async function SopArticlePage({ params }: { params: Promise<{ id:
               <ol className="sop-steps">
                 {a.steps.map((s, i) => {
                   const n = i + 1;
-                  const shot = a.shots?.[n] ?? (pasted[n] ? `/api/sop/shot/${a.id}/${n}?v=${pasted[n]}` : null);
+                  const shot1 = a.shots?.[n] ?? (pasted[shotRef(n, 1)] ? `/api/sop/shot/${a.id}/${n}?v=${pasted[shotRef(n, 1)]}` : null);
+                  const shot2 = pasted[shotRef(n, 2)] ? `/api/sop/shot/${a.id}/${n}?slot=2&v=${pasted[shotRef(n, 2)]}` : null;
                   return (
                     <li key={i} id={`step-${n}`} className={isDecision(s) ? 'is-decision' : undefined}>
                       {isDecision(s) ? <DecisionStep d={s} /> : s}
-                      <StepShot articleId={a.id} step={n} src={shot} canEdit={canPaste} />
+                      <div className="sop-shots">
+                        <StepShot articleId={a.id} step={n} src={shot1} canEdit={canPaste} />
+                        {(canPaste || shot2) && <StepShot articleId={a.id} step={n} slot={2} src={shot2} canEdit={canPaste} />}
+                      </div>
                     </li>
                   );
                 })}

@@ -8,7 +8,8 @@ import { Header } from '@/components/Header';
 import { requireUser } from '@/lib/auth/current-user';
 import { departmentById } from '@/config/departments';
 import { personById } from '@/config/people';
-import { isDecision, sopById } from '@/data/sop';
+import { isDecision, isPlain, sopById } from '@/data/sop';
+import { WhereBox } from '@/components/sop/WhereBox';
 import { DecisionStep } from '@/components/sop/DecisionStep';
 import { canEditShots, outToday, shotRef, sopLog, sopShots } from '@/lib/sop';
 import { LogForm } from '@/components/sop/SopControls';
@@ -93,7 +94,7 @@ export default async function SopArticlePage({ params }: { params: Promise<{ id:
                   const shot2 = pasted[shotRef(n, 2)] ? `/api/sop/shot/${a.id}/${n}?slot=2&v=${pasted[shotRef(n, 2)]}` : null;
                   return (
                     <li key={i} id={`step-${n}`} className={isDecision(s) ? 'is-decision' : undefined}>
-                      {isDecision(s) ? <DecisionStep d={s} /> : s}
+                      {isDecision(s) ? <DecisionStep d={s} /> : isPlain(s) ? <>{s.body}{s.where && <WhereBox where={s.where} />}</> : s}
                       <div className="sop-shots">
                         <StepShot articleId={a.id} step={n} src={shot1} canEdit={canPaste} />
                         {(canPaste || shot2) && <StepShot articleId={a.id} step={n} slot={2} src={shot2} canEdit={canPaste} />}

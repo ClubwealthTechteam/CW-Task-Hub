@@ -2,6 +2,7 @@
 // own short checklist and a link to the step to continue with (the YES / NO nodes of the Flow Canvas).
 
 import type { SopDecision } from '@/data/sop';
+import { WhereBox } from './WhereBox';
 
 export function DecisionStep({ d }: { d: SopDecision }) {
   return (
@@ -14,6 +15,7 @@ export function DecisionStep({ d }: { d: SopDecision }) {
           {d.check && <div className="sop-ask-check">{d.check}</div>}
         </div>
       </div>
+      {d.where && <WhereBox where={d.where} />}
       {d.note && <p className="sop-decision-note small">{d.note}</p>}
       <div className="sop-paths">
         {d.paths.map((p, i) => (

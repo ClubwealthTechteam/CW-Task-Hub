@@ -61,6 +61,10 @@ test('the SOP Handbook is open to team members: index, an article, the POC log a
   }
   for (const h of ['Prerequisites', 'Additional Information', 'Steps', 'References']) await expect(page.getByRole('heading', { level: 2, name: h })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Contents' }).getByRole('link', { name: 'Step 3', exact: true })).toHaveAttribute('href', '#step-3');
+  // Each step says exactly where: sheet (linked to the tab and cells), tab, cells.
+  const callClaude = page.locator('#step-10 .sop-where tr', { hasText: 'S2 (Call Claude checkbox)' });
+  await expect(callClaude.getByRole('link', { name: /LIST MAKING CHECKLIST/ })).toHaveAttribute('href', /1mwt8MoYtxJIc5mdcDxCa0S8icLTEDWOI7Xl3z74YfPM\/edit#gid=1824377100&range=S2$/);
+  await expect(callClaude).toContainText('Attendance Extracted');
   // Two-way steps show both paths, each with a link to the step to continue with.
   const matched = page.locator('#step-6');
   await expect(matched.getByText('Did each person match a registration?')).toBeVisible();

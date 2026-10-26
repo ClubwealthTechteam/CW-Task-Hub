@@ -1574,3 +1574,16 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
 .sop-shots > .sop-shot, .sop-shots .sop-shot-edit { max-width: none; margin-top: 10px; }
 .sop-shots .sop-shot-edit > .sop-shot { margin-top: 0; }
 .sop-shots .sop-paste, .sop-shots .sop-shot-empty { max-width: none; }
+/* "Where" table under each SOP step: app, sheet (linked to the exact tab and cells), tab, cells, what to do. */
+.sop-where { margin-top: 8px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface, #fff); }
+.sop-where-h { display: block; padding: 5px 10px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--muted-tint, #eef1f6); border-bottom: 1px solid var(--line); }
+.sop-where table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sop-where th { text-align: left; font-size: 11px; font-weight: 700; color: var(--muted); padding: 6px 10px; border-bottom: 1px solid var(--line); }
+.sop-where td { padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.45; }
+.sop-where tr:last-child td { border-bottom: 0; }
+.sop-where td:nth-child(2) { font-weight: 600; }
+.sop-app { display: inline-block; white-space: nowrap; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #e6f4ea; color: #137333; }
+.sop-app.slack { background: #f3e8f5; color: #4a154b; }
+.sop-app.keap { background: #e8f5e9; color: #2e7d32; }
+.sop-app.eventbrite { background: #fdece6; color: #d1410c; }
+.sop-app.hub { background: var(--muted-tint, #eef1f6); color: var(--navy); }

@@ -54,34 +54,39 @@ const SHOT_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
 export interface SopShot { type: string; data: string; at: number }
 
-const shotKey = (articleId: string, step: number) => `sop:shot:${articleId.toUpperCase()}:${step}`;
+/** Each step has two screenshot slots. Slot 1 keeps the original key so screenshots pasted before slots existed stay. */
+export const SHOT_SLOTS = [1, 2] as const;
+export type ShotSlot = (typeof SHOT_SLOTS)[number];
+/** Index key for a step's slot: "3" is step 3's first screenshot, "3-2" its second. */
+export const shotRef = (step: number, slot: ShotSlot) => (slot === 1 ? String(step) : `${step}-${slot}`);
+const shotKey = (articleId: string, step: number, slot: ShotSlot) => `sop:shot:${articleId.toUpperCase()}:${shotRef(step, slot)}`;
 const shotIndexKey = (articleId: string) => `sop:shots:${articleId.toUpperCase()}`;
 
 export const canEditShots = (personId: string) => SHOT_EDITORS.includes(personId);
 
-/** Step number → when its screenshot was pasted (also used to bust the image cache). */
-export async function sopShots(articleId: string): Promise<Record<number, number>> {
-  return getJSON<Record<number, number>>(shotIndexKey(articleId), {});
+/** shotRef (e.g. "3", "3-2") → when that screenshot was pasted (also used to bust the image cache). */
+export async function sopShots(articleId: string): Promise<Record<string, number>> {
+  return getJSON<Record<string, number>>(shotIndexKey(articleId), {});
 }
 
-export async function getSopShot(articleId: string, step: number): Promise<SopShot | null> {
-  return getJSON<SopShot | null>(shotKey(articleId, step), null);
+export async function getSopShot(articleId: string, step: number, slot: ShotSlot): Promise<SopShot | null> {
+  return getJSON<SopShot | null>(shotKey(articleId, step, slot), null);
 }
 
 /** Saves a "data:image/...;base64,..." URL as a step's screenshot. Returns an error message, or null when saved. */
-export async function setSopShot(articleId: string, step: number, dataUrl: string): Promise<string | null> {
+export async function setSopShot(articleId: string, step: number, slot: ShotSlot, dataUrl: string): Promise<string | null> {
   const m = /^data:(image\/[a-z]+);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
   if (!m || !SHOT_TYPES.includes(m[1])) return 'Paste a PNG, JPG or WebP image';
   if (dataUrl.length > SHOT_MAX) return 'That image is too big. Crop it a little and paste again';
   const at = Date.now();
-  await setJSON(shotKey(articleId, step), { type: m[1], data: m[2], at });
-  await setJSON(shotIndexKey(articleId), { ...(await sopShots(articleId)), [step]: at });
+  await setJSON(shotKey(articleId, step, slot), { type: m[1], data: m[2], at });
+  await setJSON(shotIndexKey(articleId), { ...(await sopShots(articleId)), [shotRef(step, slot)]: at });
   return null;
 }
 
-export async function deleteSopShot(articleId: string, step: number) {
-  await deleteKey(shotKey(articleId, step));
+export async function deleteSopShot(articleId: string, step: number, slot: ShotSlot) {
+  await deleteKey(shotKey(articleId, step, slot));
   const index = await sopShots(articleId);
-  delete index[step];
+  delete index[shotRef(step, slot)];
   await setJSON(shotIndexKey(articleId), index);
 }

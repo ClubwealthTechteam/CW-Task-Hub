@@ -3,33 +3,34 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/current-user';
 import { sopById } from '@/data/sop';
-import { canEditShots, deleteSopShot, setSopShot } from '@/lib/sop';
+import { canEditShots, deleteSopShot, setSopShot, SHOT_SLOTS, type ShotSlot } from '@/lib/sop';
 
 export const dynamic = 'force-dynamic';
 
-async function target(id: unknown, step: unknown) {
+async function target(id: unknown, step: unknown, slot: unknown) {
   const user = await getCurrentUser();
   if (!user) return { error: NextResponse.json({ error: 'Sign in first' }, { status: 401 }) };
   if (!canEditShots(user.id)) return { error: NextResponse.json({ error: 'Only Miguel can add screenshots' }, { status: 403 }) };
   const article = sopById(String(id ?? ''));
   const n = Number(step);
-  if (!article || !Number.isInteger(n) || n < 1 || n > article.steps.length) return { error: NextResponse.json({ error: 'That step doesn’t exist' }, { status: 404 }) };
-  return { article, n };
+  const k = Number(slot ?? 1) as ShotSlot;
+  if (!article || !Number.isInteger(n) || n < 1 || n > article.steps.length || !SHOT_SLOTS.includes(k)) return { error: NextResponse.json({ error: 'That step doesn’t exist' }, { status: 404 }) };
+  return { article, n, k };
 }
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
-  const t = await target(body.id, body.step);
+  const t = await target(body.id, body.step, body.slot);
   if (t.error) return t.error;
-  const problem = await setSopShot(t.article.id, t.n, String(body.dataUrl ?? ''));
+  const problem = await setSopShot(t.article.id, t.n, t.k, String(body.dataUrl ?? ''));
   if (problem) return NextResponse.json({ error: problem }, { status: 400 });
   return NextResponse.json({ ok: true });
 }
 
 export async function DELETE(req: Request) {
   const q = new URL(req.url).searchParams;
-  const t = await target(q.get('id'), q.get('step'));
+  const t = await target(q.get('id'), q.get('step'), q.get('slot'));
   if (t.error) return t.error;
-  await deleteSopShot(t.article.id, t.n);
+  await deleteSopShot(t.article.id, t.n, t.k);
   return NextResponse.json({ ok: true });
 }

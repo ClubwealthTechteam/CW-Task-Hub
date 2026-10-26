@@ -61,6 +61,15 @@ test('the SOP Handbook is open to team members: index, an article, the POC log a
   }
   for (const h of ['Prerequisites', 'Additional Information', 'Steps', 'References']) await expect(page.getByRole('heading', { level: 2, name: h })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Contents' }).getByRole('link', { name: 'Step 3', exact: true })).toHaveAttribute('href', '#step-3');
+  // Each step says exactly where: sheet (linked to the tab and cells), tab, cells.
+  const callClaude = page.locator('#step-10 .sop-where tr', { hasText: 'S2 (Call Claude checkbox)' });
+  await expect(callClaude.getByRole('link', { name: /LIST MAKING CHECKLIST/ })).toHaveAttribute('href', /1mwt8MoYtxJIc5mdcDxCa0S8icLTEDWOI7Xl3z74YfPM\/edit#gid=1824377100&range=S2$/);
+  await expect(callClaude).toContainText('Attendance Extracted');
+  // Two-way steps show both paths, each with a link to the step to continue with.
+  const matched = page.locator('#step-6');
+  await expect(matched.getByText('Did each person match a registration?')).toBeVisible();
+  await expect(matched.getByRole('region', { name: 'If PHONE_EXACT or NAME_EXACT' }).getByRole('link', { name: /Next: go to step 9/ })).toHaveAttribute('href', '#step-9');
+  await expect(matched.getByRole('region', { name: 'If NO_REGISTRATION_MATCH' }).getByRole('link', { name: /Next: go to step 7/ })).toHaveAttribute('href', '#step-7');
   await page.getByLabel('What was done').fill('Smoke test log row');
   await page.getByRole('button', { name: 'Add log row' }).click();
   await expect(page.locator('.sop-log')).toContainText('Smoke test log row');
@@ -72,19 +81,20 @@ test('only Miguel can paste a step screenshot on an SOP article; everyone signed
   const errors = watchErrors(page);
   await signIn(page, 'miguel');
   await page.goto('/sop/EV-01');
-  await expect(page.locator('.sop-paste')).toHaveCount(20);
+  await expect(page.locator('.sop-paste')).toHaveCount(40); // two image slots per step
   // A 2x2 PNG, pasted into step 3's box the way a screenshot would be.
   const png = 'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP8z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg==';
-  const box = page.getByRole('button', { name: 'Paste a screenshot for step 3' });
-  await box.focus();
-  await box.evaluate(async (el, b64) => {
+  const paste = (name: string) => page.getByRole('button', { name, exact: true }).evaluate(async (el, b64) => {
     const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
     const dt = new DataTransfer();
     dt.items.add(new File([bytes], 'shot.png', { type: 'image/png' }));
     el.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
   }, png);
+  await paste('Paste a screenshot for step 3');
   const img = page.locator('img[alt="EV-01 step 3"]');
   await expect(img).toBeVisible();
+  await paste('Paste a screenshot for step 3 · image 2');
+  await expect(page.locator('img[alt="EV-01 step 3 · image 2"]')).toBeVisible();
   const src = await img.getAttribute('src');
   expect((await page.request.get(src as string)).headers()['content-type']).toMatch(/^image\//);
 
@@ -92,12 +102,14 @@ test('only Miguel can paste a step screenshot on an SOP article; everyone signed
   await signIn(ali, 'ali');
   await ali.goto('/sop/EV-01');
   await expect(ali.locator('img[alt="EV-01 step 3"]')).toBeVisible();
+  await expect(ali.locator('img[alt="EV-01 step 3 · image 2"]')).toBeVisible();
   await expect(ali.locator('.sop-paste')).toHaveCount(0);
   expect((await ali.request.post('/api/sop/shot', { data: { id: 'EV-01', step: 3, dataUrl: `data:image/png;base64,${png}` } })).status()).toBe(403);
   await ali.close();
 
-  await page.getByRole('button', { name: 'Remove' }).click();
+  await page.getByRole('button', { name: 'Remove' }).first().click();
   await expect(page.locator('img[alt="EV-01 step 3"]')).toHaveCount(0);
+  await expect(page.locator('img[alt="EV-01 step 3 · image 2"]')).toBeVisible();
   expect(errors).toEqual([]);
 });
 

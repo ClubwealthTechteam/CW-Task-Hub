@@ -8,8 +8,10 @@ import { Header } from '@/components/Header';
 import { requireUser } from '@/lib/auth/current-user';
 import { departmentById } from '@/config/departments';
 import { personById } from '@/config/people';
-import { sopById } from '@/data/sop';
-import { canEditShots, outToday, sopLog, sopShots } from '@/lib/sop';
+import { isDecision, isPlain, sopById } from '@/data/sop';
+import { WhereBox } from '@/components/sop/WhereBox';
+import { DecisionStep } from '@/components/sop/DecisionStep';
+import { canEditShots, outToday, shotRef, sopLog, sopShots } from '@/lib/sop';
 import { LogForm } from '@/components/sop/SopControls';
 import { StepShot } from '@/components/sop/StepShot';
 
@@ -88,11 +90,15 @@ export default async function SopArticlePage({ params }: { params: Promise<{ id:
               <ol className="sop-steps">
                 {a.steps.map((s, i) => {
                   const n = i + 1;
-                  const shot = a.shots?.[n] ?? (pasted[n] ? `/api/sop/shot/${a.id}/${n}?v=${pasted[n]}` : null);
+                  const shot1 = a.shots?.[n] ?? (pasted[shotRef(n, 1)] ? `/api/sop/shot/${a.id}/${n}?v=${pasted[shotRef(n, 1)]}` : null);
+                  const shot2 = pasted[shotRef(n, 2)] ? `/api/sop/shot/${a.id}/${n}?slot=2&v=${pasted[shotRef(n, 2)]}` : null;
                   return (
-                    <li key={i} id={`step-${n}`}>
-                      {s}
-                      <StepShot articleId={a.id} step={n} src={shot} canEdit={canPaste} />
+                    <li key={i} id={`step-${n}`} className={isDecision(s) ? 'is-decision' : undefined}>
+                      {isDecision(s) ? <DecisionStep d={s} /> : isPlain(s) ? <>{s.body}{s.where && <WhereBox where={s.where} />}</> : s}
+                      <div className="sop-shots">
+                        <StepShot articleId={a.id} step={n} src={shot1} canEdit={canPaste} />
+                        {(canPaste || shot2) && <StepShot articleId={a.id} step={n} slot={2} src={shot2} canEdit={canPaste} />}
+                      </div>
                     </li>
                   );
                 })}
@@ -148,7 +154,7 @@ export default async function SopArticlePage({ params }: { params: Promise<{ id:
               <li><a href="#additional-info">Additional Information</a></li>
               <li>
                 <a href="#steps">Steps</a>
-                <ul>{a.steps.map((_, i) => <li key={i}><a href={`#step-${i + 1}`}>Step {i + 1}</a></li>)}</ul>
+                <ul>{a.steps.map((s, i) => <li key={i}><a href={`#step-${i + 1}`} className={isDecision(s) ? 'toc-decision' : undefined}>Step {i + 1}{isDecision(s) && <> · {s.short}</>}</a></li>)}</ul>
               </li>
               <li><a href="#if-it-breaks">If it breaks</a></li>
               <li>

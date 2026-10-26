@@ -7,8 +7,9 @@ import { requireUser } from '@/lib/auth/current-user';
 import { departmentById } from '@/config/departments';
 import { personById } from '@/config/people';
 import { sopById } from '@/data/sop';
-import { outToday, sopLog } from '@/lib/sop';
+import { canEditShots, outToday, sopLog, sopShots } from '@/lib/sop';
 import { LogForm } from '@/components/sop/SopControls';
+import { StepShot } from '@/components/sop/StepShot';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +25,8 @@ export default async function SopArticlePage({ params }: { params: Promise<{ id:
   const user = await requireUser();
   const a = sopById((await params).id);
   if (!a) notFound();
-  const [log, out] = await Promise.all([sopLog(a.id), outToday()]);
+  const [log, out, pasted] = await Promise.all([sopLog(a.id), outToday(), sopShots(a.id)]);
+  const canPaste = canEditShots(user.id);
   const mainOut = out.has(a.main);
 
   return (
@@ -61,20 +63,12 @@ export default async function SopArticlePage({ params }: { params: Promise<{ id:
           <h2>Steps</h2>
           <ol className="sop-steps">
             {a.steps.map((s, i) => {
-              const shot = a.shots?.[i + 1];
+              const n = i + 1;
+              const shot = a.shots?.[n] ?? (pasted[n] ? `/api/sop/shot/${a.id}/${n}?v=${pasted[n]}` : null);
               return (
                 <li key={i}>
                   {s}
-                  {shot ? (
-                    <a href={shot} target="_blank" rel="noreferrer" className="sop-shot">
-                      <img src={shot} alt={`${a.id} step ${i + 1}`} loading="lazy" />
-                    </a>
-                  ) : (
-                    <div className="sop-shot sop-shot-empty" role="img" aria-label={`Screenshot for step ${i + 1} not added yet`}>
-                      <span>Screenshot · step {i + 1}</span>
-                      <span className="muted small">To be added by the Main Admin</span>
-                    </div>
-                  )}
+                  <StepShot articleId={a.id} step={n} src={shot} canEdit={canPaste} />
                 </li>
               );
             })}

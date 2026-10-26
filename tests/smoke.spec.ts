@@ -63,6 +63,39 @@ test('the SOP Handbook is open to team members: index, an article, the POC log a
   expect(errors).toEqual([]);
 });
 
+test('only Miguel can paste a step screenshot on an SOP article; everyone signed in sees it', async ({ page, browser }) => {
+  const errors = watchErrors(page);
+  await signIn(page, 'miguel');
+  await page.goto('/sop/EV-01');
+  await expect(page.locator('.sop-paste')).toHaveCount(20);
+  // A 2x2 PNG, pasted into step 3's box the way a screenshot would be.
+  const png = 'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP8z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg==';
+  const box = page.getByRole('button', { name: 'Paste a screenshot for step 3' });
+  await box.focus();
+  await box.evaluate(async (el, b64) => {
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const dt = new DataTransfer();
+    dt.items.add(new File([bytes], 'shot.png', { type: 'image/png' }));
+    el.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+  }, png);
+  const img = page.locator('img[alt="EV-01 step 3"]');
+  await expect(img).toBeVisible();
+  const src = await img.getAttribute('src');
+  expect((await page.request.get(src as string)).headers()['content-type']).toMatch(/^image\//);
+
+  const ali = await browser.newPage();
+  await signIn(ali, 'ali');
+  await ali.goto('/sop/EV-01');
+  await expect(ali.locator('img[alt="EV-01 step 3"]')).toBeVisible();
+  await expect(ali.locator('.sop-paste')).toHaveCount(0);
+  expect((await ali.request.post('/api/sop/shot', { data: { id: 'EV-01', step: 3, dataUrl: `data:image/png;base64,${png}` } })).status()).toBe(403);
+  await ali.close();
+
+  await page.getByRole('button', { name: 'Remove' }).click();
+  await expect(page.locator('img[alt="EV-01 step 3"]')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
 test('team members cannot open other departments or the team EOD feed', async ({ page }) => {
   await signIn(page, 'jaymar');
   await page.goto('/w/events');

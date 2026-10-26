@@ -7,7 +7,8 @@ import type { ReactNode } from 'react';
 import type { DepartmentId } from '@/config/departments';
 
 export interface SopArticle {
-  /** Department prefix + number, e.g. EV-01. Never reuse a number once it's been given out. */
+  /** Department prefix + number, e.g. EV-01. Never reuse a number once it's been given out (EV-02, the manual
+   *  stats backup, was retired on 2026-10-26: Andrea now covers EV-01 as its POC). */
   id: string;
   title: string;
   department: DepartmentId;
@@ -26,12 +27,16 @@ export interface SopArticle {
   summary: string;
   steps: ReactNode[];
   /** Screenshot per step, by step number (1 = first step): a path under public/, e.g. '/sop/EV-01/step-1.png'.
-   *  Steps without one show a placeholder until the Main Admin sends a screenshot. */
+   *  Steps without one show a pasted screenshot if there is one (see src/lib/sop.ts), else a placeholder. */
   shots?: Record<number, string>;
   ifItBreaks: ReactNode[];
 }
 
 const LIST_MAKING = { name: 'LIST MAKING CHECKLIST (Half-Day Events)', url: 'https://docs.google.com/spreadsheets/d/1mwt8MoYtxJIc5mdcDxCa0S8icLTEDWOI7Xl3z74YfPM/edit' };
+const DHR = { name: 'DHR → tab Event_Registrants', url: 'https://docs.google.com/spreadsheets/d/1drBAkBOxquL5i817IBF2tmnNqLexyvGHPOsu9h201kk/edit' };
+const CWSOCIAL_AUDIT = { name: 'CWSocial25 Audit → tab Tracking Report', url: 'https://docs.google.com/spreadsheets/d/1V_od_nCch8lkoE_OBPffDl9JCHPnHhtAuAM7gE-AF8s/edit' };
+const EVENT_OPT_IN = { name: 'Event Opt In → tab Sheet1', url: 'https://docs.google.com/spreadsheets/d/1Dlt9zyQZQ85xk6xSrrwGH7uvsqGFvPYM4KQu3oAJQqM/edit' };
+const HALF_DAY_STATS = { name: 'Half Day Event Stats → tab LABC 2026', url: 'https://docs.google.com/spreadsheets/d/1mBkjMGnbGUY0rmPhpNYBaVnRRuvTdyiqI9oD4dMVHDc/edit' };
 const HALF_DAY_FORMS = { name: 'Club Wealth Event Half Day Forms → tab HALF DAY FORMS 2026 v2', url: 'https://docs.google.com/spreadsheets/d/1mh-xjBC7vs_HWEbhySukD2cxIm3yoBKbmJvteHOpY-A/edit' };
 
 export const SOP_ARTICLES: SopArticle[] = [
@@ -40,58 +45,41 @@ export const SOP_ARTICLES: SopArticle[] = [
     title: 'Half-Day Event attendance tagging',
     department: 'events',
     main: 'ali',
-    poc: null,
+    poc: 'andrea',
     when: 'After each half-day event, once the bot replies “Attendance extracted”',
-    sheets: [LIST_MAKING],
-    updated: 'v1 · Oct 2026',
-    testRun: 'Not yet · POC with Ali',
+    sheets: [LIST_MAKING, DHR, CWSOCIAL_AUDIT, EVENT_OPT_IN, HALF_DAY_STATS],
+    updated: 'v2 · Oct 2026',
+    testRun: 'Not yet · Andrea with Ali',
     status: 'draft',
-    summary: 'Check the attendance the bot read from the sign-in sheets, get the stats, and tag every attendee in Keap.',
+    summary: 'Match the attendance the bot read from the sign-in sheets to the registrations, fill in anyone missing, get the stats, then update Keap, the CWSocial25 audit, the opt-ins and the event stats.',
     steps: [
-      <>Find the event. In Slack <b>#half-day-registration-forms</b>, open the thread with the bot’s reply <b>“Attendance extracted — [City] - [Date]”</b>.</>,
-      <>Open the sheet <b>LIST MAKING CHECKLIST (Half-Day Events)</b> → tab <b>Attendance Extracted</b>. Columns A–E (name, phone, page, source type, notes) are already filled.</>,
-      <>Check flagged rows. Any row whose Notes start with <b>REVIEW:</b>, compare it with the sign-in PDF in the Slack thread and correct the name or phone.</>,
-      <>Mark who attended. Tab <b>Event Registration</b> → column F <b>Attended = Yes</b> for every attendee. The stats count only this column.</>,
-      <>Get the stats. Back in <b>Attendance Extracted</b>, tick the <b>Call Claude</b> box (S2). Within the hour the bot posts the attended, CWSocial25 and opt-in numbers in the Slack thread.</>,
-      <>Match. <b>Custom Tools → Match Attendance</b>. A pop-up shows how many matched and how many need review.</>,
-      <>Resolve REVIEW rows. For each row with Match Status <b>REVIEW</b>: find the person in Event Registration or Keap, enter their Contact ID and set <b>Approved = Yes</b>. If they weren’t a real attendee, set <b>Approved = No</b> and Match Status = <b>INVALID_EXTRACTION</b>.</>,
-      <>Finalize. <b>Custom Tools → Finalize Attendance</b>. This fills Event, Event Date and the Target Tag (<b>Attended - [Event] - [MM-DD-YYYY]</b>) and sets ready rows to <b>READY_TO_TAG</b>.</>,
-      <>Tag in Keap. For each READY_TO_TAG row, open the contact in Keap by Contact ID, apply the Target Tag, then set Tagging Status = <b>MANUAL_DONE</b>.</>,
-      <>Archive. <b>Custom Tools → Archive Event</b>. Every row must be TAGGED, MANUAL_DONE or NOT_APPLICABLE first. It saves a copy to the Attendance History sheet.</>,
-      <>Clear for the next event. <b>Custom Tools → Clear Archived Attendance → Yes</b>.</>,
+      <>Find the event. Tara posts the scanned sign-in PDF in Slack <b>#cw-half-day-registration-forms-automation</b>. The bot fills columns A–E of <b>LIST MAKING CHECKLIST → Attendance Extracted</b> and replies <b>“Attendance extracted — [City] - [Date]”</b>, tagging Ali and Andrea.</>,
+      <>Open <b>LIST MAKING CHECKLIST → Attendance Extracted</b> and check the rows the bot added.</>,
+      <>Open <b>DHR → Event_Registrants</b>. In cell <b>A2</b> pick the date of the event Tara’s PDF is for, then copy columns <b>C:K</b>.</>,
+      <>Paste them into <b>LIST MAKING CHECKLIST → Event Registration</b>. If this tab doesn’t hold that event’s registrations, nothing will match in the next step.</>,
+      <>Back in <b>Attendance Extracted</b>, open the header menu <b>Custom Tools → Match Attendance</b>. A pop-up shows, and columns <b>F:Q</b> fill in from the Event Registration tab.</>,
+      <>Check column <b>J (Match Method)</b> for each row. <b>PHONE_EXACT</b> or <b>NAME_EXACT</b>: column K (Match Status) shows <b>MATCHED_REGISTRANT</b>; that person is done. <b>NO_REGISTRATION_MATCH</b>: columns F:I are blank; note those people for the next steps.</>,
+      <>For each unmatched person, look for their first and last name in columns <b>A:B</b> of the <b>Event Registration</b> tab. If they’re there, copy their Email, Phone Number and Contact ID, paste them into the blank columns <b>F:I</b> of their row in Attendance Extracted, and set column <b>L (Approved)</b> to <b>Yes</b>.</>,
+      <>Not in Event Registration: search for the person by name in <b>Keap</b>. Found: copy their Email, Phone Number and Contact ID (the Contact ID is the number in the browser’s address bar on their contact page) and paste them into columns <b>F:I</b>. Not found: create a new contact in Keap with their details, then fill in columns F:I the same way.</>,
+      <>When every row is matched or filled in, open <b>Custom Tools → Finalize Attendance</b>. A pop-up confirms the sheet is finalized.</>,
+      <>Tick the <b>Call Claude</b> box (<b>S2</b>). The bot works out Total Attended, CWSocial25 and Opt-Ins with their percentages, writes them in the sheet, and posts the <b>Stat Sheet | Updated</b> report in Tara’s Slack thread.</>,
+      <>In <b>Eventbrite</b>, check the event’s check-ins for the tickets bought.</>,
+      <>In <b>Keap</b>, find the people who didn’t attend and apply the <b>Not-Attended</b> tag to them.</>,
+      <>In <b>Event Registration</b>, filter column <b>E (Promo Code)</b> to <b>CWSocial25</b> and note everyone listed.</>,
+      <>Double-check in <b>Keap</b>: find and filter the event by its date and make sure every CWSocial25 person is there.</>,
+      <>Copy the CWSocial25 rows (columns <b>A:F</b>) from Event Registration.</>,
+      <>Open <b>CWSocial25 Audit → Tracking Report</b>. Scroll to the last filled row and paste into the first blank row at column <b>E</b>. If column K is blank, type <b>No</b>. Fill in A:D: Month Tag, Date, Location City and Location State.</>,
+      <>Open <b>Event Opt In → Sheet1</b>, scroll to the bottom and check column <b>G (email)</b> for this event’s opt-ins. Present: nothing to do. Blank: search the person in Keap by name or phone number and type their email into the blank cell.</>,
+      <>Open <b>Half Day Event Stats → LABC 2026</b> and update the event’s numbers in <b>D:F</b>: TX Sold (from Eventbrite), IFS List (from Keap), Total Showup and Eligible (the same number), and Opt-ins (the opt-ins who attended).</>,
+      <>Back in <b>LIST MAKING CHECKLIST</b>, open <b>Custom Tools → Archive Event</b>, then <b>Clear Archive Attendance</b> so the tab is ready for the next event.</>,
       <>Log it. Add a row to the POC log at the bottom of this page.</>,
     ],
     ifItBreaks: [
       <><b>Custom Tools</b> menu missing or showing an error: reload the sheet once.</>,
-      <>Still broken: skip steps 6–8, tag each attendee in Keap by hand (tag <b>Attended - [Event] - [MM-DD-YYYY]</b>), set Tagging Status = <b>MANUAL_DONE</b>, and tell Miguel (tech).</>,
+      <>Nothing matches after Match Attendance: the Event Registration tab doesn’t hold this event yet. Redo steps 3–4 with the right date, then run Match Attendance again.</>,
+      <><b>Clear Archive Attendance</b> is under maintenance right now: if it fails, leave the tab as it is and tell Miguel (tech).</>,
       <>Never run the tools from the Apps Script editor.</>,
       <>The bot never replied “Attendance extracted” (or replied “⚠️ Couldn’t process”): tell Miguel in #cw-assistant with the link to Tara’s post.</>,
-    ],
-  },
-  {
-    id: 'EV-02',
-    title: 'Half-Day event stats when Ali is out (manual backup)',
-    department: 'events',
-    main: 'andrea',
-    poc: null,
-    when: 'After each half-day event, only when Ali is out',
-    sheets: [LIST_MAKING],
-    updated: 'v1 · Oct 2026',
-    testRun: 'Not yet · POC with Andrea',
-    status: 'draft',
-    summary: 'When Ali is out, type the three stats yourself and let the bot post the Stat Sheet in Slack.',
-    steps: [
-      <>Open <b>LIST MAKING CHECKLIST (Half-Day Events)</b> → tab <b>Attendance Extracted</b>. Use the <b>Manual Backup</b> block (columns X–AA), not Ali’s block (S–V).</>,
-      <>In <b>X2</b> type the attended count like <b>32 of 165</b> (attended of registered).</>,
-      <>In <b>Y2</b> type the CWSocial25 count the same way, e.g. <b>3 of 7</b>.</>,
-      <>In <b>Z2</b> type the opt-ins, e.g. <b>23 of 32</b> (opt-ins of attended).</>,
-      <>Tick the <b>Call Claude</b> box in <b>AA2</b>.</>,
-      <>Within the hour the bot works out the percentages (X4:Z4), posts the <b>Stat Sheet | Updated</b> reply in the event’s Slack thread in #half-day-registration-forms, tags Tara, and clears the tab for the next event.</>,
-      <>Log it. Add a row to the POC log at the bottom of this page.</>,
-    ],
-    ifItBreaks: [
-      <>The bot replies “I couldn’t read Y2” (or another cell): retype it like <b>3 of 7</b> and tick AA2 again.</>,
-      <>No Stat Sheet reply after an hour: check AA2 is still ticked, then tell Miguel in #cw-assistant.</>,
     ],
   },
   {

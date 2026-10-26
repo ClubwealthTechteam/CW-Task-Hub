@@ -84,8 +84,24 @@ export async function setSopShot(articleId: string, step: number, slot: ShotSlot
   return null;
 }
 
+/** How wide each screenshot shows on the page; Miguel picks it (Medium when not set). */
+export const SHOT_SIZES = ['s', 'm', 'l', 'full'] as const;
+export type ShotSize = (typeof SHOT_SIZES)[number];
+const shotSizeKey = (articleId: string) => `sop:shotsize:${articleId.toUpperCase()}`;
+
+/** shotRef (e.g. "3", "3-2") → chosen size. */
+export async function sopShotSizes(articleId: string): Promise<Record<string, ShotSize>> {
+  return getJSON<Record<string, ShotSize>>(shotSizeKey(articleId), {});
+}
+
+export async function setSopShotSize(articleId: string, step: number, slot: ShotSlot, size: ShotSize) {
+  await setJSON(shotSizeKey(articleId), { ...(await sopShotSizes(articleId)), [shotRef(step, slot)]: size });
+}
+
 export async function deleteSopShot(articleId: string, step: number, slot: ShotSlot) {
   await deleteKey(shotKey(articleId, step, slot));
+  const sizes = await sopShotSizes(articleId);
+  if (sizes[shotRef(step, slot)]) { delete sizes[shotRef(step, slot)]; await setJSON(shotSizeKey(articleId), sizes); }
   const index = await sopShots(articleId);
   delete index[shotRef(step, slot)];
   await setJSON(shotIndexKey(articleId), index);

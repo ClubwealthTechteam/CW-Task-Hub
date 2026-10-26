@@ -11,7 +11,7 @@ import { personById } from '@/config/people';
 import { isDecision, isPlain, sopById } from '@/data/sop';
 import { WhereBox } from '@/components/sop/WhereBox';
 import { DecisionStep } from '@/components/sop/DecisionStep';
-import { canEditShots, outToday, shotRef, sopLog, sopShots } from '@/lib/sop';
+import { canEditShots, outToday, shotRef, sopLog, sopShotSizes, sopShots } from '@/lib/sop';
 import { LogForm } from '@/components/sop/SopControls';
 import { StepShot } from '@/components/sop/StepShot';
 
@@ -29,7 +29,7 @@ export default async function SopArticlePage({ params }: { params: Promise<{ id:
   const user = await requireUser();
   const a = sopById((await params).id);
   if (!a) notFound();
-  const [log, out, pasted] = await Promise.all([sopLog(a.id), outToday(), sopShots(a.id)]);
+  const [log, out, pasted, sizes] = await Promise.all([sopLog(a.id), outToday(), sopShots(a.id), sopShotSizes(a.id)]);
   const canPaste = canEditShots(user.id);
   const mainOut = out.has(a.main);
 
@@ -95,10 +95,12 @@ export default async function SopArticlePage({ params }: { params: Promise<{ id:
                   return (
                     <li key={i} id={`step-${n}`} className={isDecision(s) ? 'is-decision' : undefined}>
                       {isDecision(s) ? <DecisionStep d={s} /> : isPlain(s) ? <>{s.body}{s.where && <WhereBox where={s.where} />}</> : s}
-                      <div className="sop-shots">
-                        <StepShot articleId={a.id} step={n} src={shot1} canEdit={canPaste} />
-                        {(canPaste || shot2) && <StepShot articleId={a.id} step={n} slot={2} src={shot2} canEdit={canPaste} />}
-                      </div>
+                      {(canPaste || shot1 || shot2) && (
+                        <div className="sop-shots">
+                          {(canPaste || shot1) && <StepShot articleId={a.id} step={n} src={shot1} size={sizes[shotRef(n, 1)]} canEdit={canPaste} />}
+                          {(canPaste || shot2) && <StepShot articleId={a.id} step={n} slot={2} src={shot2} size={sizes[shotRef(n, 2)]} canEdit={canPaste} />}
+                        </div>
+                      )}
                     </li>
                   );
                 })}

@@ -51,7 +51,17 @@ export interface SopWhere {
 }
 
 /** A plain step with its "Where" details. */
-export interface SopPlain { kind: 'step'; body: ReactNode; where?: SopWhere[] }
+export interface SopPlain {
+  kind: 'step';
+  body: ReactNode;
+  where?: SopWhere[];
+  /** A Note node attached to this step on the flow. */
+  note?: ReactNode;
+  /** Which decision path this step is on, e.g. "Step 8 · If NO_REGISTRATION_MATCH". */
+  branch?: string;
+  /** Where to jump when this is the last step of a path (paths meet again at a later step). */
+  next?: { step: number; label: string };
+}
 
 export type SopStep = ReactNode | SopPlain | SopDecision;
 
@@ -132,7 +142,7 @@ const at = (t: keyof typeof TABS, cells?: string, action?: string, range?: strin
   const x = TABS[t];
   return { app: 'sheet', name: x.sheet, tab: x.tab, url: sheetLink(x.id, x.gid, range), cells, action };
 };
-const step = (body: ReactNode, where?: SopWhere[]): SopPlain => ({ kind: 'step', body, where });
+const step = (body: ReactNode, where?: SopWhere[], extra?: Pick<SopPlain, 'note' | 'branch' | 'next'>): SopPlain => ({ kind: 'step', body, where, ...extra });
 const ATT_SLACK: SopWhere = { app: 'slack', name: '#cw-half-day-registration-forms-automation', cells: 'Tara’s post with the PDF, and its thread' };
 const FORMS_SLACK: SopWhere = { app: 'slack', name: '#cw-halfday-event-forms-automation', cells: 'Tara’s forms posts and the bot’s replies' };
 const KEAP_CONTACTS: SopWhere = { app: 'keap', name: 'Keap → Contacts', url: 'https://app.infusionsoft.com', cells: 'Search by name or phone' };
@@ -150,7 +160,7 @@ export const SOP_ARTICLES: SopArticle[] = [
     poc: 'andrea',
     when: 'After each half-day event, once the bot replies “Attendance extracted”',
     sheets: [LIST_MAKING, DHR, CWSOCIAL_AUDIT, EVENT_OPT_IN, HALF_DAY_STATS],
-    updated: 'v2 · Oct 2026',
+    updated: 'v3 · Oct 2026',
     testRun: 'Not yet · Andrea with Ali',
     status: 'draft',
     effective: 'Oct 26, 2026',
@@ -181,181 +191,201 @@ export const SOP_ARTICLES: SopArticle[] = [
       { term: 'CWSocial25', meaning: 'A promo code from the social campaign. Those registrants are also logged in the CWSocial25 Audit sheet.' },
       { term: 'Not-Attended tag', meaning: 'The Keap tag for people who registered but didn’t come, e.g. “Non-Attended - Plano TX - 10-22-2026”.' },
     ],
-    summary: 'Match the attendance the bot read from the sign-in sheets to the registrations, fill in anyone missing, get the stats, then update Keap, the CWSocial25 audit, the opt-ins and the event stats.',
+    summary: 'Miguel’s flow, node by node: Claude reads the sign-in PDF into the sheet, you match it to the registrations and fill in anyone missing, Claude posts the stats, then you update Eventbrite, Keap, the CWSocial25 audit, the opt-ins and the event stats.',
+    // One step per node of Miguel's Flow Canvas map "Half Day Events Registration Main" (Oct 26, 2026), in flow order.
+    // Keep it node for node: don't merge or shorten steps.
     steps: [
-      step(<>Find the event. Tara posts the scanned sign-in PDF in Slack <b>#cw-half-day-registration-forms-automation</b>. The bot fills columns A–E of <b>LIST MAKING CHECKLIST → Attendance Extracted</b> and replies <b>“Attendance extracted — [City] - [Date]”</b>, tagging Ali and Andrea.</>, [
-        ATT_SLACK,
-        at('attendance', 'Columns A–E (Extracted Name, Phone, Source Page, Source Type, Notes)', 'The bot fills these in', 'A1:E1'),
+      // 1 · Slack
+      step(<>Tara sends the PDF scanned file link in Slack.</>, [
+        { ...ATT_SLACK, cells: 'Tara’s post with the PDF scanned file link', action: 'Find the post for this event' },
       ]),
-      step(<>Open <b>LIST MAKING CHECKLIST → Attendance Extracted</b> and check the rows the bot added. Rows whose Notes (E) start with <b>REVIEW:</b> need a look against the PDF.</>, [
-        at('attendance', 'Columns A–E, from row 2 down', 'Check every row; fix names or phones on REVIEW rows', 'A2:E2'),
+      // 2 · Claude AI
+      step(<>Claude fills out columns <b>A–E</b> and notifies Ali and Andrea (it replies <b>“Attendance extracted — [City] - [Date]”</b> in Tara’s thread).</>, [
+        at('attendance', 'Columns A–E (Extracted Name, Phone, Source Page, Source Type, Notes)', 'Claude fills these in', 'A1:E1'),
+        { ...ATT_SLACK, cells: 'Tara’s thread', action: 'Claude’s “Attendance extracted” reply tags Ali and Andrea' },
       ]),
-      step(<>Open <b>DHR → Event_Registrants</b>. In cell <b>A2</b> pick the date of the event Tara’s PDF is for, then copy columns <b>C:K</b>.</>, [
-        at('dhr', 'A2', 'Pick the event date', 'A2'),
-        at('dhr', 'Columns C:K', 'Copy the registrants', 'C:K'),
+      // 3 · Google Sheets (Attendance Extracted)
+      step(<>Open <b>LIST MAKING CHECKLIST → Attendance Extracted</b>.</>, [
+        at('attendance', 'Columns A–E (filled by Claude)', 'Open the tab', 'A1:E1'),
       ]),
-      step(<>Paste them into <b>LIST MAKING CHECKLIST → Event Registration</b>. If this tab doesn’t hold that event’s registrations, nothing will match in the next step.</>, [
-        at('registration', 'The whole tab (replace the previous event)', 'Paste what you copied from DHR'),
+      // 4 · Google Sheets (DHR)
+      step(<>Open <b>DHR → Event_Registrants</b>. Select the corresponding date that Tara’s PDF is for in <b>cell A2</b>. Then copy columns <b>C:K</b> and paste them in the next step.</>, [
+        at('dhr', 'Cell A2', 'Select the event date', 'A2'),
+        at('dhr', 'Columns C:K', 'Copy', 'C:K'),
+      ], { note: 'For automation opportunity.' }),
+      // 5 · Google Sheets (Event Registration)
+      step(<>Paste to the <b>Event Registration</b> tab.</>, [
+        at('registration', 'The tab (where the previous event’s rows are)', 'Paste what you copied from DHR'),
       ]),
-      step(<>Back in <b>Attendance Extracted</b>, open the header menu <b>Custom Tools → Match Attendance</b>. A pop-up shows, and columns <b>F:Q</b> fill in from the Event Registration tab.</>, [
-        at('attendance', 'Menu: Custom Tools → Match Attendance', 'Run it once'),
-        at('attendance', 'Columns F:Q (Matched Name … Tagging Request ID)', 'These fill in', 'F1:Q1'),
+      // 6 · Google Sheets (Match Attendance)
+      step(<>Go back to <b>Attendance Extracted</b>. In the header menu, find and click <b>Custom Tools → “Match Attendance”</b>.</>, [
+        at('attendance', 'Header menu: Custom Tools → Match Attendance', 'Click it once'),
       ]),
+      // 7 · Google Sheets (F:Q fill in)
+      step(<>A pop-up prompt shows after clicking “Match Attendance”. Columns <b>F:Q</b> populate with the data based on the <b>Event Registration</b> tab.</>, [
+        at('attendance', 'Columns F:Q', 'These fill in', 'F1:Q1'),
+      ], { note: 'If the Event Registration tab (same sheet) is not filled with the selected date from DHR → Event_Registrants, nothing will match, and the Attendance Extracted columns are left unmatched.' }),
+      // 8 · Decision: Matched?
       {
         kind: 'decision',
         short: 'Matched?',
-        ask: <>Did each person match a registration?</>,
-        check: <>Look at column <b>J (Match Method)</b> in Attendance Extracted, row by row.</>,
-        where: [
-          at('attendance', 'Column J (Match Method)', 'Read it for each row', 'J:J'),
-          at('attendance', 'Column K (Match Status)', 'MATCHED_REGISTRANT when matched', 'K:K'),
-          at('attendance', 'Columns F:I (Matched Name, Email, Phone, Contact ID)', 'Blank when not matched', 'F:I'),
-        ],
+        ask: <>Matched?</>,
+        check: <>Check column <b>J = Match Method</b>. It shows one of two options: <b>PHONE_EXACT / NAME_EXACT</b>, or <b>NO_REGISTRATION_MATCH</b>.</>,
+        where: [at('attendance', 'Column J (Match Method)', 'Check it for each row', 'J:J')],
         paths: [
-          {
-            label: 'PHONE_EXACT or NAME_EXACT',
-            tone: 'yes',
-            means: <>Column K (Match Status) shows <b>MATCHED_REGISTRANT</b>.</>,
-            todo: [<>Nothing to do for this person. They’re complete.</>],
-            next: { step: 9, label: 'Finalize Attendance' },
-          },
-          {
-            label: 'NO_REGISTRATION_MATCH',
-            tone: 'no',
-            means: <>Columns <b>F:I</b> are blank for this person.</>,
-            todo: [<>Note the person’s name and row.</>],
-            next: { step: 7, label: 'Look them up in Event Registration' },
-          },
+          { label: 'PHONE_EXACT / NAME_EXACT', tone: 'yes', todo: [], next: { step: 9, label: 'Column K shows MATCHED_REGISTRANT' } },
+          { label: 'NO_REGISTRATION_MATCH', tone: 'no', todo: [], next: { step: 11, label: 'Blank cells in columns F:I' } },
         ],
       },
+      // 9 · Google Sheets (Match Status)
+      step(<>Column <b>K – “Match Status”</b> shows <b>“MATCHED_REGISTRANT”</b> in its dropdown.</>, [
+        at('attendance', 'Column K (Match Status)', 'Shows MATCHED_REGISTRANT', 'K:K'),
+      ], { branch: 'Step 8 · If PHONE_EXACT / NAME_EXACT' }),
+      // 10 · Person is Matched
+      step(<><b>Person is matched.</b> No need to review. This is complete.</>, undefined, { branch: 'Step 8 · If PHONE_EXACT / NAME_EXACT', next: { step: 22, label: 'Finalize Attendance' } }),
+      // 11 · Google Sheets (blank F:I)
+      step(<>Blank cells show in columns <b>F:I</b>. Select and take note of the persons with blank cells under columns F:I.</>, [
+        at('attendance', 'Columns F:I + the blank rows', 'Take note of each person', 'F:I'),
+      ], { branch: 'Step 8 · If NO_REGISTRATION_MATCH' }),
+      // 12 · Google Sheets (find name)
+      step(<>Find the person’s first and last name in columns <b>A:B</b> of the <b>Event Registration</b> tab.</>, [
+        at('registration', 'Columns A:B (First, Last Name)', 'Search the name (Ctrl/⌘+F)', 'A:B'),
+      ]),
+      // 13 · Decision: Name present in sheet tab?
       {
         kind: 'decision',
-        short: 'In Event Registration?',
-        ask: <>Is the person’s name in the Event Registration tab?</>,
-        check: <>Search columns <b>A:B</b> (first and last name) of <b>LIST MAKING CHECKLIST → Event Registration</b>.</>,
-        where: [
-          at('registration', 'Columns A:B (First, Last name)', 'Search the name (Ctrl/⌘+F)', 'A:B'),
-          at('attendance', 'Columns F:I of the person’s row', 'Paste Email, Phone, Contact ID', 'F:I'),
-          at('attendance', 'Column L (Approved)', 'Set to Yes', 'L:L'),
-        ],
-        note: <>Do steps 7–8 for each person who didn’t match.</>,
+        short: 'Name present?',
+        ask: <>Name present in the sheet tab?</>,
+        where: [at('registration', 'Columns A:B (First, Last Name)', 'Is the name there?', 'A:B')],
         paths: [
-          {
-            label: 'Yes, found',
-            tone: 'yes',
-            todo: [
-              <>Copy their <b>Email</b>, <b>Phone Number</b> and <b>Contact ID</b>.</>,
-              <>Paste them into the blank columns <b>F:I</b> of their row in Attendance Extracted.</>,
-              <>Set column <b>L (Approved)</b> to <b>Yes</b>.</>,
-            ],
-            next: { step: 9, label: 'Finalize Attendance (once everyone is filled in)' },
-          },
-          {
-            label: 'No, not there',
-            tone: 'no',
-            todo: [<>Nothing to copy from the sheet. Look for them in Keap instead.</>],
-            next: { step: 8, label: 'Look them up in Keap' },
-          },
+          { label: 'Yes', tone: 'yes', todo: [], next: { step: 14, label: 'Copy Email, Phone Number, Contact ID' } },
+          { label: 'No', tone: 'no', todo: [], next: { step: 16, label: 'Find the contact in Keap' } },
         ],
       },
+      // 14 · Google Sheets (copy from Event Registration)
+      step(<>Copy the <b>Email</b>, <b>Phone Number</b> and <b>Contact ID</b> cells and paste them in the next step.</>, [
+        at('registration', 'The person’s Email, Phone Number and Contact ID cells', 'Copy'),
+      ], { branch: 'Step 13 · If Yes' }),
+      // 15 · Google Sheets (paste + Approved)
+      step(<>Paste to the person’s blank columns <b>F:I</b> and click <b>Yes</b> under column <b>L (“Approved”)</b>.</>, [
+        at('attendance', 'Columns F:I + the blank row', 'Paste', 'F:I'),
+        at('attendance', 'Column L (Approved)', 'Click Yes', 'L:L'),
+      ], { branch: 'Step 13 · If Yes', next: { step: 22, label: 'Finalize Attendance' } }),
+      // 16 · Keap (find contact)
+      step(<>Find the contact (name) in <b>Keap</b>.</>, [
+        { ...KEAP_CONTACTS, cells: 'Search by name' },
+      ], { branch: 'Step 13 · If No' }),
+      // 17 · Decision: Check Keap
       {
         kind: 'decision',
-        short: 'In Keap?',
-        ask: <>Is the person in Keap?</>,
-        check: <>Search <b>Keap</b> for the person by name.</>,
-        where: [
-          KEAP_CONTACTS,
-          at('attendance', 'Columns F:I of the person’s row', 'Paste Email, Phone, Contact ID', 'F:I'),
-        ],
+        short: 'Check Keap',
+        ask: <>Check Keap</>,
+        where: [KEAP_CONTACTS],
         paths: [
-          {
-            label: 'Found in Keap',
-            tone: 'yes',
-            todo: [
-              <>Copy their <b>Email</b>, <b>Phone Number</b> and <b>Contact ID</b>. The Contact ID is the number in the browser’s address bar on their contact page.</>,
-              <>Paste them into the blank columns <b>F:I</b> of their row in Attendance Extracted.</>,
-            ],
-            next: { step: 9, label: 'Finalize Attendance (once everyone is filled in)' },
-          },
-          {
-            label: 'Not found in Keap',
-            tone: 'no',
-            todo: [
-              <>Create a new contact in Keap with their name, email and phone.</>,
-              <>Copy the new contact’s <b>Email</b>, <b>Phone Number</b> and <b>Contact ID</b> into columns <b>F:I</b> of their row.</>,
-            ],
-            next: { step: 9, label: 'Finalize Attendance (once everyone is filled in)' },
-          },
+          { label: 'Present in Keap', tone: 'yes', todo: [], next: { step: 18, label: 'Copy Email, Phone Number, Contact ID' } },
+          { label: 'Not found in Keap', tone: 'no', todo: [], next: { step: 20, label: 'Create a new contact' } },
         ],
       },
-      step(<>When every row is matched or filled in, open <b>Custom Tools → Finalize Attendance</b>. A pop-up confirms the sheet is finalized.</>, [
-        at('attendance', 'Menu: Custom Tools → Finalize Attendance', 'Run it once'),
+      // 18 · Keap (copy)
+      step(<>Copy the <b>Email</b>, <b>Phone Number</b> and <b>Contact ID</b>.</>, [
+        { app: 'keap', name: 'Keap → the contact’s page', url: 'https://app.infusionsoft.com', cells: 'Email, Phone Number; Contact ID in the address bar', action: 'Copy' },
+      ], { branch: 'Step 17 · If Present in Keap', note: <>The Contact ID can be found in the address bar: the number after <b>“ID=”</b>.<img className="sop-note-img" src="/sop/EV-01/keap-contact-id.webp" alt="Keap contact page address bar: the Contact ID is the number after ID=" width={841} height={47} /></> }),
+      // 19 · Google Sheets (paste)
+      step(<>Paste and update the blank cells under columns <b>F:I</b> with the Email, Phone Number and Contact ID.</>, [
+        at('attendance', 'Columns F:I + the blank row', 'Paste', 'F:I'),
+      ], { branch: 'Step 17 · If Present in Keap', next: { step: 22, label: 'Finalize Attendance' } }),
+      // 20 · Keap (create)
+      step(<>Create a new contact in <b>Keap</b> and fill out the contact information.</>, [
+        { app: 'keap', name: 'Keap → Contacts → Add a contact', url: 'https://app.infusionsoft.com', action: 'Create and fill out' },
+      ], { branch: 'Step 17 · If Not found in Keap' }),
+      // 21 · Google Sheets (update)
+      step(<>Update the blank cells under columns <b>F:I</b> with the Email, Phone Number and Contact ID.</>, [
+        at('attendance', 'Columns F:I + the blank row', 'Update', 'F:I'),
+      ], { branch: 'Step 17 · If Not found in Keap', next: { step: 22, label: 'Finalize Attendance' } }),
+      // 22 · Google Sheets (Finalize Attendance)
+      step(<>In the header menu, find and click <b>Custom Tools → “Finalize Attendance”</b>.</>, [
+        at('attendance', 'Header menu: Custom Tools → Finalize Attendance', 'Click it once'),
+      ], { branch: 'All paths meet here' }),
+      // 23 · Google Sheets (finalized)
+      step(<>A pop-up prompt shows after clicking “Finalize Attendance”, and the sheet data is finalized.</>, [
+        at('attendance', 'The pop-up prompt', 'The data is finalized'),
       ]),
-      step(<>Tick the <b>Call Claude</b> box (<b>S2</b>). The bot works out Total Attended, CWSocial25 and Opt-Ins with their percentages, writes them in the sheet, and posts the <b>Stat Sheet | Updated</b> report in Tara’s Slack thread.</>, [
-        at('attendance', 'S2 (Call Claude checkbox)', 'Tick it once', 'S2'),
-        at('attendance', 'T2:V2 counts, T4:V4 percentages', 'The bot fills these', 'T2:V4'),
-        { ...ATT_SLACK, cells: 'Tara’s thread', action: 'The bot posts the Stat Sheet here' },
+      // 24 · Google Sheets (Call Claude)
+      step(<>Under the <b>“Call Claude”</b> column, tick the checkbox to call on Claude to finalize the numbers for <b>Total Attended</b>, <b>CWSocial25</b> and <b>Opt-Ins</b>, and their percentages.</>, [
+        at('attendance', 'Cell S2 (Call Claude checkbox)', 'Tick it once', 'S2'),
       ]),
-      step(<>In <b>Eventbrite</b>, check the event’s check-ins for the tickets bought.</>, [
-        { app: 'eventbrite', name: 'Eventbrite → Events → this event → Orders / Check-in', url: 'https://www.eventbrite.com/organizations/events', action: 'Compare check-ins with tickets sold' },
+      // 25 · Claude AI
+      step(<>Claude finalizes the numbers and fills out the cells for <b>Total Attended</b>, <b>CWSocial25</b> and <b>Opt-Ins</b>, and their percentages, in the sheet.</>, [
+        at('attendance', 'T2:V2 numbers, T4:V4 percentages', 'Claude fills these', 'T2:V4'),
       ]),
-      step(<>In <b>Keap</b>, find the people who didn’t attend and apply the <b>Not-Attended</b> tag to them.</>, [
-        { app: 'keap', name: 'Keap → Contacts (filter by the event’s registration tag)', url: 'https://app.infusionsoft.com', cells: 'Tag: Non-Attended - [City] [ST] - [MM-DD-YYYY]', action: 'Apply to everyone who didn’t attend' },
+      // 26 · Slack (Stat Sheet)
+      step(<>The Club Wealth Assistant bot in Slack posts the finalized numbers as a report in Tara’s main message thread. Example report:
+        <pre className="sop-example">{'Plano TX\nStat Sheet | Updated\n\n28 of 201 Attended Tagged | 13.93%\n1 of 10 CWSocial25 | 10.00%\n11 of 28 Opt-Ins | 39.29%\n@Tara Hellickson'}</pre></>, [
+        { ...ATT_SLACK, cells: 'Tara’s main message thread', action: 'The bot posts the report here' },
       ]),
-      step(<>In <b>Event Registration</b>, filter column <b>E (Promo Code)</b> to <b>CWSocial25</b> and note everyone listed.</>, [
-        at('registration', 'Column E (Promo Code) = CWSocial25', 'Filter, then note everyone', 'E:E'),
+      // 27 · Eventbrite
+      step(<>In <b>Eventbrite</b>, check the check-ins for the tickets bought.</>, [
+        { app: 'eventbrite', name: 'Eventbrite → Events → this event', url: 'https://www.eventbrite.com/organizations/events', action: 'Check the check-ins' },
       ]),
-      step(<>Double-check in <b>Keap</b>: find and filter the event by its date and make sure every CWSocial25 person is there.</>, [
-        { app: 'keap', name: 'Keap → Contacts (filter by the event and date)', url: 'https://app.infusionsoft.com', action: 'Make sure each CWSocial25 person is there' },
+      // 28 · Keap (not-attended)
+      step(<>In <b>Keap</b>, check the not-attended. Filter, and apply the <b>not-attended tag</b> to the ones that didn’t attend.</>, [
+        { app: 'keap', name: 'Keap → Contacts', url: 'https://app.infusionsoft.com', cells: 'Filter the not-attended', action: 'Apply the not-attended tag' },
       ]),
-      step(<>Copy the CWSocial25 rows (columns <b>A:F</b>) from Event Registration.</>, [
-        at('registration', 'Columns A:F of the CWSocial25 rows (filter still on)', 'Copy', 'A:F'),
+      // 29 · Google Sheets (CWSocial25 filter)
+      step(<>In <b>Event Registration</b>, filter column <b>E</b> to <b>“CWSocial25”</b>. Take note, and make sure that everyone is present in the next step.</>, [
+        at('registration', 'Column E “Promo Code” = CWSocial25', 'Filter and take note', 'E:E'),
       ]),
-      step(<>Open <b>CWSocial25 Audit → Tracking Report</b>. Scroll to the last filled row and paste into the first blank row at column <b>E</b>. If column K is blank, type <b>No</b>. Fill in A:D: Month Tag, Date, Location City and Location State.</>, [
-        at('audit', 'Column E, first blank row at the bottom', 'Paste the CWSocial25 rows', 'E:E'),
-        at('audit', 'Column K', 'Type No where it’s blank', 'K:K'),
-        at('audit', 'Columns A:D (Month Tag, Date, Location City, Location State)', 'Fill in for the new rows', 'A:D'),
+      // 30 · Keap (double check)
+      step(<><b>For double-checking purposes:</b> in <b>Keap</b>, find and filter the event that happened under the recent date.</>, [
+        { app: 'keap', name: 'Keap → Contacts', url: 'https://app.infusionsoft.com', cells: 'The event, by its recent date', action: 'Find and filter' },
       ]),
+      // 31 · Google Sheets (copy A:F)
+      step(<>In <b>Event Registration</b>, copy columns <b>A:F</b> and paste them in the next step.</>, [
+        at('registration', 'Columns A:F (CWSocial25 filter on column E “Promo Code”)', 'Copy', 'A:F'),
+      ]),
+      // 32 · Google Sheets (CWSocial25 Audit)
+      step(<>Open <b>CWSocial25 Audit → Tracking Report</b>. Scroll down to the bottom end, where the rows have text. Paste to the blank row under column <b>E</b>. If column <b>K</b> is blank, put <b>“No”</b>. Then update <b>A:D</b>: Month Tag, Date, Location City and Location State.</>, [
+        at('audit', 'Column E, the blank row at the bottom', 'Paste', 'E:E'),
+        at('audit', 'Column K', 'Put “No” where it’s blank', 'K:K'),
+        at('audit', 'Columns A:D (Month Tag, Date, Location City, Location State)', 'Update', 'A:D'),
+      ]),
+      // 33 · Google Sheets (Event Opt In)
+      step(<>Open <b>Event Opt In → Sheet1</b>. Scroll to the very bottom and find whether the email is present or blank.</>, [
+        at('optin', 'Column G (email), the bottom rows', 'Check each one', 'G:G'),
+      ]),
+      // 34 · Decision: Email there?
       {
         kind: 'decision',
         short: 'Email there?',
-        ask: <>Does each opt-in from this event have an email?</>,
-        check: <>Open <b>Event Opt In → Sheet1</b>, scroll to the bottom and check column <b>G (email)</b> for this event’s opt-ins.</>,
-        where: [
-          at('optin', 'Column G (email), bottom rows for this event', 'Check each one', 'G:G'),
-          KEAP_CONTACTS,
-        ],
+        ask: <>Email there?</>,
+        where: [at('optin', 'Column G (email)', 'Present or blank?', 'G:G')],
         paths: [
-          {
-            label: 'Email present',
-            tone: 'yes',
-            todo: [<>Nothing to do for that row.</>],
-            next: { step: 18, label: 'Update Half-Day Events Stats' },
-          },
-          {
-            label: 'Email blank',
-            tone: 'no',
-            todo: [
-              <>Search the person in <b>Keap</b> by name or phone number.</>,
-              <>Type their email into the blank cell in column G.</>,
-            ],
-            next: { step: 18, label: 'Update Half-Day Events Stats' },
-          },
+          { label: 'Present', tone: 'yes', todo: [], next: { step: 35, label: 'No need for processing' } },
+          { label: 'Blank', tone: 'no', todo: [], next: { step: 36, label: 'Search the contact in Keap' } },
         ],
       },
-      step(<>Open <b>Half-Day Events Stats → LABC2026</b> and update the event’s numbers in <b>D:F</b>: TX Sold (from Eventbrite), IFS List (from Keap), Total Showup and Eligible (the same number), and Opt-ins (the opt-ins who attended).</>, [
-        at('stats', 'Columns D:F on the event’s row', 'TX Sold, IFS List, Total Showup / Eligible, Opt-ins', 'D:F'),
-      ]),
-      step(<>Back in <b>LIST MAKING CHECKLIST</b>, open <b>Custom Tools → Archive Event</b>, then <b>Clear Archive Attendance</b> so the tab is ready for the next event.</>, [
-        at('attendance', 'Menu: Custom Tools → Archive Event, then Clear Archive Attendance', 'Run both, in that order'),
-      ]),
-      step(<>Log it. Add a row to the POC log at the bottom of this page.</>, [
-        { app: 'hub', name: 'This page → POC log', url: '#poc-log', action: 'Add what was done and anything unusual' },
-      ]),
+      // 35 · No Need for Processing
+      step(<><b>No need for processing.</b></>, undefined, { branch: 'Step 34 · If Present', next: { step: 38, label: 'Update Half-Day Event Stats' } }),
+      // 36 · Keap (search email)
+      step(<>In <b>Keap</b>, search the contact by name or phone number and find the email.</>, [
+        { ...KEAP_CONTACTS, cells: 'Search by name or phone number', action: 'Find the email' },
+      ], { branch: 'Step 34 · If Blank' }),
+      // 37 · Google Sheets (update email)
+      step(<>Update the blank cell with the email.</>, [
+        at('optin', 'Column G, the blank cell', 'Type the email', 'G:G'),
+      ], { branch: 'Step 34 · If Blank', next: { step: 38, label: 'Update Half-Day Event Stats' } }),
+      // 38 · Google Sheets (Half Day Event Stats)
+      step(<>Open <b>Half-Day Event Stats → LABC 2026</b> and update the numbers for the event: <b>TX Sold</b> (from Eventbrite), <b>IFS List</b> (from Keap), <b>Total Showup</b> and <b>Eligible</b> (the same numbers), and <b>Opt-ins</b> (from total opt-ins attended).</>, [
+        at('stats', 'Columns D:F', 'Update the event’s numbers', 'D:F'),
+      ], { branch: 'Both paths meet here' }),
+      // 39 · Google Sheets (Archive)
+      step(<>Go back to <b>LIST MAKING CHECKLIST → Attendance Extracted</b>. In the header menu bar, find <b>“Custom Tools”</b>, click <b>“Archive Event”</b>, and then click <b>“Clear Archive Attendance”</b>.</>, [
+        at('attendance', 'Header menu: Custom Tools → Archive Event, then Clear Archive Attendance', 'Click both, in that order'),
+      ], { note: '“Clear Archive Attendance” is scheduled for maintenance at the moment.' }),
     ],
     ifItBreaks: [
       <><b>Custom Tools</b> menu missing or showing an error: reload the sheet once.</>,
-      <>Nothing matches after Match Attendance: the Event Registration tab doesn’t hold this event yet. Redo steps 3–4 with the right date, then run Match Attendance again.</>,
+      <>Nothing matches after Match Attendance: the Event Registration tab doesn’t hold this event yet. Redo steps 4–5 with the right date, then run Match Attendance again.</>,
       <><b>Clear Archive Attendance</b> is under maintenance right now: if it fails, leave the tab as it is and tell Miguel (tech).</>,
       <>Never run the tools from the Apps Script editor.</>,
       <>The bot never replied “Attendance extracted” (or replied “⚠️ Couldn’t process”): tell Miguel in #cw-assistant with the link to Tara’s post.</>,

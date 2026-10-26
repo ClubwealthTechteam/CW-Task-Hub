@@ -1561,6 +1561,11 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
 .sop-path-means { margin: 0; color: var(--muted); }
 .sop-path-todo { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; line-height: 1.5; font-size: 14px; }
 .sop-next { margin-top: auto; align-self: flex-start; padding: 7px 12px; border-radius: 8px; background: var(--tone); color: #fff; font-size: 13.5px; text-decoration: none; }
+.sop-next-plain { --tone: var(--navy, #1b2a4a); display: table; margin-top: 10px; }
+.sop-branch { display: table; margin-bottom: 6px; padding: 2px 9px; border-radius: 999px; background: var(--soft, #f3f5f8); border: 1px solid var(--line); color: var(--muted); font-weight: 600; }
+.sop-note { margin: 10px 0 0; padding: 8px 12px; border-left: 4px solid #e0b100; background: #fff8dc; border-radius: 6px; color: #5a4600; }
+.sop-note-img { display: block; margin-top: 8px; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; }
+.sop-example { margin: 8px 0 0; padding: 10px 12px; background: var(--soft, #f3f5f8); border: 1px solid var(--line); border-radius: 8px; font: 13px/1.5 ui-monospace, Menlo, monospace; white-space: pre-wrap; }
 .sop-next:hover { filter: brightness(1.08); }
 .sop-next:focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; }
 .sop-steps li:target > :first-child, .sop-steps li:target { scroll-margin-top: 84px; }

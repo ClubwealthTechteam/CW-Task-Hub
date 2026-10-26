@@ -93,6 +93,17 @@ test('only Miguel can paste a step screenshot on an SOP article; everyone signed
   await paste('Paste a screenshot for step 3');
   const img = page.locator('img[alt="EV-01 step 3"]');
   await expect(img).toBeVisible();
+  // Clicking it opens it over the page (no new tab); the X closes it.
+  await page.getByRole('button', { name: 'Open step 3 image' }).click();
+  await expect(page.getByRole('dialog', { name: 'EV-01 step 3' })).toBeVisible();
+  await page.getByRole('dialog').getByRole('button', { name: 'Close' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  // Miguel can resize it, and the size is kept.
+  await page.getByRole('group', { name: 'Size of step 3 image' }).getByRole('button', { name: 'Large' }).click();
+  await expect(page.getByRole('group', { name: 'Size of step 3 image' }).getByRole('button', { name: 'Large' })).toHaveAttribute('aria-pressed', 'true');
+  await page.waitForTimeout(300);
+  await page.reload();
+  await expect(page.getByRole('group', { name: 'Size of step 3 image' }).getByRole('button', { name: 'Large' })).toHaveAttribute('aria-pressed', 'true');
   await paste('Paste a screenshot for step 3 · image 2');
   await expect(page.locator('img[alt="EV-01 step 3 · image 2"]')).toBeVisible();
   const src = await img.getAttribute('src');

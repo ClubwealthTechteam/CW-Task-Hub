@@ -1587,3 +1587,21 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
 .sop-app.keap { background: #e8f5e9; color: #2e7d32; }
 .sop-app.eventbrite { background: #fdece6; color: #d1410c; }
 .sop-app.hub { background: var(--muted-tint, #eef1f6); color: var(--navy); }
+/* Screenshot sizes (picked by Miguel) and the pop-up viewer. */
+.sop-shots { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+.sop-shot-item { width: 460px; max-width: 100%; }
+.sop-shot-item.size-s { width: 260px; }
+.sop-shot-item.size-l { width: 700px; }
+.sop-shot-item.size-full { width: 100%; }
+.sop-shots > .sop-shot-empty { width: 460px; }
+.sop-shot-open { display: block; width: 100%; padding: 0; cursor: zoom-in; }
+.sop-shot-open:focus-visible { outline: 3px solid var(--gold, #b08d4a); outline-offset: 2px; }
+.sop-size { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.sop-size button { border: 1px solid var(--line-strong); background: var(--surface, #fff); border-radius: 6px; padding: 3px 9px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.sop-size button[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }
+.sop-lightbox { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; padding: 48px 24px 24px; background: rgba(8, 14, 28, .82); cursor: zoom-out; }
+.sop-lightbox img { max-width: 100%; max-height: calc(100vh - 80px); border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,.4); cursor: default; background: #fff; }
+.sop-lightbox-x { position: fixed; top: 14px; right: 18px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: #fff; color: var(--navy); font-size: 26px; line-height: 1; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+.sop-lightbox-x:focus-visible { outline: 3px solid var(--gold, #b08d4a); outline-offset: 2px; }
+.sop-shot-item.sop-shot-edit, .sop-shot-item .sop-shot { max-width: 100%; }
+.sop-shots .sop-shot-item > .sop-shot { margin-top: 10px; }

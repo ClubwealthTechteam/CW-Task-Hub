@@ -3,7 +3,7 @@
 // A step's screenshot on an SOP article, with Miguel's paste box. Click the box, press Ctrl/⌘+V (or choose a file);
 // the image is shrunk here (1600px, WebP) before it's saved, then the page refreshes to show it.
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 const MAX_SIDE = 1600;
@@ -34,7 +34,32 @@ function shrink(file: Blob): Promise<string> {
   });
 }
 
-export function StepShot({ articleId, step, slot = 1, src, canEdit }: { articleId: string; step: number; slot?: 1 | 2; src: string | null; canEdit: boolean }) {
+type Size = 's' | 'm' | 'l' | 'full';
+const SIZES: { id: Size; label: string }[] = [{ id: 's', label: 'Small' }, { id: 'm', label: 'Medium' }, { id: 'l', label: 'Large' }, { id: 'full', label: 'Full width' }];
+
+/** The screenshot shown big over the page, with an X (Esc or a click outside also closes it). */
+function Lightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = overflow; };
+  }, [onClose]);
+  return (
+    <div className="sop-lightbox" role="dialog" aria-modal="true" aria-label={alt} onClick={onClose}>
+      <button ref={closeRef} type="button" className="sop-lightbox-x" aria-label="Close" onClick={onClose}>×</button>
+      <img src={src} alt={alt} onClick={(e) => e.stopPropagation()} />
+    </div>
+  );
+}
+
+export function StepShot({ articleId, step, slot = 1, src, size = 'm', canEdit }: { articleId: string; step: number; slot?: 1 | 2; src: string | null; size?: Size; canEdit: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [width, setWidth] = useState<Size>(size);
+  useEffect(() => setWidth(size), [size]);
   const label = slot === 1 ? `step ${step}` : `step ${step} · image ${slot}`;
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -70,14 +95,25 @@ export function StepShot({ articleId, step, slot = 1, src, canEdit }: { articleI
     save(file);
   }
 
+  async function resize(next: Size) {
+    const before = width;
+    setWidth(next); setError('');
+    const res = await fetch('/api/sop/shot', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: articleId, step, slot, size: next }) });
+    if (!res.ok) { setWidth(before); setError((await res.json().catch(() => ({}))).error ?? 'Couldn’t change the size. Try again.'); }
+  }
+
+  const alt = `${articleId} ${label}`;
   const image = src && (
-    <a href={src} target="_blank" rel="noreferrer" className="sop-shot">
-      <img src={src} alt={`${articleId} ${label}`} loading="lazy" />
-    </a>
+    <>
+      <button type="button" className="sop-shot sop-shot-open" onClick={() => setOpen(true)} aria-label={`Open ${label} image`}>
+        <img src={src} alt={alt} loading="lazy" />
+      </button>
+      {open && <Lightbox src={src} alt={alt} onClose={() => setOpen(false)} />}
+    </>
   );
 
   if (!canEdit) {
-    return image || (
+    return image ? <div className={`sop-shot-item size-${width}`}>{image}</div> : (
       <div className="sop-shot sop-shot-empty" role="img" aria-label={`Screenshot for ${label} not added yet`}>
         <span>Screenshot · {label}</span>
         <span className="muted small">To be added by the Main Admin</span>
@@ -86,8 +122,16 @@ export function StepShot({ articleId, step, slot = 1, src, canEdit }: { articleI
   }
 
   return (
-    <div className="sop-shot-edit">
+    <div className={`sop-shot-edit sop-shot-item size-${src ? width : 'm'}`}>
       {image}
+      {src && (
+        <div className="sop-size" role="group" aria-label={`Size of ${label} image`}>
+          <span className="muted small">Size</span>
+          {SIZES.map((x) => (
+            <button key={x.id} type="button" aria-pressed={width === x.id} onClick={() => resize(x.id)} disabled={busy}>{x.label}</button>
+          ))}
+        </div>
+      )}
       <div className={`sop-paste${src ? ' has-shot' : ''}`} tabIndex={0} role="button" onPaste={onPaste}
         aria-label={`Paste a screenshot for ${label}`}
         onKeyDown={(e) => { if (e.key === 'Enter') fileRef.current?.click(); }}>

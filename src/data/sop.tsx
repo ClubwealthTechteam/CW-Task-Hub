@@ -6,6 +6,8 @@
 import type { ReactNode } from 'react';
 import type { DepartmentId } from '@/config/departments';
 
+export interface SopTool { name: string; url?: string; note?: string }
+
 export interface SopArticle {
   /** Department prefix + number, e.g. EV-01. Never reuse a number once it's been given out (EV-02, the manual
    *  stats backup, was retired on 2026-10-26: Andrea now covers EV-01 as its POC). */
@@ -15,10 +17,24 @@ export interface SopArticle {
   /** Person ids from src/config/people.ts. A POC of null means one still has to be named. */
   main: string;
   poc: string | null;
+  /** Effective Period: how often the task runs. */
   when: string;
   sheets: { name: string; url?: string }[];
+  /** The other systems the task uses (Slack channels, Keap, Eventbrite…). With `sheets` they make "Tools to Use". */
+  tools: SopTool[];
   /** "v1 · Oct 2026". Bump the version whenever the steps change. */
   updated: string;
+  /** When this version took effect, and when someone last checked the steps still match the work. */
+  effective: string;
+  lastReviewed: string;
+  /** Who or what this SOP doesn't apply to. Omitted = none. */
+  exemptions?: ReactNode;
+  /** What to have or read before starting. */
+  prerequisites: ReactNode[];
+  /** Anything else worth knowing that isn't a step. */
+  additionalInfo?: ReactNode[];
+  /** Terms used in the steps, explained for a POC who has never done the task. */
+  glossary: { term: string; meaning: ReactNode }[];
   /** Has the POC run it once while the Main watched? Only then is the article "ready". */
   testRun: string;
   status: 'draft' | 'ready';
@@ -39,6 +55,10 @@ const EVENT_OPT_IN = { name: 'Event Opt In → tab Sheet1', url: 'https://docs.g
 const HALF_DAY_STATS = { name: 'Half Day Event Stats → tab LABC 2026', url: 'https://docs.google.com/spreadsheets/d/1mBkjMGnbGUY0rmPhpNYBaVnRRuvTdyiqI9oD4dMVHDc/edit' };
 const HALF_DAY_FORMS = { name: 'Club Wealth Event Half Day Forms → tab HALF DAY FORMS 2026 v2', url: 'https://docs.google.com/spreadsheets/d/1mh-xjBC7vs_HWEbhySukD2cxIm3yoBKbmJvteHOpY-A/edit' };
 
+const KEAP: SopTool = { name: 'Keap', url: 'https://app.infusionsoft.com', note: 'Contacts and tags' };
+const EVENTBRITE: SopTool = { name: 'Eventbrite', url: 'https://www.eventbrite.com/organizations/home', note: 'Tickets and check-ins' };
+const FORMS_CHANNEL: SopTool = { name: 'Slack #cw-halfday-event-forms-automation', note: 'Tara’s order-form PDFs and the bot’s replies' };
+
 export const SOP_ARTICLES: SopArticle[] = [
   {
     id: 'EV-01',
@@ -51,6 +71,34 @@ export const SOP_ARTICLES: SopArticle[] = [
     updated: 'v2 · Oct 2026',
     testRun: 'Not yet · Andrea with Ali',
     status: 'draft',
+    effective: 'Oct 26, 2026',
+    lastReviewed: 'Oct 26, 2026',
+    tools: [
+      { name: 'Slack #cw-half-day-registration-forms-automation', note: 'Tara’s sign-in PDF, the bot’s “Attendance extracted” and Stat Sheet replies' },
+      KEAP,
+      EVENTBRITE,
+    ],
+    prerequisites: [
+      <>The bot has replied <b>“Attendance extracted — [City] - [Date]”</b> in Tara’s Slack thread.</>,
+      <>Edit access to LIST MAKING CHECKLIST, DHR, CWSocial25 Audit, Event Opt In and Half Day Event Stats (the sheets under Tools to Use).</>,
+      <>A Keap login that can search, create contacts and apply tags, and an Eventbrite login for the event’s check-ins.</>,
+    ],
+    additionalInfo: [
+      <>Andrea covers this task when Ali is out and follows the same steps. There is no separate manual backup any more.</>,
+      <>Tick <b>Call Claude</b> once. Ticking it again within 10 minutes does nothing; the bot is already working.</>,
+      <><b>Clear Archive Attendance</b> (last step) is under maintenance right now.</>,
+    ],
+    glossary: [
+      { term: 'Attendance Extracted', meaning: 'The LIST MAKING CHECKLIST tab where the bot writes who signed in (columns A–E) and Match Attendance fills the rest.' },
+      { term: 'Event Registration', meaning: 'The LIST MAKING CHECKLIST tab holding the event’s registrations, pasted in from DHR. Match Attendance compares against it.' },
+      { term: 'DHR', meaning: 'The sheet with every event’s registrants (tab Event_Registrants). Pick the event date in A2 to show that event.' },
+      { term: 'Match Method (column J)', meaning: <><b>PHONE_EXACT</b> or <b>NAME_EXACT</b>: found in the registrations. <b>NO_REGISTRATION_MATCH</b>: not found, so columns F:I stay blank for you to fill.</> },
+      { term: 'MATCHED_REGISTRANT', meaning: 'Match Status (column K) for a person who matched. Nothing more to do for them.' },
+      { term: 'Contact ID', meaning: 'A person’s number in Keap. It’s in the browser’s address bar on their Keap contact page.' },
+      { term: 'Call Claude (S2)', meaning: 'The checkbox that tells the bot to work out the stats and post the Stat Sheet in Slack.' },
+      { term: 'CWSocial25', meaning: 'A promo code from the social campaign. Those registrants are also logged in the CWSocial25 Audit sheet.' },
+      { term: 'Not-Attended tag', meaning: 'The Keap tag for people who registered but didn’t come, e.g. “Non-Attended - Plano TX - 10-22-2026”.' },
+    ],
     summary: 'Match the attendance the bot read from the sign-in sheets to the registrations, fill in anyone missing, get the stats, then update Keap, the CWSocial25 audit, the opt-ins and the event stats.',
     steps: [
       <>Find the event. Tara posts the scanned sign-in PDF in Slack <b>#cw-half-day-registration-forms-automation</b>. The bot fills columns A–E of <b>LIST MAKING CHECKLIST → Attendance Extracted</b> and replies <b>“Attendance extracted — [City] - [Date]”</b>, tagging Ali and Andrea.</>,
@@ -93,6 +141,20 @@ export const SOP_ARTICLES: SopArticle[] = [
     updated: 'v1 · Oct 2026',
     testRun: 'Not yet',
     status: 'draft',
+    effective: 'Oct 23, 2026',
+    lastReviewed: 'Oct 23, 2026',
+    tools: [
+      { name: 'Slack #cw-team and your DMs', note: 'Where the bot posts the report (images in #cw-team, images + PPTX by DM)' },
+      { name: 'CWU Daily Huddle page', url: 'https://learning.clubwealth.com/reports', note: 'To double-check a number' },
+    ],
+    prerequisites: [
+      <>Access to the bot’s DM in Slack, and PowerPoint or Google Slides to open the PPTX.</>,
+    ],
+    glossary: [
+      { term: 'Stat Sheet', meaning: 'The bot’s attended / CWSocial25 / opt-ins numbers for the previous day’s event (first chart, when there was one).' },
+      { term: 'Last-visit bars', meaning: 'Sign-ups and show-ups from the city’s previous visit, for comparison. A first visit has none.' },
+      { term: 'CWSocial25, CW300, CWSocial27', meaning: 'Campaign codes. Their cards show New (since the last huddle) and Total sign-ups per stop.' },
+    ],
     summary: 'The bot builds the huddle charts every weekday morning; present them at the Daily Huddle.',
     steps: [
       <>Around <b>6:00 AM PT</b> on weekdays the bot posts <b>Upcoming Half-Day Event Numbers</b> in <b>#cw-team</b> (images) and sends the same images plus a <b>PPTX</b> to Andrea by DM.</>,
@@ -117,6 +179,19 @@ export const SOP_ARTICLES: SopArticle[] = [
     updated: 'v1 · Oct 2026',
     testRun: 'Not yet',
     status: 'draft',
+    effective: 'Oct 23, 2026',
+    lastReviewed: 'Oct 23, 2026',
+    tools: [FORMS_CHANNEL, { ...KEAP, note: 'The bot tags people from your ticks; nothing to do in Keap yourself' }],
+    prerequisites: [
+      <>Edit access to Club Wealth Event Half Day Forms (tab HALF DAY FORMS 2026 v2).</>,
+      <>The bot has replied <b>“Forms added”</b> on the event’s forms posts.</>,
+    ],
+    glossary: [
+      { term: 'Interest boxes', meaning: 'The six checkboxes F–K (1 on 1 Coaching, Get Paid on Mortgage, Homexa, Investing Webinar, Yapii, Recruiting). A tick tags the person in Keap.' },
+      { term: 'Keap check', meaning: 'The bot’s reply after you say done: which rows synced to Keap and which need attention.' },
+      { term: 'File Box', meaning: 'Where Keap keeps a contact’s files. The bot attaches each person’s form page there.' },
+      { term: 'Compiled list', meaning: 'A CSV of everyone from all of the event’s forms posts, posted by the bot.' },
+    ],
     summary: 'Check the rows and interest ticks the bot typed in from the order forms, then say done so it can tag Keap and send the lists.',
     steps: [
       <>When Tara posts the order-form PDFs in <b>#cw-halfday-event-forms-automation</b>, the bot types each person into the sheet and replies <b>“Forms added — [City, ST] - [MM.DD.YY]”</b> with the people list.</>,
@@ -144,9 +219,21 @@ export const SOP_ARTICLES: SopArticle[] = [
     updated: 'v1 · Oct 2026',
     testRun: 'Not yet',
     status: 'draft',
+    effective: 'Oct 23, 2026',
+    lastReviewed: 'Oct 26, 2026',
+    tools: [FORMS_CHANNEL, { ...KEAP, note: 'Tags, to check the Not Attended tag’s name' }],
+    prerequisites: [
+      <>The event’s forms are reviewed (AD-01) and its attendance is tagged (EV-01).</>,
+    ],
+    additionalInfo: [<>This task runs on its own. You only step in when the email is late.</>],
+    glossary: [
+      { term: 'Micoh', meaning: 'Homexa’s lead manager (leads@homexa.com), who receives both lists.' },
+      { term: 'Homexa leads', meaning: 'People whose Homexa box is ticked on the forms sheet.' },
+      { term: 'Not Attended list', meaning: 'Everyone on the event’s Not-Attended tag in Keap.' },
+    ],
     summary: 'The bot emails Micoh the Homexa leads and the Not Attended list; check it went out and fix the tag name if it didn’t.',
     steps: [
-      <>This one runs on its own. It sends once the forms are reviewed (AD-01) and the event’s attendance is tagged (EV-01, or EV-02 when Ali is out).</>,
+      <>This one runs on its own. It sends once the forms are reviewed (AD-01) and the event’s attendance is tagged (EV-01).</>,
       <>Look for the bot’s message in <b>#cw-halfday-event-forms-automation</b>: <b>“📧 Homexa email — [City, ST] — [date]: sent to Micoh …”</b> with the number of Homexa leads and Not Attended people. You’re cc’d on the emails.</>,
       <>If it hasn’t gone out a few hours after the tagging is done, open Keap → tags and check the event’s Not Attended tag is named exactly <b>Non-Attended - [City] [ST] - [MM-DD-YYYY]</b> (with a space on both sides of the first dash). A typo like “Non-Attended- …” stops the email.</>,
       <>Log it if you covered this for Kathleen: add a row to the POC log at the bottom of this page.</>,
@@ -167,6 +254,15 @@ export const SOP_ARTICLES: SopArticle[] = [
     testRun: 'Not yet',
     status: 'draft',
     gaps: 'Jizel: please write in the exact billing and manual-tagging steps (step 3) so a POC can follow them.',
+    effective: 'Oct 23, 2026',
+    lastReviewed: 'Oct 23, 2026',
+    tools: [FORMS_CHANNEL, { ...KEAP, note: 'Manual tags for each order' }],
+    prerequisites: [
+      <>The bot’s 6:00 AM message tagging you for the event, and access to the order-form PDFs in the forms threads.</>,
+    ],
+    glossary: [
+      { term: 'Final list', meaning: 'Your message in the forms thread listing what was processed, tagged @Club Wealth Assistant so the bot can pick it up.' },
+    ],
     summary: 'Process the confirmation and billing for each person who bought at the event, then post your final list.',
     steps: [
       <>At <b>6:00 AM PT</b> the bot tags you in <b>#cw-halfday-event-forms-automation</b>: <b>“The [City, ST] half-day event files are saved here in this channel. Please process the confirmation and billing for [City, ST]…”</b></>,

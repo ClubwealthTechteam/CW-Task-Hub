@@ -1,4 +1,6 @@
-// One SOP article: who owns it, who covers it, the steps, the "If it breaks" fallback and the POC log.
+// One SOP article, laid out like the Confluence SOP template: the overview table (name, dates, period, audience,
+// exemptions, owner), prerequisites and additional information, the steps, "If it breaks", references (glossary
+// and tools) and the POC log, with a contents panel linking to each part.
 
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -46,57 +48,117 @@ export default async function SopArticlePage({ params }: { params: Promise<{ id:
           </p>
         )}
 
-        <section className="card">
-          <dl className="kv">
-            <dt>Main Admin</dt><dd>{name(a.main)}{mainOut && <span className="pill req sop-out">Out today</span>}</dd>
-            <dt>POC Admin</dt><dd>{name(a.poc) ?? <span className="muted">To be named</span>}</dd>
-            <dt>When</dt><dd>{a.when}</dd>
-            <dt>Sheet</dt>
-            <dd>{a.sheets.length ? a.sheets.map((s) => <div key={s.name}>{s.url ? <a href={s.url} target="_blank" rel="noreferrer">{s.name}</a> : s.name}</div>) : <span className="muted">None (Slack only)</span>}</dd>
-            <dt>Last updated</dt><dd>{a.updated} {a.status === 'draft' && <span className="pill">Draft</span>}</dd>
-            <dt>Test run</dt><dd>{a.testRun}</dd>
-          </dl>
-          {a.gaps && <p className="sop-gap small">{a.gaps}</p>}
-        </section>
-
-        <section className="card">
-          <h2>Steps</h2>
-          <ol className="sop-steps">
-            {a.steps.map((s, i) => {
-              const n = i + 1;
-              const shot = a.shots?.[n] ?? (pasted[n] ? `/api/sop/shot/${a.id}/${n}?v=${pasted[n]}` : null);
-              return (
-                <li key={i}>
-                  {s}
-                  <StepShot articleId={a.id} step={n} src={shot} canEdit={canPaste} />
-                </li>
-              );
-            })}
-          </ol>
-        </section>
-
-        <section className="card sop-breaks">
-          <h2>If it breaks</h2>
-          <ul>{a.ifItBreaks.map((s, i) => <li key={i}>{s}</li>)}</ul>
-        </section>
-
-        <section className="card">
-          <h2>POC log</h2>
-          <p className="muted small">Add a row each time you do this task: what was done and anything unusual. The Main Admin reads these when they’re back.</p>
-          <LogForm articleId={a.id} />
-          {log.length > 0 ? (
-            <div className="tw">
-              <table className="sop-log">
-                <thead><tr><th>Date</th><th>By</th><th>What was done</th><th>Anything unusual</th></tr></thead>
+        <div className="sop-layout">
+          <div className="sop-body">
+            <section className="card" id="overview">
+              <table className="sop-meta">
                 <tbody>
-                  {log.map((e) => (
-                    <tr key={e.at}><td data-label="Date">{when(e.at)}</td><td data-label="By">{name(e.by)}</td><td data-label="What was done">{e.what}</td><td data-label="Anything unusual">{e.unusual || <span className="muted">—</span>}</td></tr>
-                  ))}
+                  <tr><th scope="row">SOP Name</th><td><b>{a.id}</b> · {a.title}</td></tr>
+                  <tr><th scope="row">Effective Date</th><td>{a.effective}</td></tr>
+                  <tr><th scope="row">Effective Period</th><td>{a.when}</td></tr>
+                  <tr>
+                    <th scope="row">Audience Using SOP</th>
+                    <td>
+                      {departmentById(a.department)?.name}: {name(a.main)} (Main Admin){mainOut && <span className="pill req sop-out">Out today</span>}
+                      {', '}{a.poc ? <>{name(a.poc)} (POC Admin)</> : <span className="muted">POC Admin to be named</span>}
+                    </td>
+                  </tr>
+                  <tr><th scope="row">Exemptions</th><td>{a.exemptions ?? <span className="muted">None</span>}</td></tr>
+                  <tr><th scope="row">Owner</th><td>{name(a.main)} (Main Admin). Steps are fixed with Miguel (Tech) the same day they go wrong.</td></tr>
+                  <tr><th scope="row">Last Review Date</th><td>{a.lastReviewed} · {a.updated.split(' · ')[0]} {a.status === 'draft' ? <span className="pill">Draft</span> : <span className="pill live">Ready</span>}</td></tr>
+                  <tr><th scope="row">Test run</th><td>{a.testRun}</td></tr>
                 </tbody>
               </table>
+              {a.gaps && <p className="sop-gap small">{a.gaps}</p>}
+            </section>
+
+            <div className="sop-pair">
+              <section className="card" id="prerequisites">
+                <h2>Prerequisites</h2>
+                {a.prerequisites.length ? <ul className="sop-list">{a.prerequisites.map((x, i) => <li key={i}>{x}</li>)}</ul> : <p className="muted small">None.</p>}
+              </section>
+              <section className="card" id="additional-info">
+                <h2>Additional Information</h2>
+                {a.additionalInfo?.length ? <ul className="sop-list">{a.additionalInfo.map((x, i) => <li key={i}>{x}</li>)}</ul> : <p className="muted small">None.</p>}
+              </section>
             </div>
-          ) : <p className="muted small">No log rows yet.</p>}
-        </section>
+
+            <section className="card" id="steps">
+              <h2>Steps</h2>
+              <ol className="sop-steps">
+                {a.steps.map((s, i) => {
+                  const n = i + 1;
+                  const shot = a.shots?.[n] ?? (pasted[n] ? `/api/sop/shot/${a.id}/${n}?v=${pasted[n]}` : null);
+                  return (
+                    <li key={i} id={`step-${n}`}>
+                      {s}
+                      <StepShot articleId={a.id} step={n} src={shot} canEdit={canPaste} />
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>
+
+            <section className="card sop-breaks" id="if-it-breaks">
+              <h2>If it breaks</h2>
+              <ul>{a.ifItBreaks.map((s, i) => <li key={i}>{s}</li>)}</ul>
+            </section>
+
+            <section className="card" id="references">
+              <h2>References</h2>
+              <h3 id="glossary">Glossary</h3>
+              <dl className="sop-glossary">
+                {a.glossary.map((g) => <div key={g.term}><dt>{g.term}</dt><dd>{g.meaning}</dd></div>)}
+              </dl>
+              <h3 id="tools">Tools to Use</h3>
+              <ul className="sop-list">
+                {[...a.sheets.map((t) => ({ name: t.name, url: t.url, note: 'Google Sheet' })), ...a.tools].map((t) => (
+                  <li key={t.name}>
+                    {t.url ? <a href={t.url} target="_blank" rel="noreferrer">{t.name}</a> : <b>{t.name}</b>}
+                    {t.note && <span className="muted small"> · {t.note}</span>}
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="card" id="poc-log">
+              <h2>POC log</h2>
+              <p className="muted small">Add a row each time you do this task: what was done and anything unusual. The Main Admin reads these when they’re back.</p>
+              <LogForm articleId={a.id} />
+              {log.length > 0 ? (
+                <div className="tw">
+                  <table className="sop-log">
+                    <thead><tr><th>Date</th><th>By</th><th>What was done</th><th>Anything unusual</th></tr></thead>
+                    <tbody>
+                      {log.map((e) => (
+                        <tr key={e.at}><td data-label="Date">{when(e.at)}</td><td data-label="By">{name(e.by)}</td><td data-label="What was done">{e.what}</td><td data-label="Anything unusual">{e.unusual || <span className="muted">—</span>}</td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : <p className="muted small">No log rows yet.</p>}
+            </section>
+          </div>
+
+          <nav className="card sop-toc" aria-label="Contents">
+            <span className="eyebrow">Contents</span>
+            <ul>
+              <li><a href="#overview">Overview</a></li>
+              <li><a href="#prerequisites">Prerequisites</a></li>
+              <li><a href="#additional-info">Additional Information</a></li>
+              <li>
+                <a href="#steps">Steps</a>
+                <ul>{a.steps.map((_, i) => <li key={i}><a href={`#step-${i + 1}`}>Step {i + 1}</a></li>)}</ul>
+              </li>
+              <li><a href="#if-it-breaks">If it breaks</a></li>
+              <li>
+                <a href="#references">References</a>
+                <ul><li><a href="#glossary">Glossary</a></li><li><a href="#tools">Tools to Use</a></li></ul>
+              </li>
+              <li><a href="#poc-log">POC log</a></li>
+            </ul>
+          </nav>
+        </div>
       </main>
     </>
   );

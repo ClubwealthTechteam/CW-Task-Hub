@@ -22,6 +22,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className={anton.variable}>
       <body>
+        {user && (
+          // Signed-in pages are desktop only (Miguel): on a phone, this screen replaces the whole hub (CSS in globals.css).
+          <div className="desktop-only" role="alert">
+            <b>CLUBWEALTH</b>
+            <p>Admin Hub viewable in desktop only</p>
+            <span>Please open the hub on a computer.</span>
+          </div>
+        )}
         {viewer?.preview && (
           <div className="preview-bar" role="status">
             <span>Previewing as <b>{viewer.user.name}</b> · read-only, chats are hidden</span>

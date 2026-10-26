@@ -56,6 +56,11 @@ test('the SOP Handbook is open to team members: index, an article, the POC log a
   await page.getByRole('button', { name: 'I’m back' }).click();
   await page.getByRole('link', { name: 'EV-01' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Half-Day Event attendance tagging');
+  for (const label of ['SOP Name', 'Effective Date', 'Effective Period', 'Audience Using SOP', 'Exemptions', 'Owner', 'Last Review Date']) {
+    await expect(page.locator('.sop-meta th', { hasText: label })).toBeVisible();
+  }
+  for (const h of ['Prerequisites', 'Additional Information', 'Steps', 'References']) await expect(page.getByRole('heading', { level: 2, name: h })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Contents' }).getByRole('link', { name: 'Step 3', exact: true })).toHaveAttribute('href', '#step-3');
   await page.getByLabel('What was done').fill('Smoke test log row');
   await page.getByRole('button', { name: 'Add log row' }).click();
   await expect(page.locator('.sop-log')).toContainText('Smoke test log row');
@@ -94,6 +99,20 @@ test('only Miguel can paste a step screenshot on an SOP article; everyone signed
   await page.getByRole('button', { name: 'Remove' }).click();
   await expect(page.locator('img[alt="EV-01 step 3"]')).toHaveCount(0);
   expect(errors).toEqual([]);
+});
+
+test('the hub is desktop only: on a phone a signed-in person sees "Admin Hub viewable in desktop only"', async ({ browser }) => {
+  const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await phone.goto('/login');
+  await expect(phone.getByText('Admin Hub viewable in desktop only')).toBeHidden();
+  await signIn(phone, 'ali');
+  await phone.goto('/sop/EV-01');
+  await expect(phone.getByText('Admin Hub viewable in desktop only')).toBeVisible();
+  await expect(phone.getByRole('heading', { level: 1 })).toBeHidden();
+  await phone.setViewportSize({ width: 1440, height: 900 });
+  await expect(phone.getByText('Admin Hub viewable in desktop only')).toBeHidden();
+  await expect(phone.getByRole('heading', { level: 1 })).toBeVisible();
+  await phone.close();
 });
 
 test('team members cannot open other departments or the team EOD feed', async ({ page }) => {

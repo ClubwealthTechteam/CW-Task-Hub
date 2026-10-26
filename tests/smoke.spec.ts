@@ -56,6 +56,11 @@ test('the SOP Handbook is open to team members: index, an article, the POC log a
   await page.getByRole('button', { name: 'I’m back' }).click();
   await page.getByRole('link', { name: 'EV-01' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Half-Day Event attendance tagging');
+  for (const label of ['SOP Name', 'Effective Date', 'Effective Period', 'Audience Using SOP', 'Exemptions', 'Owner', 'Last Review Date']) {
+    await expect(page.locator('.sop-meta th', { hasText: label })).toBeVisible();
+  }
+  for (const h of ['Prerequisites', 'Additional Information', 'Steps', 'References']) await expect(page.getByRole('heading', { level: 2, name: h })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Contents' }).getByRole('link', { name: 'Step 3', exact: true })).toHaveAttribute('href', '#step-3');
   await page.getByLabel('What was done').fill('Smoke test log row');
   await page.getByRole('button', { name: 'Add log row' }).click();
   await expect(page.locator('.sop-log')).toContainText('Smoke test log row');

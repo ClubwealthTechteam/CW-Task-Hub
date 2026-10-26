@@ -112,14 +112,8 @@ export function StepShot({ articleId, step, slot = 1, src, size = 'm', canEdit }
     </>
   );
 
-  if (!canEdit) {
-    return image ? <div className={`sop-shot-item size-${width}`}>{image}</div> : (
-      <div className="sop-shot sop-shot-empty" role="img" aria-label={`Screenshot for ${label} not added yet`}>
-        <span>Screenshot · {label}</span>
-        <span className="muted small">To be added by the Main Admin</span>
-      </div>
-    );
-  }
+  // Only Miguel sees an empty slot; everyone else sees nothing until an image is added.
+  if (!canEdit) return image ? <div className={`sop-shot-item size-${width}`}>{image}</div> : null;
 
   return (
     <div className={`sop-shot-edit sop-shot-item size-${src ? width : 'm'}`}>

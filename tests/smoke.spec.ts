@@ -115,6 +115,7 @@ test('only Miguel can paste a step screenshot on an SOP article; everyone signed
   await expect(ali.locator('img[alt="EV-01 step 3"]')).toBeVisible();
   await expect(ali.locator('img[alt="EV-01 step 3 · image 2"]')).toBeVisible();
   await expect(ali.locator('.sop-paste')).toHaveCount(0);
+  await expect(ali.locator('#step-2 .sop-shots')).toHaveCount(0); // no image yet: no placeholder for anyone but Miguel
   expect((await ali.request.post('/api/sop/shot', { data: { id: 'EV-01', step: 3, dataUrl: `data:image/png;base64,${png}` } })).status()).toBe(403);
   await ali.close();
 

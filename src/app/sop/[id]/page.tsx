@@ -95,10 +95,12 @@ export default async function SopArticlePage({ params }: { params: Promise<{ id:
                   return (
                     <li key={i} id={`step-${n}`} className={isDecision(s) ? 'is-decision' : undefined}>
                       {isDecision(s) ? <DecisionStep d={s} /> : isPlain(s) ? <>{s.body}{s.where && <WhereBox where={s.where} />}</> : s}
-                      <div className="sop-shots">
-                        <StepShot articleId={a.id} step={n} src={shot1} size={sizes[shotRef(n, 1)]} canEdit={canPaste} />
-                        {(canPaste || shot2) && <StepShot articleId={a.id} step={n} slot={2} src={shot2} size={sizes[shotRef(n, 2)]} canEdit={canPaste} />}
-                      </div>
+                      {(canPaste || shot1 || shot2) && (
+                        <div className="sop-shots">
+                          {(canPaste || shot1) && <StepShot articleId={a.id} step={n} src={shot1} size={sizes[shotRef(n, 1)]} canEdit={canPaste} />}
+                          {(canPaste || shot2) && <StepShot articleId={a.id} step={n} slot={2} src={shot2} size={sizes[shotRef(n, 2)]} canEdit={canPaste} />}
+                        </div>
+                      )}
                     </li>
                   );
                 })}

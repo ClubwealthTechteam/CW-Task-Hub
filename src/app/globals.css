@@ -1497,7 +1497,6 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
 .sop-steps li { display: list-item; }
 .sop-shot { display: block; margin-top: 10px; max-width: 640px; border: 1px solid var(--line, #dfe3e8); border-radius: 8px; overflow: hidden; background: var(--surface, #fff); }
 .sop-shot img { display: block; width: 100%; height: auto; }
-.sop-shot-empty { max-width: 460px; height: 150px; border: 2px dashed var(--line, #c9d1da); background: repeating-linear-gradient(135deg, #f7f9fb 0 12px, #eef2f6 12px 24px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-weight: 600; color: var(--navy, #1b2a4a); }
 .sop-shot-edit { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; max-width: 640px; }
 .sop-shot-edit .sop-shot { margin-top: 0; }
 .sop-paste { max-width: 460px; height: 120px; border: 2px dashed var(--line, #c9d1da); border-radius: 8px; background: repeating-linear-gradient(135deg, #f7f9fb 0 12px, #eef2f6 12px 24px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-weight: 600; color: var(--navy, #1b2a4a); cursor: pointer; }
@@ -1573,7 +1572,7 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
 .sop-shots { display: grid; grid-template-columns: repeat(2, minmax(0, 460px)); gap: 12px; align-items: start; }
 .sop-shots > .sop-shot, .sop-shots .sop-shot-edit { max-width: none; margin-top: 10px; }
 .sop-shots .sop-shot-edit > .sop-shot { margin-top: 0; }
-.sop-shots .sop-paste, .sop-shots .sop-shot-empty { max-width: none; }
+.sop-shots .sop-paste { max-width: none; }
 /* "Where" table under each SOP step: app, sheet (linked to the exact tab and cells), tab, cells, what to do. */
 .sop-where { margin-top: 8px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface, #fff); }
 .sop-where-h { display: block; padding: 5px 10px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--muted-tint, #eef1f6); border-bottom: 1px solid var(--line); }
@@ -1593,7 +1592,6 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
 .sop-shot-item.size-s { width: 260px; }
 .sop-shot-item.size-l { width: 700px; }
 .sop-shot-item.size-full { width: 100%; }
-.sop-shots > .sop-shot-empty { width: 460px; }
 .sop-shot-open { display: block; width: 100%; padding: 0; cursor: zoom-in; }
 .sop-shot-open:focus-visible { outline: 3px solid var(--gold, #b08d4a); outline-offset: 2px; }
 .sop-size { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }

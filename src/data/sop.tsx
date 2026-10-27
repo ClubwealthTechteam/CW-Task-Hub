@@ -72,6 +72,15 @@ export const stepWhere = (s: SopStep): SopWhere[] => (isPlain(s) || isDecision(s
 export const isDecision = (s: SopStep): s is SopDecision =>
   typeof s === 'object' && s !== null && !Array.isArray(s) && (s as SopDecision).kind === 'decision';
 
+/** One entry in an article's version history. */
+export interface SopVersion { v: number; date: string; by: string; what: string }
+
+/** The sections added for the 7-part SOP structure; each stays marked as a draft until Miguel approves it. */
+export type SopDraftSection = 'scope' | 'purpose' | 'responsibilities' | 'safety';
+
+/** How often an article is reviewed unless it says otherwise. */
+export const REVIEW_EVERY_DAYS = 90;
+
 export interface SopArticle {
   /** Department prefix + number, e.g. EV-01. Never reuse a number once it's been given out (EV-02, the manual
    *  stats backup, was retired on 2026-10-26: Andrea now covers EV-01 as its POC). */
@@ -86,11 +95,23 @@ export interface SopArticle {
   sheets: { name: string; url?: string }[];
   /** The other systems the task uses (Slack channels, Keap, Eventbrite…). With `sheets` they make "Tools to Use". */
   tools: SopTool[];
-  /** "v1 · Oct 2026". Bump the version whenever the steps change. */
-  updated: string;
-  /** When this version took effect, and when someone last checked the steps still match the work. */
+  /** Every version, oldest first. Add one whenever the steps change; the last one is the current version. */
+  versions: SopVersion[];
+  /** When this version took effect, and when someone last checked the steps still match the work ("Oct 26, 2026"). */
   effective: string;
   lastReviewed: string;
+  /** Review the article this often (days) after lastReviewed. Defaults to REVIEW_EVERY_DAYS. */
+  reviewEveryDays?: number;
+  /** 1. Scope: where and when the SOP applies (with `when` and `exemptions`). */
+  scope: ReactNode;
+  /** 2. Purpose: why the task exists and what it protects. */
+  purpose: ReactNode;
+  /** 3. Responsibilities: who does what, including the bots. */
+  responsibilities: { who: string; does: ReactNode }[];
+  /** 6. Safety guidelines: the risks in the task and the control for each. "If it breaks" sits with them. */
+  safety: { risk: ReactNode; control: ReactNode }[];
+  /** Sections written up from the guide (Oct 26, 2026) that Miguel has checked. The rest show "Draft · check with Miguel". */
+  approved?: SopDraftSection[];
   /** Who or what this SOP doesn't apply to. Omitted = none. */
   exemptions?: ReactNode;
   /** What to have or read before starting. */
@@ -160,7 +181,29 @@ export const SOP_ARTICLES: SopArticle[] = [
     poc: 'andrea',
     when: 'After each half-day event, once the bot replies “Attendance extracted”',
     sheets: [LIST_MAKING, DHR, CWSOCIAL_AUDIT, EVENT_OPT_IN, HALF_DAY_STATS],
-    updated: 'v3 · Oct 2026',
+    versions: [
+      { v: 1, date: 'Oct 23, 2026', by: 'Miguel', what: 'First version.' },
+      { v: 2, date: 'Oct 26, 2026', by: 'Miguel', what: 'Rewritten from Miguel’s flow map. Andrea named POC; the manual stats backup (EV-02) retired.' },
+      { v: 3, date: 'Oct 26, 2026', by: 'Miguel', what: 'Follows the flow map node for node (39 steps).' },
+      { v: 4, date: 'Oct 26, 2026', by: 'Miguel', what: 'Laid out in the 7-part SOP structure (Scope, Purpose, Responsibilities, Materials and Tools, Execution Sequence, Safety Guidelines, Review and Update). Scope, Purpose, Responsibilities and Safety are drafts for Miguel to check.' },
+    ],
+    scope: <>Every Club Wealth half-day event whose sign-in sheet Tara posts in Slack <b>#cw-half-day-registration-forms-automation</b>. It starts when the bot replies “Attendance extracted” and ends when the event is archived in LIST MAKING CHECKLIST. One event at a time: finish and archive one before starting the next. It doesn’t cover the order forms (AD-01), billing (CC-01) or the Homexa emails (AD-02).</>,
+    purpose: <>Get an accurate list of who attended each half-day event, so the Stat Sheet, Keap’s not-attended tags, the CWSocial25 audit, the opt-ins and Half-Day Event Stats all show the same numbers. The Homexa and Not Attended emails (AD-02) wait on this task.</>,
+    responsibilities: [
+      { who: 'Tara', does: <>Posts the scanned sign-in PDF link in Slack (step 1).</> },
+      { who: 'Claude (the bot)', does: <>Fills columns A–E and tags Ali and Andrea (step 2). After Call Claude is ticked, writes the stats and posts the Stat Sheet (steps 25–26).</> },
+      { who: 'Ali (Main Admin)', does: <>Steps 3–39: matching, filling in missing contacts, Finalize Attendance, Call Claude, Eventbrite, Keap, the CWSocial25 audit, opt-ins, event stats, archive.</> },
+      { who: 'Andrea (POC Admin)', does: <>The same steps when Ali is out. There’s no separate backup process.</> },
+      { who: 'Miguel (Tech)', does: <>Fixes the sheet’s Custom Tools and the bot, and updates this SOP the same day a step is wrong.</> },
+    ],
+    safety: [
+      { risk: <>Nothing matches after Match Attendance.</>, control: <>Load this event’s registrations from DHR (steps 4–5, date in A2) before clicking Match Attendance.</> },
+      { risk: <>Duplicate contacts in Keap.</>, control: <>Search Keap by name first (step 16). Create a new contact only when the search finds nobody (step 20).</> },
+      { risk: <>Stats posted from unfinished data.</>, control: <>Tick Call Claude (S2) only after Finalize Attendance, and only once. Ticking it again within 10 minutes does nothing.</> },
+      { risk: <>Losing the event’s rows before they’re used.</>, control: <>Archive (step 39) last, after the Stat Sheet is posted and Half-Day Event Stats is updated.</> },
+      { risk: <>Personal details shared in the open.</>, control: <>Never paste registrants’ phones or emails in Slack. They stay in the sheets and Keap.</> },
+      { risk: <>Breaking the sheet’s tools.</>, control: <>Run Custom Tools only from the sheet’s menu, never from the Apps Script editor.</> },
+    ],
     testRun: 'Not yet · Andrea with Ali',
     status: 'draft',
     effective: 'Oct 26, 2026',
@@ -176,8 +219,6 @@ export const SOP_ARTICLES: SopArticle[] = [
       <>A Keap login that can search, create contacts and apply tags, and an Eventbrite login for the event’s check-ins.</>,
     ],
     additionalInfo: [
-      <>Andrea covers this task when Ali is out and follows the same steps. There is no separate manual backup any more.</>,
-      <>Tick <b>Call Claude</b> once. Ticking it again within 10 minutes does nothing; the bot is already working.</>,
       <><b>Clear Archive Attendance</b> (last step) is under maintenance right now.</>,
     ],
     glossary: [
@@ -399,7 +440,22 @@ export const SOP_ARTICLES: SopArticle[] = [
     poc: null,
     when: 'Weekdays, before the Daily Huddle',
     sheets: [],
-    updated: 'v1 · Oct 2026',
+    versions: [
+      { v: 1, date: 'Oct 23, 2026', by: 'Miguel', what: 'First version.' },
+      { v: 2, date: 'Oct 26, 2026', by: 'Miguel', what: 'Laid out in the 7-part SOP structure (Scope, Purpose, Responsibilities, Materials and Tools, Execution Sequence, Safety Guidelines, Review and Update). Scope, Purpose, Responsibilities and Safety are drafts for Miguel to check.' },
+    ],
+    scope: <>Every weekday, before the Daily Huddle. It covers presenting the bot’s <b>Upcoming Half-Day Event Numbers</b> report. Building the charts by hand is only for when the report doesn’t arrive (see If it breaks).</>,
+    purpose: <>Give the Daily Huddle the current numbers for the upcoming half-day events without anyone building charts by hand.</>,
+    responsibilities: [
+      { who: 'Claude (the bot)', does: <>Around 6:00 AM PT on weekdays, posts the report images in #cw-team and sends the images plus a PPTX to Andrea by DM.</> },
+      { who: 'Andrea (Main Admin)', does: <>Opens the PPTX and presents it at the Daily Huddle.</> },
+      { who: 'POC Admin (to be named)', does: <>The same when Andrea is out.</> },
+      { who: 'Miguel (Tech)', does: <>Fixes the report when a chart is missing or wrong.</> },
+    ],
+    safety: [
+      { risk: <>Presenting an old report.</>, control: <>Check the report is today’s before the huddle.</> },
+      { risk: <>A wrong number reaches the team.</>, control: <>If a number looks off, compare it with the CWU Daily Huddle page before presenting.</> },
+    ],
     testRun: 'Not yet',
     status: 'draft',
     effective: 'Oct 23, 2026',
@@ -442,7 +498,24 @@ export const SOP_ARTICLES: SopArticle[] = [
     poc: null,
     when: 'The morning after each half-day event (6:00 AM PT reminder)',
     sheets: [HALF_DAY_FORMS],
-    updated: 'v1 · Oct 2026',
+    versions: [
+      { v: 1, date: 'Oct 23, 2026', by: 'Miguel', what: 'First version.' },
+      { v: 2, date: 'Oct 26, 2026', by: 'Miguel', what: 'Laid out in the 7-part SOP structure (Scope, Purpose, Responsibilities, Materials and Tools, Execution Sequence, Safety Guidelines, Review and Update). Scope, Purpose, Responsibilities and Safety are drafts for Miguel to check.' },
+    ],
+    scope: <>Every half-day event’s order forms that Tara posts in <b>#cw-halfday-event-forms-automation</b>, the morning after the event. It covers checking the rows and interest ticks the bot typed in. It doesn’t cover billing (CC-01) or the Homexa emails (AD-02).</>,
+    purpose: <>Make sure every buyer’s name, contact details and interest ticks are right, because the ticks tag people in Keap and decide who goes on the 1 on 1 Coaching and Homexa lists.</>,
+    responsibilities: [
+      { who: 'Tara', does: <>Posts the order-form PDFs in Slack.</> },
+      { who: 'Claude (the bot)', does: <>Types each person into the sheet, posts the 6:00 AM reminder, and after “done” tags Keap, saves each form page to the Keap File Box and sends the 1 on 1 Coaching CSV.</> },
+      { who: 'Kathleen (Main Admin)', does: <>Checks the rows and ticks, replies done, and forwards the 1 on 1 Coaching CSV to Marcia.</> },
+      { who: 'POC Admin (to be named)', does: <>The same when Kathleen is out.</> },
+      { who: 'Miguel (Tech)', does: <>Fixes the bot when it can’t read a form.</> },
+    ],
+    safety: [
+      { risk: <>Wrong Keap tags.</>, control: <>Each tick tags the person in Keap. Check every tick before replying done.</> },
+      { risk: <>Rows that can’t sync to Keap.</>, control: <>Fill in every blank cell (most often a missing email) before replying done.</> },
+      { risk: <>Personal details shared in the open.</>, control: <>Don’t paste phones or emails in Slack. Send the 1 on 1 Coaching CSV only to Marcia.</> },
+    ],
     testRun: 'Not yet',
     status: 'draft',
     effective: 'Oct 23, 2026',
@@ -486,7 +559,22 @@ export const SOP_ARTICLES: SopArticle[] = [
     poc: null,
     when: 'After each half-day event, once forms are reviewed and attendance is tagged',
     sheets: [HALF_DAY_FORMS],
-    updated: 'v1 · Oct 2026',
+    versions: [
+      { v: 1, date: 'Oct 23, 2026', by: 'Miguel', what: 'First version.' },
+      { v: 2, date: 'Oct 26, 2026', by: 'Miguel', what: 'Laid out in the 7-part SOP structure (Scope, Purpose, Responsibilities, Materials and Tools, Execution Sequence, Safety Guidelines, Review and Update). Scope, Purpose, Responsibilities and Safety are drafts for Miguel to check.' },
+    ],
+    scope: <>After each half-day event, once its forms are reviewed (AD-01) and its attendance is tagged (EV-01). The email goes out on its own; this SOP covers checking it went out and fixing the tag name when it didn’t.</>,
+    purpose: <>Make sure Micoh (Homexa) gets the Homexa leads and the Not Attended list for every event.</>,
+    responsibilities: [
+      { who: 'Claude (the bot)', does: <>Sends both lists to Micoh, cc’ing Kathleen, and posts “📧 Homexa email …” in #cw-halfday-event-forms-automation.</> },
+      { who: 'Kathleen (Main Admin)', does: <>Checks the email went out and fixes the Not Attended tag name in Keap when it didn’t.</> },
+      { who: 'POC Admin (to be named)', does: <>The same when Kathleen is out.</> },
+      { who: 'Miguel (Tech)', does: <>Re-sends by hand when the bot can’t.</> },
+    ],
+    safety: [
+      { risk: <>The email never goes out.</>, control: <>The Not Attended tag must be named exactly “Non-Attended - [City] [ST] - [MM-DD-YYYY]”. Check the spelling in Keap.</> },
+      { risk: <>The lists sent twice or to the wrong person.</>, control: <>Don’t email the lists yourself. Tell Miguel; he re-sends.</> },
+    ],
     testRun: 'Not yet',
     status: 'draft',
     effective: 'Oct 23, 2026',
@@ -522,7 +610,22 @@ export const SOP_ARTICLES: SopArticle[] = [
     poc: null,
     when: 'The morning after each half-day event (6:00 AM PT reminder)',
     sheets: [HALF_DAY_FORMS],
-    updated: 'v1 · Oct 2026',
+    versions: [
+      { v: 1, date: 'Oct 23, 2026', by: 'Miguel', what: 'First version.' },
+      { v: 2, date: 'Oct 26, 2026', by: 'Miguel', what: 'Laid out in the 7-part SOP structure (Scope, Purpose, Responsibilities, Materials and Tools, Execution Sequence, Safety Guidelines, Review and Update). Scope, Purpose, Responsibilities and Safety are drafts for Miguel to check.' },
+    ],
+    scope: <>Every person who bought at a half-day event, the morning after the event. It covers confirmation, billing and the manual Keap tags for each order form.</>,
+    purpose: <>Make sure every buyer is confirmed, billed correctly and tagged in Keap.</>,
+    responsibilities: [
+      { who: 'Claude (the bot)', does: <>Tags Jizel at 6:00 AM PT with the event’s forms threads, and picks up her final list.</> },
+      { who: 'Jizel (Main Admin)', does: <>Processes confirmation and billing, adds the manual Keap tags, and posts the final list tagging @Club Wealth Assistant.</> },
+      { who: 'POC Admin (to be named)', does: <>The same when Jizel is out.</> },
+      { who: 'Miguel (Tech)', does: <>Fixes the bot when the forms threads or the final list go wrong.</> },
+    ],
+    safety: [
+      { risk: <>Card or billing details leaked.</>, control: <>Never post card numbers or billing details in Slack.</> },
+      { risk: <>Billing from an unreadable form.</>, control: <>Ask Tara for the paper form or a new scan before billing.</> },
+    ],
     testRun: 'Not yet',
     status: 'draft',
     gaps: 'Jizel: please write in the exact billing and manual-tagging steps (step 3) so a POC can follow them.',

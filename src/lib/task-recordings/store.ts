@@ -53,7 +53,11 @@ export interface WrittenStep {
   note: string;
   from: number[];
   shot: number;
+  /** The recorder's answer to "Is this correct?" for this step, and what's wrong when it isn't. */
+  check?: StepCheck;
 }
+
+export interface StepCheck { ok: boolean; note?: string; by: string; at: number }
 
 export interface WriteUp {
   title: string; steps: WrittenStep[]; summary: string[]; by: 'claude' | 'basic'; at: number;

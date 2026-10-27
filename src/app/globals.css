@@ -1673,3 +1673,11 @@ details.card > summary { cursor: pointer; }
 .wrec-shots { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
 .wrec-shots li { display: flex; flex-direction: column; gap: 4px; }
 .wrec-shots .row { justify-content: space-between; }
+/* Task Recording: the click circled in red on a screenshot, the note box under each one, undo */
+.trec-ringed { position: relative; display: block; line-height: 0; }
+.sop-lightbox .trec-ringed { display: inline-block; }
+.trec-ring { position: absolute; width: 4.4%; aspect-ratio: 1; min-width: 18px; transform: translate(-50%, -50%); border: 3px solid #d93025; border-radius: 50%; background: rgba(217, 48, 37, .12); box-shadow: 0 0 0 2px rgba(255, 255, 255, .7); pointer-events: none; }
+.wrec-shots textarea { font: inherit; font-size: 13px; color: var(--ink); border: 1px solid var(--line-strong); border-radius: 8px; padding: 6px 8px; resize: vertical; min-height: 54px; width: 100%; box-sizing: border-box; }
+.wrec-mark { cursor: crosshair; }
+.wrec-lightbox-bar { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 10px; align-items: center; background: #fff; color: var(--ink); border-radius: 10px; padding: 8px 12px; box-shadow: 0 2px 10px rgba(0,0,0,.3); font-size: 13px; cursor: default; }
+.wrec-undo { display: flex; gap: 8px; align-items: center; font-size: 13px; }

@@ -32,7 +32,7 @@ export default async function TaskRecordingsPage() {
 
         <section className="card">
           <h2>Record a task</h2>
-          <p className="muted small">Works like Loom’s web recorder, with screenshots instead of video. Claude works out each click from the screenshots. Sharing your entire screen also records desktop apps.</p>
+          <p className="muted small">Works like Loom’s web recorder, with screenshots instead of video. Claude works out each click from the screenshots, circles it in red and reads the sheet links, tabs and cells. Sharing your entire screen also records desktop apps.</p>
           <WebRecorder />
         </section>
 
@@ -42,7 +42,7 @@ export default async function TaskRecordingsPage() {
             <li>Click <b>Start recording</b>. Your browser asks what to share: pick <b>Entire screen</b> (or a whole window) for a task across several tabs or apps, or just the tab you'll work in.</li>
             <li>After the <b>5-second countdown</b>, switch to your task and do it as you normally would. A screenshot is saved each time the screen changes.</li>
             <li><b>Pause</b> before typing a password or opening anything private, then resume.</li>
-            <li>Come back to this tab and press <b>Stop</b>. Delete any screenshot you don't want sent, name the task and press <b>Send to Claude</b>. Claude writes the steps, a summary and the Flow Canvas map, and Miguel is notified.</li>
+            <li>Come back to this tab and press <b>Stop</b>. Under each screenshot, type what you did there (and paste the sheet link if you have it). Click a screenshot to see it big and click where you clicked to circle it in red. Delete any you don't want sent (<b>Undo</b> or <b>Ctrl+Z</b> brings it back), name the task and press <b>Send to Claude</b>. Claude writes the steps, a summary and the Flow Canvas map, and Miguel is notified.</li>
           </ol>
           <p className="muted small">Nothing to install. Works in Chrome and Edge. Keep this tab open while you record: the screenshots stay here until you send them.</p>
         </section>

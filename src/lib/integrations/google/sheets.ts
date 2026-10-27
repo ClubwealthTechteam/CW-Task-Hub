@@ -81,6 +81,15 @@ export async function sheetInfo(sheetId: string) {
   return { title: String(body.properties?.title ?? ''), tabs: (body.sheets ?? []).map((s: { properties: { title: string } }) => s.properties.title) as string[] };
 }
 
+/** The sheet's title and each tab's name with its gid (the #gid=… in a link to that tab). */
+export async function sheetTabs(sheetId: string) {
+  const body = await get(`${encodeURIComponent(sheetId)}?fields=properties.title,sheets.properties(title,sheetId)`);
+  return {
+    title: String(body.properties?.title ?? ''),
+    tabs: (body.sheets ?? []).map((s: { properties: { title: string; sheetId: number } }) => ({ title: s.properties.title, gid: s.properties.sheetId })) as { title: string; gid: number }[],
+  };
+}
+
 /** The first rows of the first few tabs, as plain text values. */
 export async function readSheet(sheetId: string, opts: { maxTabs?: number; maxRows?: number; maxCols?: number } = {}): Promise<SheetContent> {
   const { maxTabs = 3, maxRows = 60, maxCols = 15 } = opts;

@@ -1,12 +1,12 @@
 // One Task Recording: Claude's summary, the detailed step-by-step guide with each step's screenshot
-// (click circled), the Flow Canvas JSON to copy, and the raw steps the recorder captured.
+// (click circled in red), the Flow Canvas JSON to copy, and the raw steps the recorder captured.
 
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { requireUser } from '@/lib/auth/current-user';
 import { personById } from '@/config/people';
-import { canView, getRecording } from '@/lib/task-recordings/store';
+import { canView, clickFor, getRecording, pageFor } from '@/lib/task-recordings/store';
 import { CANVAS_APPS, type CanvasApp } from '@/lib/task-recordings/apps';
 import { RecordingActions } from '@/components/task-recordings/RecordingActions';
 import { StepShotZoom } from '@/components/task-recordings/StepShotZoom';
@@ -14,7 +14,7 @@ import { StepShotZoom } from '@/components/task-recordings/StepShotZoom';
 export const dynamic = 'force-dynamic';
 
 const when = (at: number) => new Date(at).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
-const KIND = { start: 'Start', click: 'Click', tab: 'Switched tab', page: 'Opened page', type: 'Typed', copy: 'Copied', cut: 'Cut', paste: 'Pasted', screen: 'Screen changed' } as const;
+const KIND = { start: 'Start', click: 'Click', tab: 'Switched tab', page: 'Opened page', type: 'Typed', copy: 'Copied', cut: 'Cut', paste: 'Pasted', screen: 'Screenshot' } as const;
 
 export default async function RecordingPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser();
@@ -67,7 +67,7 @@ export default async function RecordingPage({ params }: { params: Promise<{ id: 
                       )}
                       {s.note && <p className="sop-note small"><b>Note:</b> {s.note}</p>}
                     </div>
-                    {s.shot >= 0 && <StepShotZoom src={shot(s.shot)} alt={`Step ${i + 1}: ${s.title}`} />}
+                    {s.shot >= 0 && <StepShotZoom src={shot(s.shot)} alt={`Step ${i + 1}: ${s.title}`} ring={clickFor(rec, s.shot)} />}
                   </li>
                 ))}
               </ol>
@@ -78,10 +78,20 @@ export default async function RecordingPage({ params }: { params: Promise<{ id: 
         <details className="card">
           <summary><b>Raw steps recorded ({rec.steps.length})</b></summary>
           <ol className="trec-raw">
-            {rec.steps.map((s) => (
+            {rec.steps.map((s, i) => (
               <li key={s.n}>
                 <b>{KIND[s.kind]}</b>{s.target ? ` ${s.target}` : ''}{s.text ? ` · “${s.text}”` : ''}{s.range ? ` · ${s.tab ? `${s.tab} ` : ''}${s.range}` : ''}
-                <div className="muted small">{s.title || s.url}</div>
+                {s.note && <> · {s.note}</>}
+                {(() => {
+                  const url = pageFor(rec, s);
+                  const prevUrl = i > 0 ? pageFor(rec, rec.steps[i - 1]) : '';
+                  return (
+                    <>
+                      {s.title && <div className="muted small">{s.title}</div>}
+                      {url && <div className="muted small">{prevUrl && url !== prevUrl ? 'Switched to ' : ''}<a href={url} target="_blank" rel="noreferrer">{url}</a></div>}
+                    </>
+                  );
+                })()}
               </li>
             ))}
           </ol>

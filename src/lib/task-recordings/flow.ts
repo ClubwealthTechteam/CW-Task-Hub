@@ -1,10 +1,11 @@
 // Builds a Flow Canvas board (the JSON the CW AI Hub canvas imports with "Paste JSON") from a write-up:
-// one node per step left to right, each step's screenshot as an Image node wired below it (port "img"),
-// tips as Notes wired to the top of their step (port "note"), and the summary as a Note at the start.
+// one node per step left to right, each step's screenshot as an Image node wired below it (port "img",
+// the click circled in red), tips as Notes wired to the top of their step (port "note"), and the summary as a Note at the start.
 // Same shape as Miguel's boards (e.g. "Half Day Events Registration Main").
 
+import sharp from 'sharp';
 import { CANVAS_APPS, type CanvasApp } from './apps';
-import { getShot, type Recording, type WriteUp } from './store';
+import { clickFor, getShot, type Point, type Recording, type WriteUp } from './store';
 
 const STEP_GAP = 300;
 const IMG_W = 260;
@@ -33,6 +34,23 @@ export function imageSize(dataUrl: string): { w: number; h: number } | null {
     }
   }
   return null;
+}
+
+/** The screenshot with a red circle around the click (WebP data URL). Returns the original if drawing fails. */
+export async function ringShot(dataUrl: string, at: Point): Promise<string> {
+  const size = imageSize(dataUrl);
+  if (!size) return dataUrl;
+  try {
+    const r = Math.max(14, Math.round(size.w * 0.022));
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size.w}" height="${size.h}"><circle cx="${Math.round(at.x * size.w)}" cy="${Math.round(at.y * size.h)}" r="${r}" fill="rgba(217,48,37,0.12)" stroke="#d93025" stroke-width="${Math.max(3, Math.round(r / 5))}"/></svg>`;
+    const out = await sharp(Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64'))
+      .composite([{ input: Buffer.from(svg) }])
+      .webp({ quality: 80 })
+      .toBuffer();
+    return `data:image/webp;base64,${out.toString('base64')}`;
+  } catch {
+    return dataUrl;
+  }
 }
 
 export async function buildFlow(rec: Recording, w: WriteUp) {
@@ -64,7 +82,9 @@ export async function buildFlow(rec: Recording, w: WriteUp) {
       nodes.push({ id: note, type: 'note', x: x - 15, y: -200, title: 'Note', desc: s.note });
       edge(id, note, 'note', 'bottom');
     }
-    const shot = s.shot >= 0 ? await getShot(rec.id, s.shot) : null;
+    const raw = s.shot >= 0 ? await getShot(rec.id, s.shot) : null;
+    const at = raw ? clickFor(rec, s.shot) : undefined;
+    const shot = raw && at ? await ringShot(raw, at) : raw;
     if (shot) {
       const size = imageSize(shot) ?? { w: 1000, h: 600 };
       const ar = size.h / size.w;

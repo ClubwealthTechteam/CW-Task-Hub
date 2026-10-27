@@ -234,3 +234,56 @@ test('EOD report: a team member submits it and a super admin sees it in the feed
   await admin.getByRole('button', { name: 'Delete', exact: true }).click();
   await expect(admin.getByRole('button', { name: /Ali-Ace Berico/ })).toHaveCount(0);
 });
+
+test('Task Recording: a team member installs the recorder, sends a recording, and Miguel gets the steps and Flow Canvas JSON', async ({ browser }) => {
+  // A tiny WebP (1x1) stands in for a screenshot.
+  const webp = 'data:image/webp;base64,UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAwA0JaQAA3AA/vuUAAA=';
+  const ali = await browser.newPage();
+  const errors = watchErrors(ali);
+  await signIn(ali, 'ali');
+  await ali.goto('/task-recordings');
+  await expect(ali).toHaveURL(/\/task-recordings$/);
+  await expect(ali.getByRole('link', { name: 'Download the Task Recorder' })).toHaveAttribute('href', '/api/task-recordings/extension');
+  const zip = await ali.request.get('/api/task-recordings/extension');
+  expect(zip.headers()['content-type']).toBe('application/zip');
+  const bytes = await zip.body();
+  expect(bytes.subarray(0, 2).toString()).toBe('PK');
+  expect(bytes.includes('cw-task-recorder/manifest.json')).toBe(true);
+
+  const steps = [
+    { kind: 'start', url: 'https://docs.google.com/spreadsheets/d/abc/edit#gid=1', title: 'DHR - Google Sheets', hasShot: true },
+    { kind: 'click', url: 'https://docs.google.com/spreadsheets/d/abc/edit#gid=1', title: 'DHR - Google Sheets', target: 'the grid', sheet: 'DHR', tab: 'Event_Registrants', range: 'C2:K40', hasShot: true },
+    { kind: 'copy', url: 'https://docs.google.com/spreadsheets/d/abc/edit#gid=1', title: 'DHR - Google Sheets', target: 'cells C2:K40', range: 'C2:K40', hasShot: false },
+  ];
+  const created = await ali.request.post('/api/task-recordings', { data: { title: 'Copy registrants', steps } });
+  expect(created.ok()).toBeTruthy();
+  const { id } = await created.json();
+  expect((await ali.request.put(`/api/task-recordings/${id}/shots/1`, { data: { dataUrl: webp } })).ok()).toBeTruthy();
+  expect((await ali.request.put(`/api/task-recordings/${id}/shots/2`, { data: { dataUrl: webp } })).ok()).toBeTruthy();
+  expect((await ali.request.put(`/api/task-recordings/${id}/shots/3`, { data: { dataUrl: webp } })).status()).toBe(404); // step 3 has no screenshot
+  const written = await (await ali.request.post(`/api/task-recordings/${id}/write`)).json();
+  expect(written.by).toBe('basic'); // no Claude key in tests
+  await ali.goto(`/task-recordings/${id}`);
+  await expect(ali.locator('.trec-steps > li')).toHaveCount(3);
+  await expect(ali.locator('.trec-steps > li').nth(1)).toContainText('Event_Registrants');
+  expect(errors).toEqual([]);
+
+  // Another team member can't see it; Miguel can, with the Flow Canvas JSON and a notification.
+  const jaymar = await browser.newPage();
+  await signIn(jaymar, 'jaymar');
+  expect((await jaymar.request.get(`/api/task-recordings/${id}`)).status()).toBe(404);
+  const miguel = await browser.newPage();
+  await signIn(miguel, 'miguel');
+  const flow = await (await miguel.request.get(`/api/task-recordings/${id}/flow`)).json();
+  const app = flow.nodes.filter((n: { type: string }) => n.type === 'app');
+  expect(app).toHaveLength(3);
+  expect(app[1]).toMatchObject({ app: 'sheets', sheet: 'DHR', tab: 'Event_Registrants', range: 'C2:K40' });
+  const images = flow.nodes.filter((n: { type: string }) => n.type === 'image');
+  expect(images).toHaveLength(2);
+  expect(images[0].img.startsWith('data:image/webp')).toBe(true);
+  expect(flow.edges.filter((e: { port: string }) => e.port === 'img')).toHaveLength(2);
+  expect(flow.edges.filter((e: { port: string }) => e.port === 'out')).toHaveLength(2);
+  await miguel.goto('/task-recordings');
+  await expect(miguel.getByRole('link', { name: 'Copy registrants' })).toBeVisible();
+  await ali.close(); await jaymar.close(); await miguel.close();
+});

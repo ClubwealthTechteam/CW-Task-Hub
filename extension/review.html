@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Review recording · CW Task Recorder</title>
+<link rel="stylesheet" href="ui.css">
+</head>
+<body>
+<main class="review">
+  <header class="top">
+    <img src="icons/48.png" alt="" width="36" height="36">
+    <div><h1>Review your recording</h1><small id="sub" class="hint"></small></div>
+  </header>
+
+  <section class="card" id="form">
+    <div class="field"><label for="title">Task name</label><input id="title" maxlength="120" placeholder="e.g. Half-Day attendance matching"></div>
+    <div class="field"><label for="about">What is this task? (optional)</label><textarea id="about" rows="2" maxlength="1000" placeholder="One or two sentences for Claude, e.g. “After each half-day event I match the sign-in sheet to the registrations.”"></textarea></div>
+    <p class="hint">Delete any step you don't want sent (a wrong click, something private). Then press Send to Claude: Claude writes the detailed steps, a summary and the Flow Canvas JSON, and Miguel is notified.</p>
+    <div class="actions">
+      <button id="send" class="btn primary big" type="button">Send to Claude</button>
+      <button id="discard" class="btn" type="button">Discard recording</button>
+    </div>
+    <div id="status" class="status" hidden role="status"></div>
+    <div id="done" class="actions" hidden>
+      <a id="open" class="btn primary" target="_blank">Open in the Admin Hub</a>
+      <button id="copy" class="btn" type="button">Copy Flow Canvas JSON</button>
+      <button id="clear" class="btn" type="button">Done, clear it</button>
+    </div>
+  </section>
+
+  <section id="steps" class="steps" aria-label="Recorded steps"></section>
+</main>
+<script type="module" src="review.js"></script>
+</body>
+</html>

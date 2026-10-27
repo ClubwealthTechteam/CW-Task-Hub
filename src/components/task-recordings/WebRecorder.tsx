@@ -1,10 +1,10 @@
 'use client';
 
-// The no-download Task Recorder: records by screen sharing from this page (like Loom's web recorder).
+// The Task Recorder: records by screen sharing from this page (like Loom's web recorder).
 // Start asks the browser which screen, window or tab to share, counts down 5 seconds, then saves a
 // screenshot each time the shared screen changes and settles (checked twice a second). A web page can't see
 // clicks in other tabs or apps, so there are no click circles: Claude works out each action from the
-// screenshots. Stop shows the screenshots to review and delete, then sends them like the extension does.
+// screenshots. Stop shows the screenshots to review and delete, then sends them to the hub for Claude to write up.
 // Everything stays in this tab until it's sent, so the tab must stay open while recording.
 
 import { useEffect, useRef, useState } from 'react';
@@ -190,7 +190,7 @@ export function WebRecorder() {
           <button type="button" className="btn wrec-stop" onClick={stop}>■ Stop</button>
         </div>
       )}
-      {live && <p className="muted small">A screenshot is saved each time the screen changes. Pause before typing a password or opening anything private: screen sharing can’t cover private fields the way the extension does.</p>}
+      {live && <p className="muted small">A screenshot is saved each time the screen changes. Pause before typing a password or opening anything private while recording.</p>}
       {(phase === 'review' || phase === 'sending') && (
         <div className="wrec-review">
           <div className="field-grid">

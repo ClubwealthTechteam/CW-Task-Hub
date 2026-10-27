@@ -1,4 +1,4 @@
-// Once every screenshot is uploaded, the extension asks for the write-up: Claude reads the steps and
+// Once every screenshot is uploaded, the recorder asks for the write-up: Claude reads the steps and
 // screenshots and writes the detailed steps and the summary (a basic write-up if Claude isn't available).
 // Miguel gets a notification with the link. Running it again rewrites it (the recorder or a super admin).
 

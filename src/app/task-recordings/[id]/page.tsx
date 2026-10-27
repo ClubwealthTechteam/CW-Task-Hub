@@ -1,5 +1,5 @@
 // One Task Recording: Claude's summary, the detailed step-by-step guide with each step's screenshot
-// (click circled), the Flow Canvas JSON to copy, and the raw steps the extension recorded.
+// (click circled), the Flow Canvas JSON to copy, and the raw steps the recorder captured.
 
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -76,7 +76,7 @@ export default async function RecordingPage({ params }: { params: Promise<{ id: 
         )}
 
         <details className="card">
-          <summary><b>Raw steps the extension recorded ({rec.steps.length})</b></summary>
+          <summary><b>Raw steps recorded ({rec.steps.length})</b></summary>
           <ol className="trec-raw">
             {rec.steps.map((s) => (
               <li key={s.n}>

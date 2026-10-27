@@ -227,7 +227,7 @@ test('EOD report: a team member submits it and a super admin sees it in the feed
   await expect(admin.getByRole('button', { name: /Ali-Ace Berico/ })).toHaveCount(0);
 });
 
-test('Task Recording: a team member installs the recorder, sends a recording, and Miguel gets the steps and Flow Canvas JSON', async ({ browser }) => {
+test('Task Recording: a team member opens the recorder, sends a recording, and Miguel gets the steps and Flow Canvas JSON', async ({ browser }) => {
   // A tiny WebP (1x1) stands in for a screenshot.
   const webp = 'data:image/webp;base64,UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAwA0JaQAA3AA/vuUAAA=';
   const ali = await browser.newPage();
@@ -235,12 +235,8 @@ test('Task Recording: a team member installs the recorder, sends a recording, an
   await signIn(ali, 'ali');
   await ali.goto('/task-recordings');
   await expect(ali).toHaveURL(/\/task-recordings$/);
-  await expect(ali.getByRole('link', { name: 'Download the Task Recorder' })).toHaveAttribute('href', '/api/task-recordings/extension');
-  const zip = await ali.request.get('/api/task-recordings/extension');
-  expect(zip.headers()['content-type']).toBe('application/zip');
-  const bytes = await zip.body();
-  expect(bytes.subarray(0, 2).toString()).toBe('PK');
-  expect(bytes.includes('cw-task-recorder/manifest.json')).toBe(true);
+  await expect(ali.getByRole('button', { name: '● Start recording' })).toBeVisible();
+  await expect(ali.getByText('Download the Task Recorder')).toHaveCount(0); // no extension to install
 
   const steps = [
     { kind: 'start', url: 'https://docs.google.com/spreadsheets/d/abc/edit#gid=1', title: 'DHR - Google Sheets', hasShot: true },

@@ -1,6 +1,6 @@
-// Task Recording: the CW Task Recorder extension starts a recording here (its steps, without screenshots),
+// Task Recording: the recorder on the Task Recording page starts a recording here (its steps, without screenshots),
 // then uploads each screenshot to /api/task-recordings/<id>/shots/<n> and asks for the write-up at
-// /api/task-recordings/<id>/write. GET tells the extension who is signed in, with their recent recordings.
+// /api/task-recordings/<id>/write. GET returns who is signed in, with their recent recordings.
 
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/current-user';

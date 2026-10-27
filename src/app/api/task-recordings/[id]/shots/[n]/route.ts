@@ -1,4 +1,4 @@
-// A Task Recording step's screenshot: the extension uploads it (PUT, the recorder only, while uploading);
+// A Task Recording step's screenshot: the recorder uploads it (PUT, the recorder only, while uploading);
 // the recording page shows it (GET, the recorder or a super admin).
 
 import { NextResponse } from 'next/server';

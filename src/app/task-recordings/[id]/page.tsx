@@ -14,7 +14,7 @@ import { StepShotZoom } from '@/components/task-recordings/StepShotZoom';
 export const dynamic = 'force-dynamic';
 
 const when = (at: number) => new Date(at).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
-const KIND = { start: 'Start', click: 'Click', tab: 'Switched tab', page: 'Opened page', type: 'Typed', copy: 'Copied', cut: 'Cut', paste: 'Pasted' } as const;
+const KIND = { start: 'Start', click: 'Click', tab: 'Switched tab', page: 'Opened page', type: 'Typed', copy: 'Copied', cut: 'Cut', paste: 'Pasted', screen: 'Screen changed' } as const;
 
 export default async function RecordingPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser();

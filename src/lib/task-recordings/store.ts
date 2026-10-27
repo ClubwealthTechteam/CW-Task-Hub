@@ -13,7 +13,8 @@ export const SHOT_MAX = 450_000;
 const SHOT_TYPES = ['image/webp', 'image/jpeg', 'image/png'];
 const KEEP = 300;
 
-export type StepKind = 'start' | 'click' | 'tab' | 'page' | 'type' | 'copy' | 'paste' | 'cut';
+/** "screen" steps come from the no-download recorder: a screenshot taken when the shared screen changed (no click details). */
+export type StepKind = 'start' | 'click' | 'tab' | 'page' | 'type' | 'copy' | 'paste' | 'cut' | 'screen';
 
 /** One raw step, as the extension recorded it. Text fields are short and never hold passwords or card numbers. */
 export interface RawStep {
@@ -58,6 +59,8 @@ export interface Recording {
   /** What the recorder said the task is, if they wrote it. */
   about: string;
   steps: RawStep[];
+  /** How it was recorded: the CW Task Recorder extension, or screen sharing in the Admin Hub (no download). */
+  source?: 'extension' | 'screen';
   status: 'uploading' | 'writing' | 'ready' | 'error';
   error?: string;
   writeUp?: WriteUp;
@@ -121,7 +124,7 @@ export async function getShot(id: string, n: number): Promise<string | null> {
 export function cleanStep(x: unknown, n: number): RawStep | null {
   if (!x || typeof x !== 'object') return null;
   const o = x as Record<string, unknown>;
-  const kinds: StepKind[] = ['start', 'click', 'tab', 'page', 'type', 'copy', 'paste', 'cut'];
+  const kinds: StepKind[] = ['start', 'click', 'tab', 'page', 'type', 'copy', 'paste', 'cut', 'screen'];
   const kind = kinds.find((k) => k === o.kind);
   if (!kind) return null;
   const str = (v: unknown, max: number) => (typeof v === 'string' ? v.slice(0, max) : undefined);

@@ -7,6 +7,7 @@ import { requireUser } from '@/lib/auth/current-user';
 import { personById } from '@/config/people';
 import { isSuperAdmin } from '@/lib/access';
 import { listRecordings } from '@/lib/task-recordings/store';
+import { WebRecorder } from '@/components/task-recordings/WebRecorder';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Task Recording · CW AI Task Hub' };
@@ -26,12 +27,19 @@ export default async function TaskRecordingsPage() {
         <section className="hero">
           <span className="eyebrow">Task Recording</span>
           <h1>Record a task once, get the steps written for you</h1>
-          <p>The CW Task Recorder browser extension takes a screenshot each time you click, type, copy, paste or switch tabs. When you stop, Claude writes a detailed step-by-step guide, a short summary and the Flow Canvas map, and Miguel is notified.</p>
+          <p>Record right here with no download, or with the CW Task Recorder extension for the most precise steps. When you stop, Claude writes a detailed step-by-step guide, a short summary and the Flow Canvas map, and Miguel is notified.</p>
+        </section>
+
+        <section className="card">
+          <h2>Record now, no download</h2>
+          <p className="muted small">Works like Loom’s web recorder: share your screen, window or tab, and a screenshot is saved each time the screen changes. Claude works out each click from the screenshots. Works in Chrome and Edge, also for desktop apps when you share your entire screen.</p>
+          <WebRecorder />
         </section>
 
         <div className="trec-grid">
           <section className="card">
-            <h2>Install the extension (Chrome or Edge)</h2>
+            <h2>Or install the extension (most precise)</h2>
+            <p className="muted small">Takes a screenshot on every click and tab switch with the click circled, reads Google Sheets tabs and cells exactly, and covers password and card fields.</p>
             <ol className="trec-list">
               <li><a className="btn primary" href="/api/task-recordings/extension">Download the Task Recorder</a> and unzip it (double-click the file). Keep the <b>cw-task-recorder</b> folder somewhere safe, e.g. Documents.</li>
               <li>Open <b>chrome://extensions</b> (Edge: <b>edge://extensions</b>) in a new tab and turn on <b>Developer mode</b> (top right).</li>
@@ -42,7 +50,7 @@ export default async function TaskRecordingsPage() {
           </section>
 
           <section className="card">
-            <h2>Record a task</h2>
+            <h2>Record with the extension</h2>
             <ol className="trec-list">
               <li>Click the Task Recorder button, allow screenshots the first time, then <b>Start recording</b>.</li>
               <li>After the <b>5-second countdown</b>, do the task as you normally would. Each click, tab switch, copy and paste is a step.</li>

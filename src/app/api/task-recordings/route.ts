@@ -15,7 +15,7 @@ export async function GET() {
   return NextResponse.json({ user: { id: user.id, name: user.name }, recordings });
 }
 
-/** { title?, about?, steps: RawStep[] } → { id } */
+/** { title?, about?, source?: 'extension' | 'screen', steps: RawStep[] } → { id } */
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in to the Admin Hub first' }, { status: 401 });
@@ -30,6 +30,7 @@ export async function POST(req: Request) {
     title: String(body.title ?? '').trim().slice(0, 120) || 'Recorded task',
     about: String(body.about ?? '').trim().slice(0, 1000),
     steps, status: 'uploading',
+    source: body.source === 'screen' ? 'screen' : 'extension',
   });
   return NextResponse.json({ id });
 }

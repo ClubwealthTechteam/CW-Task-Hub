@@ -27,8 +27,10 @@ export function canViewAutomation(user: Person | null | undefined, a: { ownerId:
  */
 export const MEMBERS_EOD_ONLY = true;
 export const EOD_HOME = '/eod';
-/** Pages team members can open while MEMBERS_EOD_ONLY is on. The SOP Handbook is for POCs, who come from any team. */
-export const membersOpen = (pathname: string) => pathname === EOD_HOME || pathname === '/sop' || pathname.startsWith('/sop/');
+/** Pages team members can open while MEMBERS_EOD_ONLY is on. The SOP Handbook is for POCs, who come from any team;
+ *  Task Recording is for everyone who records a task for Miguel. */
+export const membersOpen = (pathname: string) => pathname === EOD_HOME || pathname === '/sop' || pathname.startsWith('/sop/')
+  || pathname === '/task-recordings' || pathname.startsWith('/task-recordings/');
 export const eodOnly = (user: Person | null | undefined) => MEMBERS_EOD_ONLY && Boolean(user) && !isSuperAdmin(user);
 
 /** Only super admins add, edit or test integrations. */

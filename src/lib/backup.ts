@@ -1,10 +1,11 @@
 // The nightly backup of the hub's data (chats, lists, referrals, calendar, call notes, settings...).
 // Left out on purpose: secrets (Canva sign-ins, custom integration keys), caches, sign-in lockouts and
-// uploaded chat files (they expire on their own and are large).
+// uploaded chat files (they expire on their own and are large), and Task Recording screenshots (large; the
+// recording's steps and Claude's write-up are kept).
 
 import { dumpAll } from '@/lib/store';
 
-const SKIP = [/^cache:/, /^canva:/, /^login:fails:/, /^chat:file:/, /^health:ping$/];
+const SKIP = [/^cache:/, /^canva:/, /^login:fails:/, /^chat:file:/, /^health:ping$/, /^trec:shot:/];
 
 export async function backup() {
   const data = await dumpAll((k) => SKIP.some((re) => re.test(k)));

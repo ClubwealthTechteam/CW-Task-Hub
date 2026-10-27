@@ -1608,3 +1608,27 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
 .sop-lightbox-x:focus-visible { outline: 3px solid var(--gold, #b08d4a); outline-offset: 2px; }
 .sop-shot-item.sop-shot-edit, .sop-shot-item .sop-shot { max-width: 100%; }
 .sop-shots .sop-shot-item > .sop-shot { margin-top: 10px; }
+
+/* Task Recording */
+.trec-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.trec-list { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 10px; line-height: 1.55; }
+.trec-list .btn { display: inline-block; margin-right: 6px; text-decoration: none; }
+.trec-actions .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.trec-actions a.btn { text-decoration: none; color: inherit; }
+.trec-del { margin-left: auto; }
+.trec-ok { color: var(--ok); font-weight: 600; }
+.trec-summary { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; line-height: 1.55; }
+.trec-steps { margin: 0; padding-left: 26px; display: flex; flex-direction: column; gap: 18px; }
+.trec-steps > li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 460px); gap: 18px; align-items: start; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+.trec-steps > li:last-child { border-bottom: 0; padding-bottom: 0; }
+.trec-steps > li::marker { font-weight: 800; color: var(--navy); }
+.trec-step-text { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.trec-step-text h3 { margin: 0; font-size: 16px; color: var(--navy); }
+.trec-step-text p { margin: 0; line-height: 1.55; }
+.trec-where { margin: 4px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 13.5px; }
+.trec-where dt { font-weight: 700; color: var(--muted); }
+.trec-where dd { margin: 0; }
+.trec-shot { padding: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface-2, #f6f8fa); cursor: zoom-in; width: 100%; }
+.trec-shot img { display: block; width: 100%; height: auto; }
+.trec-raw { margin: 10px 0 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
+details.card > summary { cursor: pointer; }

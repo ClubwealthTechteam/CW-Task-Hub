@@ -1,6 +1,6 @@
-// Task Recording: the CW Task Recorder extension starts a recording here (its steps, without screenshots),
+// Task Recording: the recorder on the Task Recording page starts a recording here (its steps, without screenshots),
 // then uploads each screenshot to /api/task-recordings/<id>/shots/<n> and asks for the write-up at
-// /api/task-recordings/<id>/write. GET tells the extension who is signed in, with their recent recordings.
+// /api/task-recordings/<id>/write. GET returns who is signed in, with their recent recordings.
 
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/current-user';
@@ -15,7 +15,7 @@ export async function GET() {
   return NextResponse.json({ user: { id: user.id, name: user.name }, recordings });
 }
 
-/** { title?, about?, steps: RawStep[] } → { id } */
+/** { title?, about?, source?: 'extension' | 'screen', steps: RawStep[] } → { id } */
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Sign in to the Admin Hub first' }, { status: 401 });
@@ -30,6 +30,7 @@ export async function POST(req: Request) {
     title: String(body.title ?? '').trim().slice(0, 120) || 'Recorded task',
     about: String(body.about ?? '').trim().slice(0, 1000),
     steps, status: 'uploading',
+    source: body.source === 'screen' ? 'screen' : 'extension',
   });
   return NextResponse.json({ id });
 }

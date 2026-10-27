@@ -1,5 +1,5 @@
-// Task Recording: what the CW Task Recorder extension captured (one step per click, tab switch, typed field,
-// copy or paste, each with a screenshot), and Claude's write-up of it (detailed steps, summary, Flow Canvas map).
+// Task Recording: what the recorder captured (a screenshot each time the shared screen changed; older
+// recordings from the retired browser extension have one step per click, tab switch, typed field, copy or paste), and Claude's write-up of it (detailed steps, summary, Flow Canvas map).
 // A recording is kept under trec:rec:<id>; each screenshot under its own key (trec:shot:<id>:<n>), and every
 // person has an index of their recordings (trec:by:<uid>) plus one for everyone's (trec:all), newest first.
 
@@ -8,12 +8,13 @@ import type { Person } from '@/config/people';
 import { isSuperAdmin } from '@/lib/access';
 
 export const MAX_STEPS = 150;
-/** A screenshot's data URL cap. The extension saves them ~1000px wide as WebP, well under this. */
+/** A screenshot's data URL cap. The recorder saves them ~1000px wide as WebP, well under this. */
 export const SHOT_MAX = 450_000;
 const SHOT_TYPES = ['image/webp', 'image/jpeg', 'image/png'];
 const KEEP = 300;
 
-export type StepKind = 'start' | 'click' | 'tab' | 'page' | 'type' | 'copy' | 'paste' | 'cut';
+/** "screen" steps come from the no-download recorder: a screenshot taken when the shared screen changed (no click details). */
+export type StepKind = 'start' | 'click' | 'tab' | 'page' | 'type' | 'copy' | 'paste' | 'cut' | 'screen';
 
 /** One raw step, as the extension recorded it. Text fields are short and never hold passwords or card numbers. */
 export interface RawStep {
@@ -58,6 +59,8 @@ export interface Recording {
   /** What the recorder said the task is, if they wrote it. */
   about: string;
   steps: RawStep[];
+  /** How it was recorded: the CW Task Recorder extension, or screen sharing in the Admin Hub (no download). */
+  source?: 'extension' | 'screen';
   status: 'uploading' | 'writing' | 'ready' | 'error';
   error?: string;
   writeUp?: WriteUp;
@@ -121,7 +124,7 @@ export async function getShot(id: string, n: number): Promise<string | null> {
 export function cleanStep(x: unknown, n: number): RawStep | null {
   if (!x || typeof x !== 'object') return null;
   const o = x as Record<string, unknown>;
-  const kinds: StepKind[] = ['start', 'click', 'tab', 'page', 'type', 'copy', 'paste', 'cut'];
+  const kinds: StepKind[] = ['start', 'click', 'tab', 'page', 'type', 'copy', 'paste', 'cut', 'screen'];
   const kind = kinds.find((k) => k === o.kind);
   if (!kind) return null;
   const str = (v: unknown, max: number) => (typeof v === 'string' ? v.slice(0, max) : undefined);

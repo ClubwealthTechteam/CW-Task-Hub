@@ -11,8 +11,6 @@ const nextConfig = {
   // page someone has open is older than what's live, and the hub offers a reload.
   env: { NEXT_PUBLIC_BUILD_ID: buildId },
   poweredByHeader: false,
-  // The Task Recorder download zips the extension/ folder at request time, so ship it with that route.
-  outputFileTracingIncludes: { '/api/task-recordings/extension': ['./extension/**/*'] },
   async headers() {
     return [
       {

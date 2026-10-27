@@ -17,6 +17,8 @@ const SYSTEM = `You turn a Club Wealth team member's recorded task into a step-b
 
 You get the raw steps the CW Task Recorder browser extension captured, in order: every click, tab switch, page opened, field typed into, copy, cut and paste, with the page address and title, what was clicked, and for Google Sheets the spreadsheet name, tab and the selected cell or range (from the Name Box). Most steps have a screenshot with the click circled in orange. Private fields (passwords, card numbers) were blurred and their text shows as [hidden].
 
+Some recordings come from the no-download recorder instead (RECORDED WITH: screen sharing). Those steps are all kind "screen": a screenshot taken whenever the shared screen changed, with no click details, page address or typed text. For them, work out each action by comparing each screenshot with the one before it (what opened, what was selected, what was typed, which tab or app is now showing; the mouse pointer is usually visible), and read app names, sheet names, tabs, cells and channels from what the screenshots show.
+
 Write the steps:
 - One written step per meaningful action, in order. Merge raw steps that are really one action (several clicks to open one menu, typing then pressing a button that belongs to the same field), and drop accidental clicks that did nothing. Never invent an action that isn't in the recording.
 - app: the tool the step happens in, from the allowed list (sheets for Google Sheets, slack, keap, eventbrite, gmail, docs, drive, claude, cwu for CW University, cwreports for CW Reports, and so on; human for a judgement or check the person makes; node when nothing fits).
@@ -80,7 +82,7 @@ const describe = (s: RawStep) => {
 async function claudeWriteUp(rec: Recording): Promise<WriteUp> {
   const content: Anthropic.Beta.BetaContentBlockParam[] = [{
     type: 'text',
-    text: `RECORDED BY: ${rec.owner}\nTHE RECORDER SAYS THIS TASK IS: ${rec.about || '(not given)'}\n\nRAW STEPS (${rec.steps.length}):\n${rec.steps.map(describe).join('\n')}\n\nScreenshots follow, each labelled with its raw step number.`,
+    text: `RECORDED BY: ${rec.owner}\nRECORDED WITH: ${rec.source === 'screen' ? 'screen sharing (no-download recorder)' : 'the CW Task Recorder extension'}\nTHE RECORDER SAYS THIS TASK IS: ${rec.about || '(not given)'}\n\nRAW STEPS (${rec.steps.length}):\n${rec.steps.map(describe).join('\n')}\n\nScreenshots follow, each labelled with its raw step number.`,
   }];
   let images = 0;
   for (const s of rec.steps) {
@@ -126,6 +128,7 @@ export function basicWriteUp(rec: Recording): WriteUp {
       copy: `Copy ${s.range || s.target || 'the selection'}.`,
       cut: `Cut ${s.range || s.target || 'the selection'}.`,
       paste: `Paste into ${s.range || s.target || 'the selected place'}.`,
+      screen: 'The screen changed (see the screenshot).',
     }[s.kind];
     return {
       app, title: `${s.kind[0].toUpperCase()}${s.kind.slice(1)}${s.target ? ` · ${s.target}` : ''}`.slice(0, 60), action,

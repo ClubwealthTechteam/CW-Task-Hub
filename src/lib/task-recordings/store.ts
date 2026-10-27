@@ -8,8 +8,8 @@ import type { Person } from '@/config/people';
 import { isSuperAdmin } from '@/lib/access';
 
 export const MAX_STEPS = 150;
-/** A screenshot's data URL cap. The recorder saves them ~1000px wide as WebP, well under this. */
-export const SHOT_MAX = 450_000;
+/** A screenshot's data URL cap. The recorder saves them up to 1600px wide as WebP (sharp enough to read sheet links, tabs and cells), under this. */
+export const SHOT_MAX = 1_000_000;
 const SHOT_TYPES = ['image/webp', 'image/jpeg', 'image/png'];
 const KEEP = 300;
 
@@ -31,8 +31,14 @@ export interface RawStep {
   sheet?: string;
   tab?: string;
   range?: string;
+  /** What the person typed under the screenshot before sending: what they did on this screen, the sheet link, etc. */
+  note?: string;
+  /** Where they clicked on the screenshot, as a share of its width and height (0–1), marked by the person in review. */
+  click?: Point;
   hasShot: boolean;
 }
+
+export interface Point { x: number; y: number }
 
 /** One step of Claude's write-up. `from` lists the raw steps it covers; `shot` is the raw step whose screenshot shows it. */
 export interface WrittenStep {
@@ -49,7 +55,13 @@ export interface WrittenStep {
   shot: number;
 }
 
-export interface WriteUp { title: string; steps: WrittenStep[]; summary: string[]; by: 'claude' | 'basic'; at: number }
+export interface WriteUp {
+  title: string; steps: WrittenStep[]; summary: string[]; by: 'claude' | 'basic'; at: number;
+  /** Where Claude found the mouse pointer in each screenshot, by raw step number (0–1 of width and height). */
+  pointers?: Record<string, Point>;
+  /** The page address Claude read from the address bar in each screenshot, by raw step number (screen recordings can't see tabs' addresses). */
+  pages?: Record<string, string>;
+}
 
 export interface Recording {
   id: string;
@@ -62,6 +74,8 @@ export interface Recording {
   /** How it was recorded: the CW Task Recorder extension, or screen sharing in the Admin Hub (no download). */
   source?: 'extension' | 'screen';
   status: 'uploading' | 'writing' | 'ready' | 'error';
+  /** When it was last sent to Claude to write up. */
+  writingAt?: number;
   error?: string;
   writeUp?: WriteUp;
 }
@@ -120,6 +134,20 @@ export async function getShot(id: string, n: number): Promise<string | null> {
   return getJSON<string | null>(shotKey(id, n), null);
 }
 
+/** Where to circle the click on a step's screenshot: the person's own mark, else where Claude saw the pointer. */
+export const clickFor = (rec: Recording, n: number): Point | undefined => rec.steps.find((s) => s.n === n)?.click ?? rec.writeUp?.pointers?.[String(n)];
+
+/** The page a step happened on: what the recorder captured, else the address Claude read from the screenshot. */
+export const pageFor = (rec: Recording, s: RawStep): string => s.url || rec.writeUp?.pages?.[String(s.n)] || '';
+
+/** A point inside the image (0–1 on both axes), or undefined. */
+export function cleanPoint(v: unknown): Point | undefined {
+  if (!v || typeof v !== 'object') return undefined;
+  const { x, y } = v as Record<string, unknown>;
+  const ok = (n: unknown): n is number => typeof n === 'number' && n >= 0 && n <= 1;
+  return ok(x) && ok(y) ? { x: Math.round(x * 1e4) / 1e4, y: Math.round(y * 1e4) / 1e4 } : undefined;
+}
+
 /** Cleans a raw step from the extension: known kinds only, short strings, no stray fields. */
 export function cleanStep(x: unknown, n: number): RawStep | null {
   if (!x || typeof x !== 'object') return null;
@@ -140,6 +168,8 @@ export function cleanStep(x: unknown, n: number): RawStep | null {
     sheet: str(o.sheet, 200),
     tab: str(o.tab, 100),
     range: str(o.range, 60),
+    note: str(o.note, 1000)?.trim() || undefined,
+    click: cleanPoint(o.click),
     hasShot: o.hasShot === true,
   };
 }

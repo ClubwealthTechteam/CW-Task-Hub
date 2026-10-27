@@ -16,12 +16,14 @@ import { EOD_HOME, eodOnly, membersOpen } from '@/lib/access';
 const PUBLIC = ['/login', '/api/auth/login', '/api/health', '/api/chat/reply', '/api/chat/reply/file', '/api/chat/reply/canva', '/api/zapier/inbox', '/api/council/snapshot', '/api/council/keap', '/api/council/report', '/api/backup'];
 const councilCron = (req: NextRequest) => req.nextUrl.pathname === '/api/council/run' && req.method === 'GET';
 // /celebrations/* are the public poster template, logo and scripts the Slack celebrations routine downloads.
+// The Task Recording write-up routine reads and answers with a token made for that one recording.
+const recordingRoutine = (req: NextRequest) => /^\/api\/task-recordings\/r[a-z0-9]+\/claude(\/shots\/\d+)?$/.test(req.nextUrl.pathname);
 const publicAsset = (req: NextRequest) => req.nextUrl.pathname.startsWith('/celebrations/') && req.method === 'GET';
 const signedFile = (req: NextRequest) => req.nextUrl.pathname.startsWith('/api/chat/files/') && req.method === 'GET' && req.nextUrl.searchParams.has('t');
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (PUBLIC.some((p) => pathname === p) || signedFile(req) || councilCron(req) || publicAsset(req)) return NextResponse.next();
+  if (PUBLIC.some((p) => pathname === p) || signedFile(req) || councilCron(req) || publicAsset(req) || recordingRoutine(req)) return NextResponse.next();
 
   const session = await verifySession(req.cookies.get(SESSION_COOKIE)?.value);
   if (session) {

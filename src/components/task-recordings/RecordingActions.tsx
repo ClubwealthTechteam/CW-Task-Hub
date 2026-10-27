@@ -27,12 +27,14 @@ export function RecordingActions({ id, canRewrite, written }: { id: string; canR
   }
 
   async function rewrite() {
-    setBusy('write'); setMsg({ text: 'Claude is reading the steps and screenshots. This can take a few minutes…' });
+    setBusy('write'); setMsg({ text: 'Sending it to Claude…' });
     const res = await fetch(`/api/task-recordings/${id}/write`, { method: 'POST' });
     const data = await res.json().catch(() => ({}));
     setBusy('');
     if (!res.ok) { setMsg({ text: data.error ?? 'Couldn’t write it. Try again.' }); return; }
-    setMsg({ text: data.problem ? `${data.problem}; a basic write-up was made instead.` : 'Done: Claude rewrote the steps and the summary.', ok: !data.problem });
+    setMsg(data.queued
+      ? { text: 'Sent to Claude. The new steps show here in a few minutes.', ok: true }
+      : { text: data.problem ? `${data.problem}; a basic write-up was made instead.` : 'Done: Claude rewrote the steps and the summary.', ok: !data.problem });
     router.refresh();
   }
 

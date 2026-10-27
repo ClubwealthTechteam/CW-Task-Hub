@@ -10,6 +10,7 @@ import { canView, clickFor, getRecording, pageFor } from '@/lib/task-recordings/
 import { CANVAS_APPS, type CanvasApp } from '@/lib/task-recordings/apps';
 import { RecordingActions } from '@/components/task-recordings/RecordingActions';
 import { StepShotZoom } from '@/components/task-recordings/StepShotZoom';
+import { AutoRefresh } from '@/components/task-recordings/AutoRefresh';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,8 @@ export default async function RecordingPage({ params }: { params: Promise<{ id: 
   const rec = await getRecording((await params).id);
   if (!rec || !canView(user, rec)) notFound();
   const w = rec.writeUp;
+  // Sent to Claude in the last 20 minutes and not answered yet.
+  const writing = rec.status === 'writing' && Date.now() - (rec.writingAt ?? rec.at) < 20 * 60_000;
   const shot = (n: number) => `/api/task-recordings/${rec.id}/shots/${n}`;
 
   return (
@@ -36,8 +39,10 @@ export default async function RecordingPage({ params }: { params: Promise<{ id: 
 
         <section className="card">
           <RecordingActions id={rec.id} canRewrite written={Boolean(w)} />
-          {w?.by === 'basic' && <p className="sop-gap small">This write-up was made from the recording alone{rec.error ? ` (${rec.error})` : ''}. Use “Write it up with Claude” once Claude is connected.</p>}
-          {!w && <p className="muted small">{rec.status === 'uploading' ? 'The screenshots are still uploading, or the upload stopped part-way. Write it up with what arrived.' : 'Claude is writing this one, or it stopped part-way. Refresh in a minute or write it again.'}</p>}
+          {writing && <p className="trec-ok small" role="status">Claude is reading the screenshots and writing the steps. This usually takes 2 to 5 minutes; this page updates by itself.</p>}
+          {writing && <AutoRefresh seconds={15} />}
+          {!writing && w?.by === 'basic' && <p className="sop-gap small">This write-up was made from the recording alone{rec.error ? ` (${rec.error})` : ''}. Use “Write it again with Claude” once Claude is connected.</p>}
+          {!writing && !w && <p className="muted small">{rec.status === 'uploading' ? 'The screenshots are still uploading, or the upload stopped part-way. Write it up with what arrived.' : `Claude didn’t finish this one${rec.error ? ` (${rec.error})` : ''}. Press “Write it up with Claude” to try again.`}</p>}
         </section>
 
         {w && (

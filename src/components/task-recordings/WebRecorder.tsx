@@ -218,8 +218,9 @@ export function WebRecorder() {
         setMsg({ text: `Uploading screenshots… ${i + 1} of ${shots.length}` });
         await call(`/api/task-recordings/${id}/shots/${i + 1}`, { method: 'PUT', body: JSON.stringify({ dataUrl: s.dataUrl }) });
       }
-      setMsg({ text: 'Claude is reading your screenshots and writing the steps. This can take a few minutes; keep this page open…' });
-      await call(`/api/task-recordings/${id}/write`, { method: 'POST' });
+      setMsg({ text: 'Sending it to Claude…' });
+      // The recording is saved by now: if Claude can't be reached, its page says so and has a button to try again.
+      await call(`/api/task-recordings/${id}/write`, { method: 'POST' }).catch(() => null);
       router.push(`/task-recordings/${id}`);
       router.refresh();
     } catch (e) {

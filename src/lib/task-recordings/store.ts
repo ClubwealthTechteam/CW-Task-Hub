@@ -74,6 +74,8 @@ export interface Recording {
   /** How it was recorded: the CW Task Recorder extension, or screen sharing in the Admin Hub (no download). */
   source?: 'extension' | 'screen';
   status: 'uploading' | 'writing' | 'ready' | 'error';
+  /** When it was last sent to Claude to write up. */
+  writingAt?: number;
   error?: string;
   writeUp?: WriteUp;
 }

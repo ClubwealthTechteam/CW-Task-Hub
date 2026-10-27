@@ -56,10 +56,17 @@ test('the SOP Handbook is open to team members: index, an article, the POC log a
   await page.getByRole('button', { name: 'I’m back' }).click();
   await page.getByRole('link', { name: 'EV-01' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Half-Day Event attendance tagging');
-  for (const label of ['SOP Name', 'Effective Date', 'Effective Period', 'Audience Using SOP', 'Exemptions', 'Owner', 'Last Review Date']) {
-    await expect(page.locator('.sop-meta th', { hasText: label })).toBeVisible();
-  }
-  for (const h of ['Prerequisites', 'Additional Information', 'Steps', 'References']) await expect(page.getByRole('heading', { level: 2, name: h })).toBeVisible();
+  // The 7-part SOP structure, in order, with the drafted parts marked for Miguel to check.
+  const parts = ['Scope', 'Purpose', 'Responsibilities', 'Required Materials and Tools', 'Execution Sequence', 'Safety Guidelines', 'Review and Update Process'];
+  const h2s = page.locator('.sop-body > .card > h2');
+  await expect(h2s).toHaveCount(7);
+  for (const [i, h] of parts.entries()) await expect(h2s.nth(i)).toContainText(`${i + 1}${h}`);
+  await expect(page.locator('#scope .sop-draft')).toHaveText('Draft · check with Miguel');
+  await expect(page.locator('#responsibilities .sop-resp')).toContainText('Andrea (POC Admin)');
+  await expect(page.locator('#safety .sop-resp tbody tr').first()).toBeVisible();
+  // Review and Update: next review date, version history (newest first) and adoption from the POC log.
+  await expect(page.locator('#review .sop-meta th', { hasText: 'Next review' })).toBeVisible();
+  await expect(page.locator('#review .sop-versions tbody tr').first()).toContainText('v4');
   await expect(page.getByRole('navigation', { name: 'Contents' }).getByRole('link', { name: 'Step 3', exact: true })).toHaveAttribute('href', '#step-3');
   // Each step says exactly where: sheet (linked to the tab and cells), tab, cells.
   const callClaude = page.locator('#step-24 .sop-where tr', { hasText: 'S2 (Call Claude checkbox)' });
@@ -79,6 +86,7 @@ test('the SOP Handbook is open to team members: index, an article, the POC log a
   await page.getByLabel('What was done').fill('Smoke test log row');
   await page.getByRole('button', { name: 'Add log row' }).click();
   await expect(page.locator('.sop-log')).toContainText('Smoke test log row');
+  await expect(page.locator('#review .sop-adopt > div').first()).toContainText('1 run');
   expect((await page.request.post('/api/sop/log', { data: { id: 'XX-99', what: 'x' } })).status()).toBe(404);
   expect(errors).toEqual([]);
 });

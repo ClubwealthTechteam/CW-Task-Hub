@@ -10,6 +10,7 @@ import { personById } from '@/config/people';
 import { SOP_ARTICLES } from '@/data/sop';
 import { outToday } from '@/lib/sop';
 import { OutToggle } from '@/components/sop/SopControls';
+import { currentVersion, reviewDue } from '@/lib/sop-review';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'SOP Handbook · CW AI Task Hub' };
@@ -57,16 +58,19 @@ export default async function SopHandbookPage() {
             <h2>{d.name}</h2>
             <div className="tw">
               <table className="sop-index">
-                <thead><tr><th>No.</th><th>Task</th><th>Main Admin</th><th>POC Admin</th><th>Status</th></tr></thead>
+                <thead><tr><th>No.</th><th>Task</th><th>Main Admin</th><th>POC Admin</th><th>Version</th><th>Next review</th><th>Status</th></tr></thead>
                 <tbody>
                   {SOP_ARTICLES.filter((a) => a.department === d.id).map((a) => {
                     const mainOut = out.has(a.main);
+                    const review = reviewDue(a);
                     return (
                       <tr key={a.id}>
                         <td data-label="No."><Link href={`/sop/${a.id}`} className="sop-no">{a.id}</Link></td>
                         <td data-label="Task"><Link href={`/sop/${a.id}`}>{a.title}</Link><div className="muted small">{a.when}</div></td>
                         <td data-label="Main Admin">{first(a.main)}{mainOut && <span className="pill req sop-out">Out today</span>}</td>
                         <td data-label="POC Admin">{first(a.poc) ?? <span className="muted">To be named</span>}{mainOut && a.poc && <span className="pill live sop-out">Covering</span>}</td>
+                        <td data-label="Version">v{currentVersion(a).v}</td>
+                        <td data-label="Next review" className="sop-review-due">{review.due}{review.overdue ? <span className="pill req sop-out">Overdue</span> : review.days <= 14 ? <span className="pill sop-out">Due soon</span> : null}</td>
                         <td data-label="Status"><span className={`pill ${a.status === 'ready' ? 'live' : ''}`}>{a.status === 'ready' ? 'Ready' : 'Draft'}</span></td>
                       </tr>
                     );
@@ -77,6 +81,7 @@ export default async function SopHandbookPage() {
           </section>
         ))}
 
+        <p className="muted small">Every article follows the same 7 parts: Scope, Purpose, Responsibilities, Required Materials and Tools, Execution Sequence, Safety Guidelines, and Review and Update. Each is reviewed every 90 days; an overdue review shows <b>Overdue</b> above.</p>
         <p className="muted small">An article is marked <b>Ready</b> once its POC has run it once while the Main Admin watched (15–30 minutes, one time only). Until then it’s a <b>Draft</b>. To add an article or fix a step, tell Miguel.</p>
       </main>
     </>

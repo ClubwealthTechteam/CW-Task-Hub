@@ -21,6 +21,8 @@ You get the raw steps the CW Task Recorder browser extension captured, in order:
 
 Some recordings come from the no-download recorder instead (RECORDED WITH: screen sharing). Those steps are all kind "screen": a screenshot taken whenever the shared screen changed, with no click details, page address or typed text. For them, work out each action by comparing each screenshot with the one before it (what opened, what was selected, what was typed, which tab or app is now showing; the mouse pointer is usually visible), and read app names, sheet names, tabs, cells and channels from what the screenshots show.
 
+When this is a rewrite, CORRECTIONS lists steps of the previous write-up that the person marked as wrong, with what they say actually happened. Their corrections are the truth about what they did: fix those steps to match, and keep the rest unless a correction changes it.
+
 The person may have typed a note under a screenshot before sending ("note: …"): what they did on that screen, why, or a link. Treat notes as the best description of that step and use their wording and links. A step may also say "clicked at x, y": the person marked where they clicked, as a share of the screenshot's width and height from the top-left.
 
 Google Sheets details matter most to Miguel. For every Sheets step, read them from the screenshot:
@@ -97,6 +99,12 @@ export const SCHEMA = {
   },
 } as const;
 
+/** Steps of the last write-up the person marked as wrong, with what they said, for Claude's rewrite. */
+export function corrections(rec: Recording): string {
+  const bad = (rec.writeUp?.steps ?? []).map((s, i) => ({ s, i })).filter(({ s }) => s.check && !s.check.ok);
+  return bad.map(({ s, i }) => `Step ${i + 1} "${s.title}" (raw steps ${s.from.join(', ') || 'none'}): ${s.action}\n  The person says this is wrong: ${(s.check?.note || '(no details)').replace(/\s+/g, ' ')}`).join('\n');
+}
+
 export const describe = (s: RawStep) => {
   const parts = [`#${s.n} ${s.kind}`];
   if (s.target) parts.push(`target: ${s.target}`);
@@ -116,7 +124,7 @@ async function claudeWriteUp(rec: Recording): Promise<WriteUp> {
   const known = (await knownSheets().catch(() => [])).slice(0, 200).map((s) => `${s.name.replace(/\s+/g, ' ')} | ${s.url}`).join('\n');
   const content: Anthropic.Beta.BetaContentBlockParam[] = [{
     type: 'text',
-    text: `RECORDED BY: ${rec.owner}\nRECORDED WITH: ${rec.source === 'screen' ? 'screen sharing (no-download recorder)' : 'the CW Task Recorder extension'}\nTHE RECORDER SAYS THIS TASK IS: ${rec.about || '(not given)'}\n\nKNOWN SPREADSHEETS (name | link):\n${known || '(none listed)'}\n\nRAW STEPS (${rec.steps.length}):\n${rec.steps.map(describe).join('\n')}\n\nScreenshots follow, each labelled with its raw step number.`,
+    text: `RECORDED BY: ${rec.owner}\nRECORDED WITH: ${rec.source === 'screen' ? 'screen sharing (no-download recorder)' : 'the CW Task Recorder extension'}\nTHE RECORDER SAYS THIS TASK IS: ${rec.about || '(not given)'}\n\nKNOWN SPREADSHEETS (name | link):\n${known || '(none listed)'}${corrections(rec) ? `\n\nCORRECTIONS FROM THE PERSON (previous write-up):\n${corrections(rec)}` : ''}\n\nRAW STEPS (${rec.steps.length}):\n${rec.steps.map(describe).join('\n')}\n\nScreenshots follow, each labelled with its raw step number.`,
   }];
   let images = 0, chars = 0;
   for (const s of rec.steps) {

@@ -5,7 +5,7 @@
 
 import { NextResponse } from 'next/server';
 import { getRecording, saveRecording } from '@/lib/task-recordings/store';
-import { SCHEMA, SYSTEM, describe, finishWriteUp } from '@/lib/task-recordings/write-up';
+import { SCHEMA, SYSTEM, corrections, describe, finishWriteUp } from '@/lib/task-recordings/write-up';
 import { fillSheetLinks, knownSheets } from '@/lib/task-recordings/sheet-links';
 import { notifyWritten, validToken } from '@/lib/task-recordings/routine';
 import { personById } from '@/config/people';
@@ -33,6 +33,7 @@ export async function GET(req: Request, props: Props) {
       title: rec.title,
       about: rec.about,
       steps: rec.steps.map((s) => ({ n: s.n, hasShot: s.hasShot, line: describe(s) })),
+      corrections: corrections(rec),
     },
     knownSpreadsheets: sheets,
     instructions: SYSTEM,

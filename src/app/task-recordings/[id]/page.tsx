@@ -11,6 +11,8 @@ import { CANVAS_APPS, type CanvasApp } from '@/lib/task-recordings/apps';
 import { RecordingActions } from '@/components/task-recordings/RecordingActions';
 import { StepShotZoom } from '@/components/task-recordings/StepShotZoom';
 import { AutoRefresh } from '@/components/task-recordings/AutoRefresh';
+import { StepCheck } from '@/components/task-recordings/StepCheck';
+import { isSuperAdmin } from '@/lib/access';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +26,10 @@ export default async function RecordingPage({ params }: { params: Promise<{ id: 
   const w = rec.writeUp;
   // Sent to Claude in the last 20 minutes and not answered yet.
   const writing = rec.status === 'writing' && Date.now() - (rec.writingAt ?? rec.at) < 20 * 60_000;
+  // The recorder answers "Is this correct?"; super admins can too.
+  const canAnswer = !writing && (rec.owner === user.id || isSuperAdmin(user));
+  const checked = w?.steps.filter((s) => s.check).length ?? 0;
+  const wrong = w?.steps.filter((s) => s.check && !s.check.ok).length ?? 0;
   const shot = (n: number) => `/api/task-recordings/${rec.id}/shots/${n}`;
 
   return (
@@ -54,6 +60,8 @@ export default async function RecordingPage({ params }: { params: Promise<{ id: 
 
             <section className="card">
               <h2>Step-by-step</h2>
+              {canAnswer && <p className="muted small">Check each step: answer <b>Is this correct?</b> under it. If a step is wrong, say what you actually did, then press “Write it again with Claude” to fix those steps.</p>}
+              {checked > 0 && <p className="small">{checked} of {w.steps.length} steps checked{wrong ? ` · ${wrong} marked not correct` : ''}.</p>}
               <ol className="trec-steps">
                 {w.steps.map((s, i) => (
                   <li key={i} id={`step-${i + 1}`}>
@@ -71,6 +79,7 @@ export default async function RecordingPage({ params }: { params: Promise<{ id: 
                         </dl>
                       )}
                       {s.note && <p className="sop-note small"><b>Note:</b> {s.note}</p>}
+                      <StepCheck id={rec.id} index={i} initial={s.check} canAnswer={canAnswer} />
                     </div>
                     {s.shot >= 0 && <StepShotZoom src={shot(s.shot)} alt={`Step ${i + 1}: ${s.title}`} ring={clickFor(rec, s.shot)} />}
                   </li>

@@ -1681,3 +1681,12 @@ details.card > summary { cursor: pointer; }
 .wrec-mark { cursor: crosshair; }
 .wrec-lightbox-bar { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 10px; align-items: center; background: #fff; color: var(--ink); border-radius: 10px; padding: 8px 12px; box-shadow: 0 2px 10px rgba(0,0,0,.3); font-size: 13px; cursor: default; }
 .wrec-undo { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+/* Task Recording: "Is this correct?" under each written step */
+.trec-check { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; margin-top: 6px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; width: 100%; box-sizing: border-box; }
+.trec-check .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.trec-check textarea { font: inherit; font-size: 13px; color: var(--ink); border: 1px solid var(--line-strong); border-radius: 8px; padding: 6px 8px; width: 100%; box-sizing: border-box; resize: vertical; }
+.trec-check p { margin: 0; }
+.trec-check.is-ok { border-color: var(--ok); }
+.trec-check.is-ok > span { color: var(--ok); font-weight: 600; font-size: 13px; }
+.trec-check.is-wrong { border-color: #d93025; }
+.trec-check.is-wrong > span { color: #d93025; font-weight: 600; font-size: 13px; }

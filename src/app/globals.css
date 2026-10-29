@@ -1590,6 +1590,7 @@ kbd { font: 600 11px/1 var(--sans); border: 1px solid var(--line-strong); border
 .sop-app.slack { background: #f3e8f5; color: #4a154b; }
 .sop-app.keap { background: #e8f5e9; color: #2e7d32; }
 .sop-app.eventbrite { background: #fdece6; color: #d1410c; }
+.sop-app.prospectboss { background: #fff1e0; color: #b45309; }
 .sop-app.hub { background: var(--muted-tint, #eef1f6); color: var(--navy); }
 /* Screenshot sizes (picked by Miguel) and the pop-up viewer. */
 .sop-shots { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }

@@ -39,7 +39,7 @@ export interface SopDecision {
 
 /** Where a step happens: the exact sheet + tab + cells (with a link that opens right there), or the app screen. */
 export interface SopWhere {
-  app: 'sheet' | 'slack' | 'keap' | 'eventbrite' | 'hub';
+  app: 'sheet' | 'slack' | 'keap' | 'eventbrite' | 'prospectboss' | 'hub';
   /** Sheet title or app place, e.g. "LIST MAKING CHECKLIST (Half-Day Events)", "#cw-half-day-registration-forms-automation". */
   name: string;
   url?: string;
@@ -149,6 +149,7 @@ const DHR_ID = '1drBAkBOxquL5i817IBF2tmnNqLexyvGHPOsu9h201kk';
 const AUDIT_ID = '1V_od_nCch8lkoE_OBPffDl9JCHPnHhtAuAM7gE-AF8s';
 const OPTIN_ID = '1Dlt9zyQZQ85xk6xSrrwGH7uvsqGFvPYM4KQu3oAJQqM';
 const STATS_ID = '1mBkjMGnbGUY0rmPhpNYBaVnRRuvTdyiqI9oD4dMVHDc';
+const ISA_ID = '1C6m-rpp-W_3aTEGSUjrcqhhF0aftDx4FoMDJoIy4BOI';
 const TABS = {
   attendance: { id: LM_ID, sheet: 'LIST MAKING CHECKLIST (Half-Day Events)', tab: 'Attendance Extracted', gid: 1824377100 },
   registration: { id: LM_ID, sheet: 'LIST MAKING CHECKLIST (Half-Day Events)', tab: 'Event Registration', gid: 735260619 },
@@ -157,6 +158,9 @@ const TABS = {
   optin: { id: OPTIN_ID, sheet: 'Event Opt In (Zapier - Twilio)', tab: 'Sheet1', gid: 0 },
   forms: { id: '1mh-xjBC7vs_HWEbhySukD2cxIm3yoBKbmJvteHOpY-A', sheet: 'Club Wealth Event Half day Forms', tab: 'HALF DAY FORMS 2026 v2', gid: 1851780240 },
   stats: { id: STATS_ID, sheet: 'Half-Day Events Stats', tab: 'LABC2026', gid: 1697294296 },
+  pbRun: { id: LM_ID, sheet: 'LIST MAKING CHECKLIST (Half-Day Events)', tab: 'PB List Run Report', gid: 1479370453 },
+  isaPromo: { id: ISA_ID, sheet: '(V3) ISA Events Team Weekly Tracker', tab: 'PB Account & Promo Codes', gid: 780123816 },
+  isaArchive: { id: ISA_ID, sheet: '(V3) ISA Events Team Weekly Tracker', tab: 'Daily Assignment Archive', gid: 1692352586 },
 } as const;
 /** A sheet "Where" row: `range` (A1 notation) is where the link lands; `cells` is what the reader is told. */
 const at = (t: keyof typeof TABS, cells?: string, action?: string, range?: string): SopWhere => {
@@ -166,6 +170,12 @@ const at = (t: keyof typeof TABS, cells?: string, action?: string, range?: strin
 const step = (body: ReactNode, where?: SopWhere[], extra?: Pick<SopPlain, 'note' | 'branch' | 'next'>): SopPlain => ({ kind: 'step', body, where, ...extra });
 const ATT_SLACK: SopWhere = { app: 'slack', name: '#cw-half-day-registration-forms-automation', cells: 'Tara’s post with the PDF, and its thread' };
 const FORMS_SLACK: SopWhere = { app: 'slack', name: '#cw-halfday-event-forms-automation', cells: 'Tara’s forms posts and the bot’s replies' };
+const ISA_TRACKER = { name: '(V3) ISA Events Team Weekly Tracker → tab Daily Assignment Archive', url: 'https://docs.google.com/spreadsheets/d/1C6m-rpp-W_3aTEGSUjrcqhhF0aftDx4FoMDJoIy4BOI/edit' };
+const PB_CAMPAIGNS: SopWhere = { app: 'prospectboss', name: 'ProspectBoss → Contacts → My Campaigns', url: 'https://app1.prospectboss.com/campaigns' };
+const SQUAD_SLACK: SopWhere = { app: 'slack', name: '#cw-squad-leaders-with-all', cells: 'Today’s and yesterday’s VA / MD table pictures' };
+const KEAP_MY_DAY = 'https://clubwealth.infusionsoft.com/app/nav/link?navSystem=nav.mynav&navModule=nav.home.myDay';
+const MY_DAY: SopWhere = { app: 'keap', name: 'Keap → My Day', url: KEAP_MY_DAY };
+const KEAP_CONTACT: SopWhere = { app: 'keap', name: 'Keap → the task’s contact', cells: 'General tab → Owner' };
 const KEAP_CONTACTS: SopWhere = { app: 'keap', name: 'Keap → Contacts', url: 'https://app.infusionsoft.com', cells: 'Search by name or phone' };
 
 const KEAP: SopTool = { name: 'Keap', url: 'https://app.infusionsoft.com', note: 'Contacts and tags' };
@@ -488,6 +498,215 @@ export const SOP_ARTICLES: SopArticle[] = [
     ifItBreaks: [
       <>No report by 6:30 AM PT: open the CWU Daily Huddle page (learning.clubwealth.com/reports) and screenshot the charts the old way, then tell Miguel.</>,
       <>A chart is missing a stop or last-visit bars: tell Miguel in #cw-assistant with a screenshot.</>,
+    ],
+  },
+  {
+    id: 'EV-04',
+    title: 'Half-Day list: PB run report and squad leader update',
+    department: 'events',
+    main: 'ali',
+    poc: null,
+    when: 'Daily',
+    sheets: [LIST_MAKING, ISA_TRACKER],
+    versions: [
+      { v: 1, date: 'Oct 29, 2026', by: 'Miguel', what: 'First version, from Miguel’s recorded flow “Half-Day list run report and squad leader update” (Oct 29, 2026). Scope, Purpose, Responsibilities and Safety are drafts for Miguel to check.' },
+    ],
+    scope: <>The daily list-run report on <b>LIST MAKING CHECKLIST → PB List Run Report</b>. It starts with clearing the previous run’s campaign rows and ends when the VA and MD blocks show each pond’s counts with its Squad Leader and ISA Previous Day.</>,
+    purpose: <>Show how many runs each ProspectBoss pond account (bpond01 to bpond25) made on the half-day event lists, and which squad leader and ISA worked each pond, so the team can check the lists are being called.</>,
+    responsibilities: [
+      { who: 'Ali (Main Admin)', does: <>Steps 1–18: clears the old run, copies each pond’s campaigns from ProspectBoss, copies the previous day’s squad names, and checks the final table.</> },
+      { who: 'POC Admin (to be named)', does: <>The same when Ali is out.</> },
+      { who: 'Squad leaders', does: <>Post the VA / MD table pictures in #cw-squad-leaders-with-all.</> },
+      { who: 'Miguel (Tech)', does: <>Fixes the report’s formulas and updates this SOP the same day a step is wrong.</> },
+    ],
+    safety: [
+      { risk: <>Deleting the headers or the formulas.</>, control: <>Clear only U2:AB143 and B4:C28. Never delete the header row or the VA / MD results blocks (columns E–N), which hold the formulas.</> },
+      { risk: <>Counts from a messy paste.</>, control: <>If a paste lands as one column of stacked values, undo it and paste again until each campaign is on one row.</> },
+      { risk: <>Missing ponds.</>, control: <>Copy every pond account, bpond01 to bpond25, before checking the counts.</> },
+      { risk: <>Wrong day’s squad names.</>, control: <>Copy from the previous day’s date block in the Daily Assignment Archive, not today’s (today’s has no names yet).</> },
+    ],
+    testRun: 'Not yet',
+    status: 'draft',
+    gaps: 'Ali: step 17 only shows opening the VA / MD table pictures in #cw-squad-leaders-with-all. Please write in whether you post a new picture after step 18, and where.',
+    effective: 'Oct 29, 2026',
+    lastReviewed: 'Oct 29, 2026',
+    tools: [
+      { name: 'ProspectBoss', url: 'https://app1.prospectboss.com/campaigns', note: 'Contacts → My Campaigns, filtered by pond agent' },
+      { name: 'Slack #cw-squad-leaders-with-all', note: 'The VA / MD table pictures' },
+    ],
+    prerequisites: [
+      <>Edit access to LIST MAKING CHECKLIST (tab PB List Run Report) and view access to (V3) ISA Events Team Weekly Tracker.</>,
+      <>A ProspectBoss login that can see every pond agent’s calling sessions (bpond01 to bpond25).</>,
+    ],
+    glossary: [
+      { term: 'Pond account (bpond01–bpond25)', meaning: 'The ProspectBoss agent accounts that call the half-day event lists. Each one is a row in the VA and MD blocks.' },
+      { term: 'Calling session / campaign', meaning: 'One list run in ProspectBoss: Calling Session Name, Agent, Call Settings, Created On, Runs, Lines, Contacts, Status.' },
+      { term: 'VA and MD blocks', meaning: 'The results tables on the left of PB List Run Report. Their formulas count each pond’s runs from the pasted rows.' },
+      { term: 'IFS, Reality, Consolidated, AI', meaning: 'The count columns in the VA and MD blocks, one per kind of list run.' },
+      { term: 'ISA Previous Day', meaning: 'The squad member (ISA) who worked the pond the day before.' },
+    ],
+    summary: 'Clear yesterday’s run, paste each pond’s ProspectBoss campaigns into PB List Run Report, copy the previous day’s squad leaders and members in from the ISA tracker, then check the final VA / MD table.',
+    // One step per node of Miguel's recorded flow "Half-Day list run report and squad leader update" (Oct 29, 2026).
+    steps: [
+      // 1 · Google Sheets
+      step(<>In <b>LIST MAKING CHECKLIST (Half-Day Events)</b>, open the bottom tab <b>PB List Run Report</b>. The previous run’s data is in columns <b>U–AB</b> (Campaign Name, Owner, Call Settings, Created On, Number of Runs, Lines, Contacts, Status), with the results blocks for VA, MD, TX and Lewisville TX on the left.</>, [
+        at('pbRun', 'Columns U–AB', 'Open the tab', 'U2'),
+      ]),
+      // 2 · Google Sheets
+      step(<>Clear the old run: type <b>U2:AB143</b> in the Name Box, press Enter, then press Delete. The old campaign rows disappear and the counts in the results blocks reset to N/A.</>, [
+        at('pbRun', 'U2:AB143', 'Select and delete', 'U2:AB143'),
+      ], { note: 'Keep the header row (Campaign Name, Owner, Call Settings…). Only the data below it is cleared.' }),
+      // 3 · ProspectBoss
+      step(<>Switch to ProspectBoss. In the top menu click <b>Contacts → My Campaigns</b> so the Calling Session list shows. “Select the Agent” with an empty list is normal until you pick an agent.</>, [
+        { ...PB_CAMPAIGNS, action: 'Open the Calling Session list' },
+      ]),
+      // 4 · ProspectBoss
+      step(<>Click the <b>funnel (filter)</b> icon at the top right of the list. In the Filters panel open <b>Agents</b>, pick <b>bpond01</b> and click the orange <b>Apply</b>. The list shows only that agent’s calling sessions.</>, [
+        { ...PB_CAMPAIGNS, cells: 'Filter → Agents', action: 'Pick bpond01, Apply' },
+      ]),
+      // 5 · ProspectBoss
+      step(<>Click and drag across the whole table so every row from Calling Session Name through Status is highlighted, then copy it (<b>Ctrl+C</b>).</>, [
+        { ...PB_CAMPAIGNS, cells: 'The whole table', action: 'Select and copy' },
+      ]),
+      // 6 · Google Sheets
+      step(<>Go back to <b>PB List Run Report</b>, click cell <b>U2</b> and paste (<b>Ctrl+V</b>). Each campaign should land on its own row (for example U2:AC7).</>, [
+        at('pbRun', 'U2', 'Paste', 'U2'),
+      ], { note: 'If the paste comes out as a single column of stacked values, undo and paste again until each campaign is on one row.' }),
+      // 7 · ProspectBoss
+      step(<>In ProspectBoss open the filter panel again, open <b>Agents</b> (it lists thellickson, bpond01, bpond02, bpond03…), choose the next pond (<b>bpond02</b>) and Apply. Select and copy the new table the same way.</>, [
+        { ...PB_CAMPAIGNS, cells: 'Filter → Agents', action: 'Pick the next pond, Apply, copy' },
+      ], { note: 'Repeat for each pond account (bpond01 to bpond25) so all runs are in the sheet.' }),
+      // 8 · Google Sheets
+      step(<>Click the <b>E4:H4</b> area of the VA block: the cells hold a formula (starting <b>=LET(</b>). The IFS, Reality, Consolidated and AI counts for each pond fill in on their own from the pasted rows.</>, [
+        at('pbRun', 'E4:H4 (VA block)', 'Check the formulas', 'E4:H4'),
+      ]),
+      // 9 · Google Sheets
+      step(<>Click the first empty row under the previous data in column U (<b>U8</b> for the second pond) and paste. The new rows go straight under the first ones, and the VA and MD counts update.</>, [
+        at('pbRun', 'First empty row in column U', 'Paste the next pond', 'U8'),
+      ], { note: 'Keep pasting each pond under the last one until every agent’s rows are in (up to row 143).' }),
+      // 10 · Google Sheets
+      step(<>Review the totals for each pond: click through the formula cells (E4:G11, then <b>E4:N27</b> for the VA and MD blocks). The status bar at the bottom right shows the Sum of what you selected.</>, [
+        at('pbRun', 'E4:N27 (VA and MD blocks)', 'Review the counts', 'E4:N27'),
+      ]),
+      // 11 · Google Sheets
+      step(<>Select <b>B4:C28</b> (Squad Leader and ISA Previous Day for bpond01 to bpond25) and press Delete. Both columns are now empty.</>, [
+        at('pbRun', 'B4:C28', 'Select and delete', 'B4:C28'),
+      ]),
+      // 12 · Google Sheets
+      step(<>Open a new browser tab and go to the <b>(V3) ISA Events Team Weekly Tracker</b>. It opens on the PB Account & Promo Codes tab.</>, [
+        at('isaPromo', undefined, 'Open the sheet'),
+      ]),
+      // 13 · Google Sheets
+      step(<>At the bottom click the <b>Daily Assignment Archive</b> tab. It has one block per date (newest at the top), each with Squad Leaders, Squad Members, State, Account (bpond01 to bpond25) and Note.</>, [
+        at('isaArchive', undefined, 'Open the tab', 'A1:E1'),
+      ]),
+      // 14 · Google Sheets
+      step(<>Scroll down to the block for the <b>previous day</b>, which lists the squad leader and squad member for each pond account.</>, [
+        at('isaArchive', 'The previous day’s date block', 'Find it'),
+      ], { note: 'The top block (today) has no names filled in yet, so use the block that has names.' }),
+      // 15 · Google Sheets
+      step(<>Select <b>A31:B55</b> (Squad Leaders and Squad Members for bpond01 to bpond25 in that block) and copy it (<b>Ctrl+C</b>).</>, [
+        at('isaArchive', 'A31:B55', 'Copy', 'A31:B55'),
+      ]),
+      // 16 · Google Sheets
+      step(<>Go back to <b>PB List Run Report</b>, click <b>B4</b> (Squad Leader for bpond01) and paste. The names fill Squad Leader and ISA Previous Day for bpond01 to bpond25.</>, [
+        at('pbRun', 'B4 (fills B4:C28)', 'Paste', 'B4'),
+      ]),
+      // 17 · Slack
+      step(<>In Slack open <b>#cw-squad-leaders-with-all</b>. Click today’s picture and yesterday’s to see the VA / MD table (Ponds, Squad Leader, ISA Previous Day, Pond Number, IFS, Reality, Consolidated, AI), then close the preview.</>, [
+        { ...SQUAD_SLACK, action: 'Compare with the sheet' },
+      ], { note: 'The recording only shows opening the earlier table pictures, not posting a new one.' }),
+      // 18 · Google Sheets
+      step(<>Back on <b>PB List Run Report</b>, check the VA and MD blocks show the Squad Leader and ISA Previous Day names next to each pond, along with the counts.</>, [
+        at('pbRun', 'A4:R28', 'Confirm the final table', 'A4:R28'),
+      ]),
+      <>Log it if you covered this for Ali: add a row to the POC log at the bottom of this page.</>,
+    ],
+    shots: Object.fromEntries(Array.from({ length: 18 }, (_, i) => [i + 1, `/sop/EV-04/step-${i + 1}.webp`])),
+    ifItBreaks: [
+      <>The counts stay N/A after pasting: check the rows landed in columns U–AB, one campaign per row, then tell Miguel in #cw-assistant with a screenshot.</>,
+      <>A pond is missing from the Agents list in ProspectBoss: tell Miguel.</>,
+    ],
+  },
+  {
+    id: 'EV-05',
+    title: 'Half-Day Reminder task and owner reassignment (Keap)',
+    department: 'events',
+    main: 'ali',
+    poc: null,
+    when: 'Daily',
+    sheets: [],
+    versions: [
+      { v: 1, date: 'Oct 29, 2026', by: 'Miguel', what: 'First version, from Miguel’s recorded flow “Task & ownership reassignment” (Oct 29, 2026). Scope, Purpose, Responsibilities and Safety are drafts for Miguel to check.' },
+    ],
+    scope: <>The <b>Half-Day Reminder</b> tasks in Keap assigned to Coach Ron (Ron Anderson) or Michael Hellickson. It covers moving each task to an RM who is on A’s that day and making that RM the contact’s Owner.</>,
+    purpose: <>Make sure every half-day event reminder is followed up by an RM working that day, not left under Coach Ron or Michael, and that each contact’s Owner matches the RM who has the task.</>,
+    responsibilities: [
+      { who: 'Ali (Main Admin)', does: <>Steps 1–12: reassigns the tasks round robin and changes each contact’s Owner.</> },
+      { who: 'POC Admin (to be named)', does: <>The same when Ali is out.</> },
+      { who: 'Camille', does: <>Gives access to view other users’ tasks in Keap.</> },
+      { who: 'Miguel (Tech)', does: <>Updates this SOP the same day a step is wrong.</> },
+    ],
+    safety: [
+      { risk: <>Reassigning tasks that aren’t half-day reminders.</>, control: <>Tick only the Half-Day Reminder tasks before using Actions.</> },
+      { risk: <>Task and Owner don’t match.</>, control: <>Change each contact’s Owner to the RM the task went to, Save, and check the task is no longer under Coach Ron (steps 5–7).</> },
+      { risk: <>Tasks going to an RM who isn’t working.</>, control: <>Round robin only to the RMs on A’s that day.</> },
+    ],
+    testRun: 'Not yet',
+    status: 'draft',
+    gaps: 'Ali: please write in where you check which RMs are on A’s for the day.',
+    effective: 'Oct 29, 2026',
+    lastReviewed: 'Oct 29, 2026',
+    tools: [{ ...KEAP, url: KEAP_MY_DAY, note: 'My Day → All Tasks, Reassign Tasks & Notes, contact Owner' }],
+    prerequisites: [
+      <>A Keap login that can view other users’ tasks. Ask Camille if you don’t have it.</>,
+      <>Know which RMs are on A’s that day.</>,
+    ],
+    glossary: [
+      { term: 'Half-Day Reminder task', meaning: 'The Keap task to remind a registrant about their half-day event.' },
+      { term: 'RMs on A’s', meaning: 'The RMs taking these tasks that day. Only they get tasks in the round robin.' },
+      { term: 'Round robin', meaning: 'Keap shares the selected tasks out in turn between the RMs you pick (1 each per round).' },
+      { term: 'Owner', meaning: 'The user a Keap contact belongs to, on the contact’s General tab.' },
+    ],
+    summary: 'Move Coach Ron’s and Michael’s Half-Day Reminder tasks round robin to the RMs on A’s, then make each RM the contact’s Owner.',
+    // One step per node of Miguel's recorded flow "Task & ownership reassignment" (Oct 29, 2026).
+    steps: [
+      // 1 · Keap
+      step(<>In Keap, click the menu (three lines) at the top, then under <b>My Nav</b> click <b>My Day</b>.</>, [{ ...MY_DAY, action: 'Open' }]),
+      // 2 · Keap
+      step(<>On My Day, click the <b>All Tasks</b> tab and wait for the list to finish loading.</>, [{ ...MY_DAY, cells: 'All Tasks tab', action: 'Open' }]),
+      // 3 · Keap
+      step(<>Set <b>Assigned User</b> to <b>Coach Ron</b> (Ron Anderson) so his tasks show. Tick every <b>Half-Day Reminder</b> task you need to reassign.</>, [
+        { ...MY_DAY, cells: 'All Tasks → Assigned User: Coach Ron', action: 'Tick the Half-Day Reminder tasks' },
+      ], { note: 'You need access to view other users’ tasks. Ask Camille if you don’t have it.' }),
+      // 4 · Keap
+      step(<>Click <b>Actions → Reassign Tasks & Notes (Multi-user)</b>. Leave Reassign Logic on <b>Ratio</b>, and in the <b>Round Robin</b> box enter <b>1</b> for each RM on A’s.</>, [
+        { ...MY_DAY, cells: 'Actions → Reassign Tasks & Notes (Multi-user)', action: 'Round Robin: 1 per RM on A’s' },
+      ], { note: 'Pick the RMs that are on A’s for that day.' }),
+      // 5 · Keap
+      step(<>Open the contact from the task. On the <b>General</b> tab, change <b>Owner</b> to the RM the task was reassigned to.</>, [{ ...KEAP_CONTACT, action: 'Change Owner' }]),
+      // 6 · Keap
+      step(<>Scroll down and click <b>Save</b>.</>, [{ ...KEAP_CONTACT, cells: 'Bottom of the page', action: 'Save' }]),
+      // 7 · Keap
+      step(<>Scroll to <b>Tasks & Notes</b> and check the half-day event reminder task is no longer assigned to Coach Ron.</>, [{ ...KEAP_CONTACT, cells: 'Tasks & Notes', action: 'Check the task’s user' }]),
+      // 8 · Keap
+      step(<>Open the next contact and do the same, choosing the RM by who is on A’s that day. Change the Owner to that RM.</>, [{ ...KEAP_CONTACT, action: 'Change Owner' }], { note: 'Different contacts can go to different RMs.' }),
+      // 9 · Keap
+      step(<>Scroll down and click <b>Save</b>.</>, [{ ...KEAP_CONTACT, cells: 'Bottom of the page', action: 'Save' }]),
+      // 10 · Keap
+      step(<>Go back to <b>My Day</b>.</>, [{ ...MY_DAY, action: 'Open' }]),
+      // 11 · Keap
+      step(<>Click <b>All Tasks</b> and do the same for <b>Michael’s</b> tasks, scrolling through his list to tick the Half-Day Reminder tasks.</>, [{ ...MY_DAY, cells: 'All Tasks tab', action: 'Open' }]),
+      // 12 · Keap
+      step(<>Set <b>Assigned User</b> to <b>Michael Hellickson</b>. Repeat steps 4–9 for his tasks.</>, [
+        { ...MY_DAY, cells: 'All Tasks → Assigned User: Michael Hellickson', action: 'Repeat steps 4–9' },
+      ]),
+      <>Log it if you covered this for Ali: add a row to the POC log at the bottom of this page.</>,
+    ],
+    shots: Object.fromEntries(Array.from({ length: 12 }, (_, i) => [i + 1, `/sop/EV-05/step-${i + 1}.webp`])),
+    ifItBreaks: [
+      <>Reassign Tasks & Notes isn’t under Actions, or you can’t see Coach Ron’s or Michael’s tasks: ask Camille for access.</>,
+      <>A task went to the wrong RM: open the contact, reassign the task and change the Owner by hand.</>,
     ],
   },
   {

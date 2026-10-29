@@ -2,7 +2,7 @@
 
 import type { SopWhere } from '@/data/sop';
 
-const APP_LABEL: Record<SopWhere['app'], string> = { sheet: 'Google Sheet', slack: 'Slack', keap: 'Keap', eventbrite: 'Eventbrite', hub: 'Task Hub' };
+const APP_LABEL: Record<SopWhere['app'], string> = { sheet: 'Google Sheet', slack: 'Slack', keap: 'Keap', eventbrite: 'Eventbrite', prospectboss: 'ProspectBoss', hub: 'Task Hub' };
 
 export function WhereBox({ where }: { where: SopWhere[] }) {
   if (!where.length) return null;

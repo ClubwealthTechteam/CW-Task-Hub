@@ -2,7 +2,8 @@
 // Uses Upstash Redis over REST when KV_REST_API_URL/TOKEN (or UPSTASH_REDIS_REST_URL/TOKEN) are set
 // (Vercel → Storage → Upstash); otherwise falls back to memory, which resets whenever the server restarts.
 
-const memory = new Map<string, string>();
+// One map per server process (shared by every route, also in `next dev`, which loads routes separately).
+const memory: Map<string, string> = ((globalThis as { __hubMemoryStore?: Map<string, string> }).__hubMemoryStore ??= new Map());
 const url = () => process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const token = () => process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 

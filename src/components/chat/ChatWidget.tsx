@@ -8,6 +8,7 @@ import type { Conversation, ConversationSummary } from '@/lib/chat/store';
 import { Markdown } from './Markdown';
 import { bubbleMax, useAutoGrow } from './autogrow';
 import { postChat } from './post';
+import { useDragBubble } from './useDragBubble';
 
 type Size = 'closed' | 'open' | 'max';
 
@@ -55,6 +56,7 @@ export function ChatWidget({ firstName }: { firstName: string }) {
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   useAutoGrow(inputRef, text, bubbleMax);
+  const drag = useDragBubble();
 
   const pending = conv?.messages.some((m) => m.status === 'pending') ?? false;
   // Task chats live in their department workspace; the bubble keeps the general ones.
@@ -166,8 +168,11 @@ export function ChatWidget({ firstName }: { firstName: string }) {
 
   if (!isOpen) {
     return (
-      <button className="cwa-bubble" onClick={() => setSize('open')} aria-label={unread ? 'Open CW Assistant (new reply)' : 'Open CW Assistant'}>
-        {Icon.chat}
+      <button className={`cwa-bubble${drag.dragging ? ' dragging' : ''}`} style={drag.style} {...drag.handlers}
+        onClick={() => { if (!drag.wasDrag()) setSize('open'); }}
+        aria-label={unread ? 'Open CW Assistant (new reply)' : 'Open CW Assistant'} title="CW Assistant · drag to move">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/cw-assistant.png" alt="" width={60} height={60} draggable={false} />
         {(unread || pending) && <span className={`cwa-dot${pending && !unread ? ' busy' : ''}`} aria-hidden="true" />}
       </button>
     );
@@ -203,7 +208,7 @@ export function ChatWidget({ firstName }: { firstName: string }) {
   );
 
   return (
-    <section className={`cwa-window ${size}`} role="dialog" aria-label="CW Assistant">
+    <section className={`cwa-window ${size}`} style={size === 'open' ? drag.windowStyle() : undefined} role="dialog" aria-label="CW Assistant">
       <header className="cwa-head">
         <div className="cwa-badge" aria-hidden="true">CW</div>
         <div className="cwa-title">

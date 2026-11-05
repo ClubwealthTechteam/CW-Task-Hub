@@ -1862,4 +1862,42 @@ details.card > summary { cursor: pointer; }
 .vnm .leaflet-tile-pane { filter: saturate(.65) contrast(.94) brightness(1.04); }
 .vn-legend { min-width: 200px; }
 .vn-legend label { white-space: nowrap; }
+
+/* Compact, collapsible top bar: shorter, smaller type; search turns into an icon when space is tight;
+   the ^ button hides the bar (html.hdr-collapsed) and a small "Menu" tab brings it back. */
+:root { --hdr-h: 52px; }
+.topbar-inner { height: var(--hdr-h); gap: 22px; padding-inline: 20px; }
+.brand b { font-size: 21px; }
+.brand span { font-size: 8px; }
+.nav { gap: 18px; overflow-x: auto; scrollbar-width: none; }
+.nav::-webkit-scrollbar { display: none; }
+.nav a { font-size: 14px; padding: 15px 0 13px; }
+.avatar { width: 30px; height: 30px; font-size: 12px; }
+.bell-btn { width: 34px; height: 34px; }
+.who { gap: 8px; }
+.ws, .vn { height: calc(100vh - var(--hdr-h)); }
+@media (max-width: 1700px) { .hdr-search span, .hdr-search kbd { display: none; } .hdr-search { padding: 7px 9px; } }
+@media (max-width: 1450px) { .who > span:not(.avatar) { display: none; } .nav { gap: 14px; } .nav a { font-size: 13.5px; } }
+.hdr-hide { width: 28px; height: 28px; border-radius: 50%; border: 0; background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; flex: none; margin-left: -10px; }
+.hdr-hide:hover { background: var(--surface-2); color: var(--navy); }
+html.hdr-collapsed { --hdr-h: 0px; }
+html.hdr-collapsed .topbar { border-bottom: 0; background: transparent; height: 0; }
+html.hdr-collapsed .topbar-inner { height: 0; overflow: visible; padding: 0; }
+html.hdr-collapsed .topbar-inner > :not(.hdr-show) { display: none; }
+.hdr-show { position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 60; display: inline-flex; align-items: center; gap: 4px; border: 0; border-radius: 0 0 10px 10px;
+  background: var(--navy); color: #fff; font-size: 12px; font-weight: 700; padding: 3px 12px 5px; cursor: pointer; box-shadow: 0 3px 10px rgba(11, 31, 75, .25); opacity: .85; }
+.hdr-show:hover { opacity: 1; }
+/* Menus inside the nav must not be clipped, so the nav never scrolls; it fits by getting tighter instead. */
+.nav { overflow: visible; }
+.nav .im-btn { font-size: 14px; padding-block: 15px 13px; }
+@media (max-width: 1500px) {
+  .topbar-inner { gap: 16px; padding-inline: 16px; }
+  .nav { gap: 13px; }
+  .nav a, .nav .im-btn { font-size: 13.5px; }
+  .nav .hub em { display: none; }
+  .hdr-hide { margin-left: -6px; }
+}
+@media (max-width: 1280px) { .nav { gap: 10px; } .nav a, .nav .im-btn { font-size: 13px; } .brand b { font-size: 18px; } }
+html.hdr-collapsed .topbar { z-index: 1000; }
+.vnm { isolation: isolate; z-index: 0; }
 .vn-undo { font-size: 12.5px; padding: 0; }

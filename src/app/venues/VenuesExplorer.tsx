@@ -37,10 +37,10 @@ const editable = (i?: Info): Info => { const { files, updatedAt, updatedBy, ...r
 const statusOf = (i?: Info) => i?.status ?? 'Not contacted yet';
 const fmtDate = (d?: string) => (d ? new Date(`${d}T12:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '');
 
-function Pin({ v }: { v: Venue }) {
+function Pin({ v, color }: { v: Venue; color?: string }) {
   return (
     <svg className="vn-pin" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-      <path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Z" fill={v.color} />
+      <path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Z" fill={color ?? v.color} />
       {v.icon === 'letter' ? <text x="12" y="12.5" textAnchor="middle" fontSize="8" fontWeight="800" fill="#fff">T</text> : <circle cx="12" cy="9" r="2.6" fill="#fff" />}
     </svg>
   );
@@ -64,6 +64,9 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
   const [colorBy, setColorBy] = useState<ColorBy>('status');
   const [moving, setMoving] = useState(false);
   const [moveMsg, setMoveMsg] = useState('');
+  // The last save or pin move on the picked venue, so it can be undone with one click.
+  const [undo, setUndo] = useState<null | { kind: 'info'; id: string; before: Info } | { kind: 'pin'; id: string; lat: number; lng: number }>(null);
+  const [undoing, setUndoing] = useState(false);
   const [draft, setDraft] = useState<Info>({});
   const [tagInput, setTagInput] = useState('');
   const [saving, setSaving] = useState(false);
@@ -127,15 +130,17 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
   }, [sel]); // eslint-disable-line react-hooks/exhaustive-deps
   const loadHistory = (id: string) => fetch(`/api/venues/history?id=${encodeURIComponent(id)}`).then((r) => r.json()).then((d) => setHistory(d.history ?? [])).catch(() => setHistory([]));
 
-  const pick = (v: Venue) => { setSel(v.id); setPanel(true); setMoving(false); setMoveMsg(''); };
-  const movePin = async (body: Record<string, unknown>) => {
+  const pick = (v: Venue) => { setSel(v.id); setPanel(true); setMoving(false); setMoveMsg(''); setUndo(null); };
+  const movePin = async (body: Record<string, unknown>, isUndo = false) => {
     if (!venue) return;
+    const from = { lat: venue.lat, lng: venue.lng };
     setMoveMsg('Moving…');
     const r = await fetch('/api/venues/position', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: venue.id, ...body }) });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) { setMoveMsg(d.error || 'Could not move the pin'); load(); return; }
     setVenues((vs) => vs.map((v) => (v.id === venue.id ? { ...v, lat: d.lat, lng: d.lng } : v)));
-    setMoving(false); setMoveMsg('Pin moved'); loadHistory(venue.id);
+    setMoving(false); setMoveMsg(isUndo ? 'Pin moved back' : 'Pin moved'); loadHistory(venue.id);
+    setUndo(isUndo ? null : { kind: 'pin', id: venue.id, ...from });
   };
   const dirty = venue && JSON.stringify(draft) !== JSON.stringify(editable(saved));
 
@@ -147,6 +152,7 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
   };
   const save = async () => {
     if (!venue) return;
+    const before = editable(saved);
     setSaving(true); setMsg(''); setConflict(null);
     const r = await fetch('/api/venues', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: venue.id, info: draft, baseUpdatedAt: saved?.updatedAt ?? 0 }) });
     const d = await r.json().catch(() => ({}));
@@ -157,6 +163,20 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
     if (d.info.updatedBy) setNames((n) => ({ ...n, [d.info.updatedBy]: d.name }));
     setDraft(editable(d.info));
     setMsg('Saved');
+    setUndo({ kind: 'info', id: venue.id, before });
+    loadHistory(venue.id);
+  };
+  /** Puts back what the venue had before the last save, or moves the pin back to where it was. */
+  const undoLast = async () => {
+    if (!venue || !undo || undo.id !== venue.id) return;
+    if (undo.kind === 'pin') { await movePin({ lat: undo.lat, lng: undo.lng }, true); return; }
+    setUndoing(true);
+    const r = await fetch('/api/venues', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: venue.id, info: undo.before, baseUpdatedAt: info[venue.id]?.updatedAt ?? 0 }) });
+    const d = await r.json().catch(() => ({}));
+    setUndoing(false);
+    if (!r.ok) { setMsg(d.conflict ? 'Can’t undo: someone saved this venue since.' : d.error || 'Could not undo'); setUndo(null); return; }
+    setInfo((all) => ({ ...all, [venue.id]: d.info }));
+    setDraft(editable(d.info)); setUndo(null); setMsg('Undone');
     loadHistory(venue.id);
   };
   const takeTheirs = () => {
@@ -287,11 +307,11 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
                 {isOpen && (
                   <ul>
                     {list.map((v) => {
-                      const i = info[v.id];
+                      const i = v.id === sel ? { ...info[v.id], status: draft.status } : info[v.id]; // picked venue: show the unsaved status
                       return (
                         <li key={v.id}>
                           <button className={`vn-venue${v.id === sel ? ' is-sel' : ''}`} onClick={() => pick(v)}>
-                            <Pin v={v} />
+                            <Pin v={v} color={pinColors[v.id]} />
                             <span className="vn-venue-name">{v.name}</span>
                             {(i?.classroom || i?.theater) && <span className="vn-cap" title="Classroom / Theater max">{i?.classroom ?? '–'}/{i?.theater ?? '–'}</span>}
                             {v.custom && <span className="vn-hub" title="Added in the hub, not on the Google map yet">hub</span>}
@@ -349,7 +369,7 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
                 </div>
                 <h2>{venue.name}</h2>
                 <div className="vn-head-meta">
-                  <span className={`vn-status tone-${STATUS_TONE[statusOf(saved)]}`}>{statusOf(saved)}</span>
+                  <span className={`vn-status tone-${STATUS_TONE[statusOf(draft)]}`}>{statusOf(draft)}</span>
                   {saved?.type && <span className="vn-type">{saved.type}</span>}
                   {isDue(saved) && <span className="vn-type is-due">Follow-up due</span>}
                   <a className="vn-link" href={`https://www.google.com/maps/search/?api=1&query=${venue.lat},${venue.lng}`} target="_blank" rel="noreferrer">Google Maps ↗</a>
@@ -357,7 +377,8 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
                 <div className="vn-head-actions">
                   <button className={`vn-textbtn${moving ? ' is-on' : ''}`} onClick={() => { setMoving((m) => !m); setMoveMsg(''); }}>{moving ? 'Done moving' : 'Move pin'}</button>
                   {draft.address && <button className="vn-textbtn" onClick={() => movePin({ address: draft.address })}>Move pin to the address</button>}
-                  {moveMsg && <span className={moveMsg === 'Pin moved' ? 'vn-ok vn-small' : moveMsg === 'Moving…' ? 'muted vn-small' : 'vn-err vn-small'}>{moveMsg}</span>}
+                  {moveMsg && <span className={moveMsg.startsWith('Pin moved') ? 'vn-ok vn-small' : moveMsg === 'Moving…' ? 'muted vn-small' : 'vn-err vn-small'}>{moveMsg}</span>}
+                  {undo?.kind === 'pin' && undo.id === venue.id && moveMsg === 'Pin moved' && <button className="vn-textbtn vn-undo" onClick={undoLast}>Undo</button>}
                 </div>
                 <nav className="vn-tabs" role="tablist">
                   {(['overview', 'booking', 'files', 'events', 'history'] as const).map((t) => (
@@ -531,7 +552,9 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
               {(tab === 'overview' || tab === 'booking') && (
                 <footer className="vn-savebar">
                   <span className="muted vn-small">
-                    {msg ? <span className={msg === 'Saved' ? 'vn-ok' : 'vn-err'}>{msg}</span>
+                    {msg ? <span className={msg === 'Saved' || msg === 'Undone' ? 'vn-ok' : 'vn-err'}>{msg}
+                        {undo?.kind === 'info' && undo.id === venue.id && !dirty && msg === 'Saved' && <> · <button className="vn-textbtn vn-undo" onClick={undoLast} disabled={undoing}>{undoing ? 'Undoing…' : 'Undo'}</button></>}
+                      </span>
                       : saved?.updatedAt ? `Updated by ${names[saved.updatedBy ?? ''] ?? 'someone'} · ${new Date(saved.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : 'Not saved yet'}
                   </span>
                   <div className="vn-row">

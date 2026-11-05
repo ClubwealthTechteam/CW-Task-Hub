@@ -1900,3 +1900,4 @@ html.hdr-collapsed .topbar-inner > :not(.hdr-show) { display: none; }
 @media (max-width: 1280px) { .nav { gap: 10px; } .nav a, .nav .im-btn { font-size: 13px; } .brand b { font-size: 18px; } }
 html.hdr-collapsed .topbar { z-index: 1000; }
 .vnm { isolation: isolate; z-index: 0; }
+.vn-undo { font-size: 12.5px; padding: 0; }

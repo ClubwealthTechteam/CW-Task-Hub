@@ -1906,3 +1906,20 @@ html.hdr-collapsed .topbar-inner > :not(.hdr-show) { display: none; }
 html.hdr-collapsed .topbar { z-index: 1000; }
 .vnm { isolation: isolate; z-index: 0; }
 .vn-undo { font-size: 12.5px; padding: 0; }
+
+/* Admin settings → Routines */
+.rt { margin-top: 18px; display: flex; flex-direction: column; gap: 12px; }
+.rt-h h2 { margin: 0 0 2px; font-size: 18px; }
+.rt-wrap { overflow-x: auto; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); }
+.rt-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.rt-table th { text-align: left; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; padding: 12px 14px; background: var(--surface-2); }
+.rt-table td { padding: 12px 14px; border-top: 1px solid var(--line); vertical-align: top; }
+.rt-table td b { display: block; color: var(--ink); }
+.rt-table td small { display: block; color: var(--muted); font-size: 11.5px; margin-top: 2px; }
+.rt-table tr.t-bad td:first-child { box-shadow: inset 3px 0 0 #c0362c; }
+.rt-table tr.t-warn td:first-child { box-shadow: inset 3px 0 0 #c98a17; }
+.rt-table tr.t-off td { color: var(--muted); }
+.rt-pill { display: inline-block; white-space: nowrap; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+.rt-pill.t-ok { color: #237a45; background: #e6f3ea; } .rt-pill.t-bad { color: #c0362c; background: #fbe9e7; }
+.rt-pill.t-warn { color: #8a5a0b; background: #fbf1de; } .rt-pill.t-off { color: var(--muted); background: var(--muted-tint); }
+.rt-pill.t-run { color: var(--accent); background: #eaf0fc; }

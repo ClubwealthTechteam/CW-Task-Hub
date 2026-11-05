@@ -37,10 +37,10 @@ const editable = (i?: Info): Info => { const { files, updatedAt, updatedBy, ...r
 const statusOf = (i?: Info) => i?.status ?? 'Not contacted yet';
 const fmtDate = (d?: string) => (d ? new Date(`${d}T12:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '');
 
-function Pin({ v }: { v: Venue }) {
+function Pin({ v, color }: { v: Venue; color?: string }) {
   return (
     <svg className="vn-pin" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-      <path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Z" fill={v.color} />
+      <path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Z" fill={color ?? v.color} />
       {v.icon === 'letter' ? <text x="12" y="12.5" textAnchor="middle" fontSize="8" fontWeight="800" fill="#fff">T</text> : <circle cx="12" cy="9" r="2.6" fill="#fff" />}
     </svg>
   );
@@ -287,11 +287,11 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
                 {isOpen && (
                   <ul>
                     {list.map((v) => {
-                      const i = info[v.id];
+                      const i = v.id === sel ? { ...info[v.id], status: draft.status } : info[v.id]; // picked venue: show the unsaved status
                       return (
                         <li key={v.id}>
                           <button className={`vn-venue${v.id === sel ? ' is-sel' : ''}`} onClick={() => pick(v)}>
-                            <Pin v={v} />
+                            <Pin v={v} color={pinColors[v.id]} />
                             <span className="vn-venue-name">{v.name}</span>
                             {(i?.classroom || i?.theater) && <span className="vn-cap" title="Classroom / Theater max">{i?.classroom ?? '–'}/{i?.theater ?? '–'}</span>}
                             {v.custom && <span className="vn-hub" title="Added in the hub, not on the Google map yet">hub</span>}
@@ -349,7 +349,7 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
                 </div>
                 <h2>{venue.name}</h2>
                 <div className="vn-head-meta">
-                  <span className={`vn-status tone-${STATUS_TONE[statusOf(saved)]}`}>{statusOf(saved)}</span>
+                  <span className={`vn-status tone-${STATUS_TONE[statusOf(draft)]}`}>{statusOf(draft)}</span>
                   {saved?.type && <span className="vn-type">{saved.type}</span>}
                   {isDue(saved) && <span className="vn-type is-due">Follow-up due</span>}
                   <a className="vn-link" href={`https://www.google.com/maps/search/?api=1&query=${venue.lat},${venue.lng}`} target="_blank" rel="noreferrer">Google Maps ↗</a>

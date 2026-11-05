@@ -48,8 +48,9 @@ const historyKey = (id: string) => `venues:history:${id}`;
 
 export interface VenueChange { at: number; by: string; field: string; from?: string; to?: string }
 
-/** Events team and super admins open and edit venues. */
-export const canUseVenues = (user: Person | null) => Boolean(user) && (isSuperAdmin(user) || user!.departments.includes('events'));
+/** Only these people (plus super admins) open and edit venues: not everyone who joins the Events team later. */
+export const VENUE_PEOPLE = ['ali', 'andrea', 'liz'];
+export const canUseVenues = (user: Person | null) => Boolean(user) && (isSuperAdmin(user) || VENUE_PEOPLE.includes(user!.id));
 
 export const allVenueInfo = () => getJSON<Record<string, VenueInfo>>(KEY, {});
 export const venueHistory = (id: string) => getJSON<VenueChange[]>(historyKey(id), []);

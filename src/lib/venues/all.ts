@@ -2,10 +2,11 @@
 
 import { loadVenuesSafe, type Venue } from './map';
 import { customVenues } from './custom';
+import { venuePositions, withPositions } from './position';
 
 export async function allVenues(fresh = false): Promise<{ venues: Venue[]; staleSince?: number; error?: string }> {
-  const [g, c] = await Promise.all([loadVenuesSafe(fresh), customVenues()]);
-  return { ...g, venues: [...g.venues, ...c] };
+  const [g, c, pos] = await Promise.all([loadVenuesSafe(fresh), customVenues(), venuePositions()]);
+  return { ...g, venues: withPositions([...g.venues, ...c], pos) };
 }
 
 export async function findVenue(id: string) {

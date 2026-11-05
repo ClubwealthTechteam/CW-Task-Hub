@@ -1837,3 +1837,28 @@ details.card > summary { cursor: pointer; }
 .vn.no-left { grid-template-columns: minmax(0, 1fr) auto; }
 .vn-reopen.at-left { right: auto; left: 14px; top: 60px; }
 .vn-reopen, .vn-reopen.at-left { top: 76px; }
+/* The hub's own venues map (Leaflet) */
+.vnm { position: absolute; inset: 0; background: #e8eef5; }
+.vnm-loading { display: grid; place-items: center; color: var(--muted); font-size: 14px; }
+.vnm .leaflet-control-attribution { font-size: 10.5px; }
+.vnm-icon { background: none; border: 0; }
+.vnm-pin { transition: transform .15s; filter: drop-shadow(0 2px 3px rgba(18, 26, 43, .35)); transform-origin: 50% 100%; }
+.vnm-pin:hover { transform: scale(1.15); }
+.vnm-pin.is-dim { opacity: .28; filter: none; }
+.vnm-pin.is-sel { filter: drop-shadow(0 0 0 #fff) drop-shadow(0 3px 6px rgba(18, 26, 43, .45)); animation: vnm-bounce .5s ease-out; }
+@keyframes vnm-bounce { 0% { transform: translateY(-10px); } 60% { transform: translateY(2px); } 100% { transform: none; } }
+.leaflet-tooltip { border: 0; border-radius: 8px; box-shadow: 0 4px 14px rgba(18, 26, 43, .18); font: 600 12.5px/1.3 system-ui, sans-serif; color: var(--ink); padding: 5px 9px; }
+.vn-legend { position: absolute; left: 14px; bottom: 14px; z-index: 500; background: rgba(255, 255, 255, .96); border-radius: 12px; padding: 10px 12px; box-shadow: 0 4px 16px rgba(18, 26, 43, .14);
+  display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--ink-2); max-width: 230px; }
+.vn-legend label { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 700; color: var(--ink); }
+.vn-legend select { border: 0; background: var(--vn-fill); border-radius: 999px; padding: 4px 8px; font-size: 12px; font-weight: 600; }
+.vn-legend span { display: flex; align-items: center; gap: 7px; }
+.vn-legend i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.vn-moving { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 600; background: var(--navy); color: #fff; padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; box-shadow: 0 4px 14px rgba(18, 26, 43, .25); }
+.vn-moving .vn-textbtn { color: #cfe0ff; margin-left: 8px; }
+.vn-head-actions { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; margin-top: 8px; }
+.vn-textbtn.is-on { color: var(--vn-red); }
+.vn-reopen, .vn-reopen.at-left { top: 14px; z-index: 600; }
+.vnm .leaflet-tile-pane { filter: saturate(.65) contrast(.94) brightness(1.04); }
+.vn-legend { min-width: 200px; }
+.vn-legend label { white-space: nowrap; }

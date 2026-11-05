@@ -5,9 +5,12 @@
 // Right (collapsible): the team's details for the picked venue: details, booking & cost, contact &
 // follow-up, files, Eventbrite events held there, and the change history.
 
+import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-interface Venue { id: string; name: string; state: string; lat: number; lng: number; color: string; icon: 'pin' | 'letter'; custom?: boolean; address?: string }
+const VenuesMap = dynamic(() => import('./VenuesMap').then((m) => m.VenuesMap), { ssr: false, loading: () => <div className="vnm vnm-loading">Loading map…</div> });
+
+interface Venue { id: string; name: string; state: string; lat: number; lng: number; color: string; icon: 'pin' | 'letter'; custom?: boolean; address?: string; pin?: { address?: string; phone?: string; website?: string; text?: string } }
 interface FileRef { id: string; name: string; type: string; size: number; at: number; by: string }
 interface Info {
   description?: string; type?: string; status?: string; tags?: string[]; contact?: string; phone?: string; website?: string; address?: string;
@@ -19,10 +22,14 @@ interface Ev { id: string; name: string; start: string; status: string; url: str
 interface Change { at: number; by: string; byName: string; field: string; from?: string; to?: string }
 
 const STATUS_TONE: Record<string, string> = { Renting: 'ok', 'Not Renting': 'bad', 'Not Available': 'warn', 'Not contacted yet': 'muted' };
+const STATUS_COLOR: Record<string, string> = { Renting: '#237a45', 'Not Renting': '#c0362c', 'Not Available': '#c98a17', 'Not contacted yet': '#8a94a7' };
+const TYPE_COLOR: Record<string, string> = { 'Realtor Association': '#1f5bd8', 'Builders Association': '#7a3fc2', Hotel: '#d2691e', 'Convention Center': '#0f8a8a' };
+const NO_TYPE = '#8a94a7';
+type ColorBy = 'status' | 'type' | 'google';
 const FIELD_NAMES: Record<string, string> = {
   type: 'Type', status: 'Status', description: 'Description', tags: 'Tags', classroom: 'Classroom max', theater: 'Theater max', rate: 'Rate', deposit: 'Deposit',
   cancellation: 'Cancellation terms', contract: 'Contract', contact: 'Contact', phone: 'Phone', website: 'Website', address: 'Address',
-  lastContacted: 'Last contacted', followUp: 'Follow-up', notes: 'Notes', file: 'File', added: 'Venue',
+  lastContacted: 'Last contacted', followUp: 'Follow-up', notes: 'Notes', file: 'File', added: 'Venue', location: 'Pin moved',
 };
 const title = (s: string) => s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -39,7 +46,7 @@ function Pin({ v }: { v: Venue }) {
   );
 }
 
-export function VenuesExplorer({ mapId, editUrl, types, statuses, contracts }: { mapId: string; editUrl: string; types: string[]; statuses: string[]; contracts: string[] }) {
+export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUrl: string; types: string[]; statuses: string[]; contracts: string[] }) {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [info, setInfo] = useState<Record<string, Info>>({});
   const [names, setNames] = useState<Record<string, string>>({});
@@ -54,6 +61,10 @@ export function VenuesExplorer({ mapId, editUrl, types, statuses, contracts }: {
   const [sel, setSel] = useState('');
   const [panel, setPanel] = useState(true);
   const [left, setLeft] = useState(true);
+  const [colorBy, setColorBy] = useState<ColorBy>('google');
+  const colorPicked = useRef(false);
+  const [moving, setMoving] = useState(false);
+  const [moveMsg, setMoveMsg] = useState('');
   const [draft, setDraft] = useState<Info>({});
   const [tagInput, setTagInput] = useState('');
   const [saving, setSaving] = useState(false);
@@ -73,7 +84,11 @@ export function VenuesExplorer({ mapId, editUrl, types, statuses, contracts }: {
     setLoading(true);
     return fetch(`/api/venues${fresh ? '?fresh=1' : ''}`)
       .then(async (r) => { const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Could not load the venues'); return d; })
-      .then((d) => { setVenues(d.venues); setInfo(d.info); setNames(d.names); setStale(d.staleSince); setError(''); })
+      .then((d) => {
+        setVenues(d.venues); setInfo(d.info); setNames(d.names); setStale(d.staleSince); setError('');
+        // Color pins by status once the team has set some; until then Google's colors say more than all-grey.
+        if (!colorPicked.current) setColorBy(Object.values(d.info as Record<string, Info>).some((i) => i.status) ? 'status' : 'google');
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   };
@@ -94,6 +109,12 @@ export function VenuesExplorer({ mapId, editUrl, types, statuses, contracts }: {
     });
   }, [venues, info, q, fType, fStatus, dueOnly]); // eslint-disable-line react-hooks/exhaustive-deps
   const filtering = Boolean(q || fType || fStatus || dueOnly);
+  const shownIds = useMemo(() => new Set(shown.map((v) => v.id)), [shown]);
+  const pinColors = useMemo(() => Object.fromEntries(venues.map((v) => {
+    const i = info[v.id];
+    const c = colorBy === 'status' ? STATUS_COLOR[statusOf(i)] : colorBy === 'type' ? (i?.type ? TYPE_COLOR[i.type] : NO_TYPE) ?? NO_TYPE : v.color;
+    return [v.id, c];
+  })), [venues, info, colorBy]);
 
   const venue = venues.find((v) => v.id === sel);
   const saved = venue ? info[venue.id] : undefined;
@@ -107,8 +128,16 @@ export function VenuesExplorer({ mapId, editUrl, types, statuses, contracts }: {
   }, [sel]); // eslint-disable-line react-hooks/exhaustive-deps
   const loadHistory = (id: string) => fetch(`/api/venues/history?id=${encodeURIComponent(id)}`).then((r) => r.json()).then((d) => setHistory(d.history ?? [])).catch(() => setHistory([]));
 
-  const pick = (v: Venue) => { setSel(v.id); setPanel(true); };
-  const mapSrc = `https://www.google.com/maps/d/embed?mid=${mapId}${venue ? `&ll=${venue.lat},${venue.lng}&z=14` : ''}`;
+  const pick = (v: Venue) => { setSel(v.id); setPanel(true); setMoving(false); setMoveMsg(''); };
+  const movePin = async (body: Record<string, unknown>) => {
+    if (!venue) return;
+    setMoveMsg('Moving…');
+    const r = await fetch('/api/venues/position', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: venue.id, ...body }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { setMoveMsg(d.error || 'Could not move the pin'); load(); return; }
+    setVenues((vs) => vs.map((v) => (v.id === venue.id ? { ...v, lat: d.lat, lng: d.lng } : v)));
+    setMoving(false); setMoveMsg('Pin moved'); loadHistory(venue.id);
+  };
   const dirty = venue && JSON.stringify(draft) !== JSON.stringify(editable(saved));
 
   const set = (k: keyof Info, v: unknown) => setDraft((d) => ({ ...d, [k]: v === '' ? undefined : v }));
@@ -213,7 +242,7 @@ export function VenuesExplorer({ mapId, editUrl, types, statuses, contracts }: {
             <input placeholder="Address, city, ZIP" value={newV.address} onChange={(e) => setNewV({ ...newV, address: e.target.value })} />
             <div className="vn-add-row">
               <button className="btn primary" onClick={addVenue} disabled={!newV.name || !newV.state || !newV.address}>Add</button>
-              <span className="muted vn-small">Saved in the hub. Add the pin in Google too so it shows on the map.</span>
+              <span className="muted vn-small">It’s placed on the map from the address; you can drag the pin after.</span>
             </div>
             {addMsg && <p className="vn-err">{addMsg}</p>}
           </div>
@@ -279,14 +308,28 @@ export function VenuesExplorer({ mapId, editUrl, types, statuses, contracts }: {
             );
           })}
         </div>
-        <p className="muted vn-small vn-pad"><a href={editUrl} target="_blank" rel="noreferrer">Add or move pins in Google ↗</a></p>
+        <p className="muted vn-small vn-pad">Pins also sync from <a href={editUrl} target="_blank" rel="noreferrer">Andrea’s Google map ↗</a> every 10 min.</p>
       </aside>
       )}
 
-      <section className="vn-map" aria-label="Google map">
-        <iframe key={mapSrc} src={mapSrc} title="Club Wealth venues map" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+      <section className="vn-map" aria-label="Map">
+        <VenuesMap venues={venues} colors={pinColors} selected={sel} shown={shownIds} movable={moving}
+          onPick={(id) => { const v = venues.find((x) => x.id === id); if (v) { pick(v); setOpen((o) => ({ ...o, [v.state]: true })); } }}
+          onMoved={(id, lat, lng) => { if (id === sel) movePin({ lat, lng }); }} />
         {!left && <button className="vn-reopen at-left" onClick={() => setLeft(true)}>» Venues</button>}
         {!panel && <button className="vn-reopen" onClick={() => setPanel(true)}>Details «</button>}
+        {moving && <div className="vn-moving">Drag the highlighted pin to the right spot. <button className="vn-textbtn" onClick={() => setMoving(false)}>Cancel</button></div>}
+        <div className="vn-legend">
+          <label>Pin color
+            <select value={colorBy} onChange={(e) => { colorPicked.current = true; setColorBy(e.target.value as ColorBy); }}>
+              <option value="status">Status</option>
+              <option value="type">Type</option>
+              <option value="google">Google map colors</option>
+            </select>
+          </label>
+          {colorBy === 'status' && statuses.map((s) => <span key={s}><i style={{ background: STATUS_COLOR[s] }} />{s}</span>)}
+          {colorBy === 'type' && <>{types.map((t) => <span key={t}><i style={{ background: TYPE_COLOR[t] }} />{t}</span>)}<span><i style={{ background: NO_TYPE }} />No type yet</span></>}
+        </div>
       </section>
 
       {panel && (
@@ -311,6 +354,11 @@ export function VenuesExplorer({ mapId, editUrl, types, statuses, contracts }: {
                   {saved?.type && <span className="vn-type">{saved.type}</span>}
                   {isDue(saved) && <span className="vn-type is-due">Follow-up due</span>}
                   <a className="vn-link" href={`https://www.google.com/maps/search/?api=1&query=${venue.lat},${venue.lng}`} target="_blank" rel="noreferrer">Google Maps ↗</a>
+                </div>
+                <div className="vn-head-actions">
+                  <button className={`vn-textbtn${moving ? ' is-on' : ''}`} onClick={() => { setMoving((m) => !m); setMoveMsg(''); }}>{moving ? 'Done moving' : 'Move pin'}</button>
+                  {draft.address && <button className="vn-textbtn" onClick={() => movePin({ address: draft.address })}>Move pin to the address</button>}
+                  {moveMsg && <span className={moveMsg === 'Pin moved' ? 'vn-ok vn-small' : moveMsg === 'Moving…' ? 'muted vn-small' : 'vn-err vn-small'}>{moveMsg}</span>}
                 </div>
                 <nav className="vn-tabs" role="tablist">
                   {(['overview', 'booking', 'files', 'events', 'history'] as const).map((t) => (
@@ -351,6 +399,9 @@ export function VenuesExplorer({ mapId, editUrl, types, statuses, contracts }: {
                         ))}
                       </div>
                     </div>
+                    {venue.pin?.text && (
+                      <div className="vn-callout"><span className="muted vn-small">On the Google map pin:</span><span style={{ whiteSpace: 'pre-line' }}>{venue.pin.text}</span></div>
+                    )}
                     <label className="vn-field">Description<textarea rows={3} value={draft.description ?? ''} onChange={(e) => set('description', e.target.value)} placeholder="What's the room like? Anything the team should know?" /></label>
                     <div className="vn-field">
                       <span>Tags</span>
@@ -368,7 +419,7 @@ export function VenuesExplorer({ mapId, editUrl, types, statuses, contracts }: {
                     {place === 'loading' && <p className="muted vn-small">Looking up the address…</p>}
                     {place && place !== 'loading' && (!draft.address || (!draft.phone && place.phone) || (!draft.website && place.website)) && (
                       <div className="vn-callout">
-                        <span className="muted vn-small">{place.nearest ? 'Nearest address to the pin (OpenStreetMap), please check:' : `Found on ${place.source === 'google' ? 'Google' : 'OpenStreetMap'}:`}</span>
+                        <span className="muted vn-small">{place.nearest ? 'Nearest address to the pin (OpenStreetMap), please check:' : `From ${({ pin: 'the Google map pin', eventbrite: 'Eventbrite', google: 'Google', openstreetmap: 'OpenStreetMap' } as Record<string, string>)[place.source] ?? place.source}:`}</span>
                         {place.address && <span>{place.address}</span>}
                         {place.phone && <span>{place.phone}</span>}
                         {place.website && <span>{place.website}</span>}

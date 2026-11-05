@@ -19,6 +19,28 @@ export interface Venue {
   icon: 'pin' | 'letter'; // 1899 = plain pin, others = lettered/marked pin
   custom?: boolean;       // added in the hub, not (yet) a pin on the Google map
   address?: string;       // hub-added venues: the address the team typed
+  pin?: PinNotes;         // what the team wrote in the pin's description on the Google map
+  moved?: boolean;        // the team moved this pin in the hub (position.ts)
+}
+
+/** "Address: …", "Phone: …", "Website: …" lines (and any other text) typed in a pin's description in My Maps. */
+export interface PinNotes { address?: string; phone?: string; website?: string; text?: string }
+
+export function parsePinDescription(raw: string): PinNotes | undefined {
+  const text = raw.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+  if (!text) return undefined;
+  const out: PinNotes = {};
+  const rest: string[] = [];
+  for (const line of text.split(/\n+/).map((l) => l.trim()).filter(Boolean)) {
+    const m = line.match(/^(address|addr|location|phone|tel|telephone|website|web|site|url)\s*[:\-]\s*(.+)$/i);
+    const k = m?.[1].toLowerCase();
+    if (m && k && /^(address|addr|location)$/.test(k)) out.address = m[2].trim();
+    else if (m && k && /^(phone|tel|telephone)$/.test(k)) out.phone = m[2].trim();
+    else if (m && k) out.website = m[2].trim();
+    else rest.push(line);
+  }
+  if (rest.length) out.text = rest.join('\n').slice(0, 1000);
+  return out;
 }
 
 const decode = (s: string) =>
@@ -38,11 +60,13 @@ export function parseVenuesKml(kml: string): Venue[] {
       const coords = pm.match(/<coordinates>\s*([-\d.]+),([-\d.]+)/);
       if (!name || !coords) continue;
       const style = pm.match(/<styleUrl>#icon-(\d+)-([0-9A-Fa-f]{6})/);
+      const desc = pm.match(/<description>([\s\S]*?)<\/description>/)?.[1];
+      const pin = desc ? parsePinDescription(decode(desc)) : undefined;
       const lng = Number(coords[1]), lat = Number(coords[2]);
       let id = `${slug(state)}--${slug(name)}`;
       if (seen.has(id)) id = `${id}--${lat.toFixed(4)},${lng.toFixed(4)}`;
       seen.add(id);
-      out.push({ id, name, state, lat, lng, color: `#${(style?.[2] ?? '757575').toUpperCase()}`, icon: style?.[1] === '1899' ? 'pin' : 'letter' });
+      out.push({ id, name, state, lat, lng, color: `#${(style?.[2] ?? '757575').toUpperCase()}`, icon: style?.[1] === '1899' ? 'pin' : 'letter', ...(pin ? { pin } : {}) });
     }
   }
   return out;

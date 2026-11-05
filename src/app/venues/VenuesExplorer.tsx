@@ -7,7 +7,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-interface Venue { id: string; name: string; state: string; lat: number; lng: number; color: string; icon: 'pin' | 'letter'; custom?: boolean; address?: string }
+interface Venue { id: string; name: string; state: string; lat: number; lng: number; color: string; icon: 'pin' | 'letter'; custom?: boolean; address?: string; pin?: { address?: string; phone?: string; website?: string; text?: string } }
 interface FileRef { id: string; name: string; type: string; size: number; at: number; by: string }
 interface Info {
   description?: string; type?: string; status?: string; tags?: string[]; contact?: string; phone?: string; website?: string; address?: string;
@@ -351,6 +351,9 @@ export function VenuesExplorer({ mapId, editUrl, types, statuses, contracts }: {
                         ))}
                       </div>
                     </div>
+                    {venue.pin?.text && (
+                      <div className="vn-callout"><span className="muted vn-small">On the Google map pin:</span><span style={{ whiteSpace: 'pre-line' }}>{venue.pin.text}</span></div>
+                    )}
                     <label className="vn-field">Description<textarea rows={3} value={draft.description ?? ''} onChange={(e) => set('description', e.target.value)} placeholder="What's the room like? Anything the team should know?" /></label>
                     <div className="vn-field">
                       <span>Tags</span>
@@ -368,7 +371,7 @@ export function VenuesExplorer({ mapId, editUrl, types, statuses, contracts }: {
                     {place === 'loading' && <p className="muted vn-small">Looking up the address…</p>}
                     {place && place !== 'loading' && (!draft.address || (!draft.phone && place.phone) || (!draft.website && place.website)) && (
                       <div className="vn-callout">
-                        <span className="muted vn-small">{place.nearest ? 'Nearest address to the pin (OpenStreetMap), please check:' : `Found on ${place.source === 'google' ? 'Google' : 'OpenStreetMap'}:`}</span>
+                        <span className="muted vn-small">{place.nearest ? 'Nearest address to the pin (OpenStreetMap), please check:' : `From ${({ pin: 'the Google map pin', eventbrite: 'Eventbrite', google: 'Google', openstreetmap: 'OpenStreetMap' } as Record<string, string>)[place.source] ?? place.source}:`}</span>
                         {place.address && <span>{place.address}</span>}
                         {place.phone && <span>{place.phone}</span>}
                         {place.website && <span>{place.website}</span>}

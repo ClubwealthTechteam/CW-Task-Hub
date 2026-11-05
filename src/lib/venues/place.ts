@@ -4,8 +4,9 @@
 
 import { getJSON, setJSON } from '@/lib/store';
 import type { Venue } from './map';
+import { eventbriteAddress } from './events';
 
-export interface PlaceDetails { address?: string; phone?: string; website?: string; source: 'google' | 'openstreetmap'; nearest?: boolean; at: number }
+export interface PlaceDetails { address?: string; phone?: string; website?: string; source: 'pin' | 'eventbrite' | 'google' | 'openstreetmap'; nearest?: boolean; at: number }
 
 const key = (id: string) => `venues:place:${id}`;
 const UA = 'CW-Admin-Hub/1.0 (Club Wealth events venues)';
@@ -45,8 +46,17 @@ async function fromOsm(v: Venue): Promise<PlaceDetails | null> {
   return { address: hit.display_name, phone: t.phone || t['contact:phone'], website: t.website || t['contact:website'], source: 'openstreetmap', nearest, at: Date.now() };
 }
 
-/** Saved details for a venue, looking them up the first time (or again with `fresh`). */
+/**
+ * Address / phone / website for a venue, best source first:
+ * 1. what the team wrote on the Google pin (Address: / Phone: / Website: lines),
+ * 2. the address Eventbrite has saved for this venue,
+ * 3. Google Places (only with GOOGLE_PLACES_API_KEY), then OpenStreetMap (saved once found).
+ */
 export async function placeDetails(v: Venue, fresh = false): Promise<PlaceDetails | null> {
+  const pin = v.pin && (v.pin.address || v.pin.phone || v.pin.website) ? v.pin : null;
+  const eb = !pin?.address ? await eventbriteAddress(v).catch(() => null) : null;
+  if (pin && (pin.address || !eb)) return { address: pin.address, phone: pin.phone, website: pin.website, source: 'pin', at: Date.now() };
+  if (eb) return { address: eb, phone: pin?.phone, website: pin?.website, source: 'eventbrite', at: Date.now() };
   if (!fresh) {
     const saved = await getJSON<PlaceDetails | null>(key(v.id), null);
     if (saved) return saved;

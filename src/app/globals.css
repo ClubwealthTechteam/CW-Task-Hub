@@ -1862,3 +1862,4 @@ details.card > summary { cursor: pointer; }
 .vnm .leaflet-tile-pane { filter: saturate(.65) contrast(.94) brightness(1.04); }
 .vn-legend { min-width: 200px; }
 .vn-legend label { white-space: nowrap; }
+.vn-undo { font-size: 12.5px; padding: 0; }

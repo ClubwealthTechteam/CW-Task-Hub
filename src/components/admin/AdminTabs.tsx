@@ -3,10 +3,11 @@ import type { ReactNode } from 'react';
 
 // The header band of every Admin settings page (super admins only): title, the page's own
 // summary (children), and the section tabs along the bottom edge.
-export function AdminTabs({ current, children }: { current: 'updates' | 'integrations'; children?: ReactNode }) {
+export function AdminTabs({ current, children }: { current: 'updates' | 'integrations' | 'routines'; children?: ReactNode }) {
   const tabs = [
     { id: 'updates', label: 'System updates', href: '/admin/updates' },
     { id: 'integrations', label: 'Integrations', href: '/admin/integrations' },
+    { id: 'routines', label: 'Routines', href: '/admin/routines' },
   ] as const;
   return (
     <header className="adm-band">

@@ -1,7 +1,7 @@
 # Nightly backup of the hub's data. Saves it as a private artifact on this repository for 30 days
-# (Actions → Nightly backup → a run → Artifacts). Needs two repository secrets:
-#   HUB_URL        e.g. https://cw-admin-hub.vercel.app
+# (Actions → Nightly backup → a run → Artifacts). Needs one repository secret:
 #   BACKUP_SECRET  the same value as BACKUP_SECRET in Vercel (any long random text)
+# HUB_URL is optional (a repository secret or variable); it defaults to the live hub.
 name: Nightly backup
 
 on:
@@ -19,10 +19,10 @@ jobs:
     steps:
       - name: Download the backup
         env:
-          HUB_URL: ${{ secrets.HUB_URL }}
+          HUB_URL: ${{ secrets.HUB_URL || vars.HUB_URL || 'https://cw-admin-hub.vercel.app' }}
           BACKUP_SECRET: ${{ secrets.BACKUP_SECRET }}
         run: |
-          if [ -z "$HUB_URL" ] || [ -z "$BACKUP_SECRET" ]; then echo "::error::Add HUB_URL and BACKUP_SECRET as repository secrets"; exit 1; fi
+          if [ -z "$HUB_URL" ] || [ -z "$BACKUP_SECRET" ]; then echo "::error::Add BACKUP_SECRET as a repository secret (same value as in Vercel)"; exit 1; fi
           code=$(curl -sS -o backup.json -w '%{http_code}' -H "Authorization: Bearer $BACKUP_SECRET" "$HUB_URL/api/backup")
           if [ "$code" != "200" ]; then echo "::error::Backup request failed with HTTP $code"; head -c 300 backup.json; exit 1; fi
           keys=$(python3 -c "import json;d=json.load(open('backup.json'));print(d['keys'])")

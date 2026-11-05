@@ -61,8 +61,7 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
   const [sel, setSel] = useState('');
   const [panel, setPanel] = useState(true);
   const [left, setLeft] = useState(true);
-  const [colorBy, setColorBy] = useState<ColorBy>('google');
-  const colorPicked = useRef(false);
+  const [colorBy, setColorBy] = useState<ColorBy>('status');
   const [moving, setMoving] = useState(false);
   const [moveMsg, setMoveMsg] = useState('');
   const [draft, setDraft] = useState<Info>({});
@@ -87,7 +86,6 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
       .then((d) => {
         setVenues(d.venues); setInfo(d.info); setNames(d.names); setStale(d.staleSince); setError('');
         // Color pins by status once the team has set some; until then Google's colors say more than all-grey.
-        if (!colorPicked.current) setColorBy(Object.values(d.info as Record<string, Info>).some((i) => i.status) ? 'status' : 'google');
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -110,11 +108,12 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
   }, [venues, info, q, fType, fStatus, dueOnly]); // eslint-disable-line react-hooks/exhaustive-deps
   const filtering = Boolean(q || fType || fStatus || dueOnly);
   const shownIds = useMemo(() => new Set(shown.map((v) => v.id)), [shown]);
+  // Pins follow the status (or type) as soon as it's clicked: the picked venue uses the unsaved choice.
   const pinColors = useMemo(() => Object.fromEntries(venues.map((v) => {
-    const i = info[v.id];
+    const i = v.id === sel ? { ...info[v.id], status: draft.status, type: draft.type } : info[v.id];
     const c = colorBy === 'status' ? STATUS_COLOR[statusOf(i)] : colorBy === 'type' ? (i?.type ? TYPE_COLOR[i.type] : NO_TYPE) ?? NO_TYPE : v.color;
     return [v.id, c];
-  })), [venues, info, colorBy]);
+  })), [venues, info, colorBy, sel, draft.status, draft.type]);
 
   const venue = venues.find((v) => v.id === sel);
   const saved = venue ? info[venue.id] : undefined;
@@ -321,7 +320,7 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
         {moving && <div className="vn-moving">Drag the highlighted pin to the right spot. <button className="vn-textbtn" onClick={() => setMoving(false)}>Cancel</button></div>}
         <div className="vn-legend">
           <label>Pin color
-            <select value={colorBy} onChange={(e) => { colorPicked.current = true; setColorBy(e.target.value as ColorBy); }}>
+            <select value={colorBy} onChange={(e) => setColorBy(e.target.value as ColorBy)}>
               <option value="status">Status</option>
               <option value="type">Type</option>
               <option value="google">Google map colors</option>

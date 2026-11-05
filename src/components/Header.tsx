@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Person } from '@/config/people';
 import { visibleDepartments, canManageIntegrations, isSuperAdmin, eodOnly } from '@/lib/access';
 import { canViewEventbrite } from '@/lib/integrations/eventbrite/access';
+import { canUseVenues } from '@/lib/venues/info';
 import { builtinIntegrations } from '@/lib/integrations/registry';
 import { IntegrationsMenu, type MenuApp } from './IntegrationsMenu';
 import { DepartmentsMenu } from './DepartmentsMenu';
@@ -27,9 +28,10 @@ function LockedHeader({ user, initials, current }: { user: Person; initials: str
         <nav className="nav" aria-label="AI Task Hub">
           <Soon className="hub">AI Task Hub <em>NEW</em></Soon>
           <Soon>My workspace</Soon>
-          <Link href="/eod" aria-current={current === 'sop' || current === 'task-recordings' ? undefined : 'page'}>EOD reports</Link>
+          <Link href="/eod" aria-current={['sop', 'task-recordings', 'venues'].includes(current ?? '') ? undefined : 'page'}>EOD reports</Link>
           <Link href="/sop" aria-current={current === 'sop' ? 'page' : undefined}>SOP Handbook</Link>
           <Link href="/task-recordings" aria-current={current === 'task-recordings' ? 'page' : undefined}>Task Recording</Link>
+          {canUseVenues(user) && <Link href="/venues" aria-current={current === 'venues' ? 'page' : undefined}>Venues</Link>}
           <Soon>Updates</Soon>
           <Soon>Help</Soon>
           <Soon>Integrations ▾</Soon>
@@ -82,6 +84,7 @@ export function Header({ user, current }: { user: Person; current?: string }) {
           <Link href="/eod" aria-current={cur('eod')}>EOD reports</Link>
           <Link href="/sop" aria-current={cur('sop')}>SOP Handbook</Link>
           <Link href="/task-recordings" aria-current={cur('task-recordings')}>Task Recording</Link>
+          {canUseVenues(user) && <Link href="/venues" aria-current={cur('venues')}>Venues</Link>}
           {admin && <Link href="/council" aria-current={cur('council')}>Council</Link>}
           <Link href="/updates" aria-current={cur('updates')}>Updates</Link>
           <Link href="/help" aria-current={cur('help')}>Help</Link>

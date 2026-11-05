@@ -1691,3 +1691,48 @@ details.card > summary { cursor: pointer; }
 .trec-check.is-ok > span { color: var(--ok); font-weight: 600; font-size: 13px; }
 .trec-check.is-wrong { border-color: #d93025; }
 .trec-check.is-wrong > span { color: #d93025; font-weight: 600; font-size: 13px; }
+
+/* Events venues (/venues): states list · Google map · collapsible details */
+.vn { display: grid; grid-template-columns: 320px minmax(0, 1fr) auto; height: calc(100vh - 64px); min-height: 520px; background: var(--bg); }
+.vn-left { background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+.vn-left-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 14px 14px 8px; flex-wrap: wrap; }
+.vn-small { font-size: 12px; }
+.vn-pad { padding: 10px 14px; }
+.vn-search { margin: 0 14px 8px; width: calc(100% - 28px); box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: 8px; font-size: 13.5px; }
+.vn-filters { display: flex; gap: 6px; padding: 0 14px 10px; border-bottom: 1px solid var(--line); }
+.vn-filters select { flex: 1; min-width: 0; padding: 6px 8px; border: 1px solid var(--line-strong); border-radius: 8px; font-size: 12.5px; background: var(--surface); }
+.vn-states { overflow-y: auto; flex: 1; min-height: 0; }
+.vn-state { border-bottom: 1px solid var(--line); }
+.vn-state-head { width: 100%; display: flex; align-items: center; gap: 8px; padding: 12px 14px; background: none; border: 0; cursor: pointer; font-weight: 800; font-size: 13.5px; letter-spacing: .04em; color: var(--ink); text-align: left; }
+.vn-state-head:hover { background: var(--surface-2); }
+.vn-caret { width: 12px; color: var(--muted); }
+.vn-state-name { flex: 1; }
+.vn-count { font-size: 12px; font-weight: 600; color: var(--muted); }
+.vn-state ul { list-style: none; margin: 0; padding: 0 0 8px; }
+.vn-venue { width: 100%; display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 32px; background: none; border: 0; cursor: pointer; text-align: left; font-size: 13.5px; color: var(--ink-2); }
+.vn-venue:hover { background: var(--surface-2); }
+.vn-venue.is-sel { background: var(--muted-tint); color: var(--navy); font-weight: 700; }
+.vn-pin { flex: none; }
+.vn-venue-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vn-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.tone-ok { background: var(--ok); } .tone-bad { background: #b3261e; } .tone-warn { background: var(--warn); } .tone-muted { background: var(--line-strong); }
+.vn-map { position: relative; min-width: 0; }
+.vn-map iframe { width: 100%; height: 100%; border: 0; display: block; }
+.vn-reopen { position: absolute; top: 12px; right: 12px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px; padding: 7px 12px; font-weight: 600; cursor: pointer; box-shadow: var(--shadow); }
+.vn-right { width: 360px; background: var(--surface); border-left: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+.vn-right-head { display: flex; justify-content: space-between; align-items: start; gap: 8px; padding: 14px; border-bottom: 1px solid var(--line); }
+.vn-form { padding: 12px 14px 18px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+.vn-sub { margin: 0; font-size: 12.5px; }
+.vn-form label, .vn-tags { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: var(--muted); }
+.vn-form input, .vn-form select, .vn-form textarea { font: inherit; font-size: 13.5px; font-weight: 400; color: var(--ink); padding: 7px 9px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); }
+.vn-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.vn-tag-list { display: flex; flex-wrap: wrap; gap: 5px; }
+.vn-tag-list .chip button { border: 0; background: none; cursor: pointer; padding: 0 0 0 3px; color: var(--muted); }
+.vn-save { display: flex; align-items: center; gap: 10px; }
+.vn-ok { color: var(--ok); font-weight: 600; font-size: 13px; } .vn-err { color: #b3261e; font-size: 13px; }
+@media (max-width: 1000px) {
+  .vn { grid-template-columns: 1fr; height: auto; }
+  .vn-left { max-height: 45vh; }
+  .vn-map { height: 60vh; }
+  .vn-right { width: auto; }
+}

@@ -1,0 +1,59 @@
+// Events venues: the pins come from the Events team's Google My Maps ("CLUB WEALTH · Venues", by Andrea).
+// Google stays the source of the map, the icons and the locations; the hub reads the map's public KML
+// (read-only) and keeps the team's own notes per venue (description, tags, status…) in the hub store.
+
+import { cached } from '@/lib/store';
+
+export const VENUES_MAP_ID = process.env.VENUES_MAP_ID || '1GEQFYF9PwO9KglYxxgcwkEp7efWJBYM';
+export const venuesEmbedUrl = (ll?: [number, number], zoom?: number) =>
+  `https://www.google.com/maps/d/embed?mid=${VENUES_MAP_ID}${ll ? `&ll=${ll[0]},${ll[1]}&z=${zoom ?? 14}` : ''}`;
+export const venuesEditUrl = () => `https://www.google.com/maps/d/edit?mid=${VENUES_MAP_ID}`;
+
+export interface Venue {
+  id: string;
+  name: string;
+  state: string;          // the My Maps layer (FLORIDA, NEW YORK…)
+  lat: number;
+  lng: number;
+  color: string;          // pin color from Google, e.g. "#C2185B"
+  icon: 'pin' | 'letter'; // 1899 = plain pin, others = lettered/marked pin
+}
+
+const decode = (s: string) =>
+  s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
+
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+
+/** Parses the My Maps KML: one Folder per state, one Placemark per venue. */
+export function parseVenuesKml(kml: string): Venue[] {
+  const out: Venue[] = [];
+  const seen = new Set<string>();
+  for (const folder of kml.split('<Folder>').slice(1)) {
+    const state = decode(folder.match(/<name>([\s\S]*?)<\/name>/)?.[1] ?? 'Other');
+    for (const pm of folder.split('<Placemark>').slice(1)) {
+      const name = decode(pm.match(/<name>([\s\S]*?)<\/name>/)?.[1] ?? '');
+      const coords = pm.match(/<coordinates>\s*([-\d.]+),([-\d.]+)/);
+      if (!name || !coords) continue;
+      const style = pm.match(/<styleUrl>#icon-(\d+)-([0-9A-Fa-f]{6})/);
+      const lng = Number(coords[1]), lat = Number(coords[2]);
+      let id = `${slug(state)}--${slug(name)}`;
+      if (seen.has(id)) id = `${id}--${lat.toFixed(4)},${lng.toFixed(4)}`;
+      seen.add(id);
+      out.push({ id, name, state, lat, lng, color: `#${(style?.[2] ?? '757575').toUpperCase()}`, icon: style?.[1] === '1899' ? 'pin' : 'letter' });
+    }
+  }
+  return out;
+}
+
+/** The venues on the Google map, cached 10 minutes (changes in Google show up within that). */
+export async function loadVenues(fresh = false): Promise<Venue[]> {
+  const load = async () => {
+    const res = await fetch(`https://www.google.com/maps/d/kml?mid=${VENUES_MAP_ID}&forcekml=1`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Google My Maps answered ${res.status}`);
+    const venues = parseVenuesKml(await res.text());
+    if (!venues.length) throw new Error('The Google map has no venues (is it still shared “anyone with the link”?)');
+    return venues;
+  };
+  return fresh ? load() : cached(`venues:kml:${VENUES_MAP_ID}`, 600, load);
+}

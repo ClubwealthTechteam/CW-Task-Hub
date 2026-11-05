@@ -1923,3 +1923,4 @@ html.hdr-collapsed .topbar { z-index: 1000; }
 .rt-pill.t-ok { color: #237a45; background: #e6f3ea; } .rt-pill.t-bad { color: #c0362c; background: #fbe9e7; }
 .rt-pill.t-warn { color: #8a5a0b; background: #fbf1de; } .rt-pill.t-off { color: var(--muted); background: var(--muted-tint); }
 .rt-pill.t-run { color: var(--accent); background: #eaf0fc; }
+.rt-table td small.rt-sum { color: var(--ink-2); font-size: 12px; max-width: 360px; }

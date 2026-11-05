@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { requireUser } from '@/lib/auth/current-user';
 import { canUseVenues, CONTRACT_STATUSES, VENUE_STATUSES, VENUE_TYPES } from '@/lib/venues/info';
-import { VENUES_MAP_ID, venuesEditUrl } from '@/lib/venues/map';
+import { venuesEditUrl } from '@/lib/venues/map';
 import { VenuesExplorer } from './VenuesExplorer';
 
 export const dynamic = 'force-dynamic';
@@ -14,7 +14,7 @@ export default async function VenuesPage() {
   return (
     <>
       <Header user={user} current="venues" />
-      <VenuesExplorer mapId={VENUES_MAP_ID} editUrl={venuesEditUrl()} types={[...VENUE_TYPES]} statuses={[...VENUE_STATUSES]} contracts={[...CONTRACT_STATUSES]} />
+      <VenuesExplorer editUrl={venuesEditUrl()} types={[...VENUE_TYPES]} statuses={[...VENUE_STATUSES]} contracts={[...CONTRACT_STATUSES]} />
     </>
   );
 }

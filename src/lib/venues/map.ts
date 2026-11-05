@@ -20,6 +20,7 @@ export interface Venue {
   custom?: boolean;       // added in the hub, not (yet) a pin on the Google map
   address?: string;       // hub-added venues: the address the team typed
   pin?: PinNotes;         // what the team wrote in the pin's description on the Google map
+  moved?: boolean;        // the team moved this pin in the hub (position.ts)
 }
 
 /** "Address: …", "Phone: …", "Website: …" lines (and any other text) typed in a pin's description in My Maps. */

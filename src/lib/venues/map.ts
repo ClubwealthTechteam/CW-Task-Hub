@@ -2,7 +2,7 @@
 // Google stays the source of the map, the icons and the locations; the hub reads the map's public KML
 // (read-only) and keeps the team's own notes per venue (description, tags, status…) in the hub store.
 
-import { cached } from '@/lib/store';
+import { cached, getJSON, setJSON } from '@/lib/store';
 
 export const VENUES_MAP_ID = process.env.VENUES_MAP_ID || '1GEQFYF9PwO9KglYxxgcwkEp7efWJBYM';
 export const venuesEmbedUrl = (ll?: [number, number], zoom?: number) =>
@@ -17,6 +17,8 @@ export interface Venue {
   lng: number;
   color: string;          // pin color from Google, e.g. "#C2185B"
   icon: 'pin' | 'letter'; // 1899 = plain pin, others = lettered/marked pin
+  custom?: boolean;       // added in the hub, not (yet) a pin on the Google map
+  address?: string;       // hub-added venues: the address the team typed
 }
 
 const decode = (s: string) =>
@@ -53,7 +55,22 @@ export async function loadVenues(fresh = false): Promise<Venue[]> {
     if (!res.ok) throw new Error(`Google My Maps answered ${res.status}`);
     const venues = parseVenuesKml(await res.text());
     if (!venues.length) throw new Error('The Google map has no venues (is it still shared “anyone with the link”?)');
+    // Last good copy, so the list still works if Google is slow or the map's sharing changes.
+    await setJSON(SNAPSHOT_KEY, { at: Date.now(), venues }).catch(() => null);
     return venues;
   };
   return fresh ? load() : cached(`venues:kml:${VENUES_MAP_ID}`, 600, load);
+}
+
+const SNAPSHOT_KEY = `venues:snapshot:${VENUES_MAP_ID}`;
+
+/** The Google venues, or the last saved copy (with its date) when Google can't be read right now. */
+export async function loadVenuesSafe(fresh = false): Promise<{ venues: Venue[]; staleSince?: number; error?: string }> {
+  try {
+    return { venues: await loadVenues(fresh) };
+  } catch (e) {
+    const snap = await getJSON<{ at: number; venues: Venue[] } | null>(SNAPSHOT_KEY, null).catch(() => null);
+    if (snap?.venues?.length) return { venues: snap.venues, staleSince: snap.at, error: (e as Error).message };
+    throw e;
+  }
 }

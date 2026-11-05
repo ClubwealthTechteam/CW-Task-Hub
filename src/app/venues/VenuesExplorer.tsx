@@ -39,15 +39,6 @@ function Pin({ v }: { v: Venue }) {
   );
 }
 
-function Section({ title: t, children, open = true }: { title: string; children: React.ReactNode; open?: boolean }) {
-  return (
-    <details className="vn-sec" open={open}>
-      <summary>{t}</summary>
-      <div className="vn-sec-body">{children}</div>
-    </details>
-  );
-}
-
 export function VenuesExplorer({ mapId, editUrl, types, statuses, contracts }: { mapId: string; editUrl: string; types: string[]; statuses: string[]; contracts: string[] }) {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [info, setInfo] = useState<Record<string, Info>>({});
@@ -62,10 +53,12 @@ export function VenuesExplorer({ mapId, editUrl, types, statuses, contracts }: {
   const [dueOnly, setDueOnly] = useState(false);
   const [sel, setSel] = useState('');
   const [panel, setPanel] = useState(true);
+  const [left, setLeft] = useState(true);
   const [draft, setDraft] = useState<Info>({});
   const [tagInput, setTagInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+  const [tab, setTab] = useState<'overview' | 'booking' | 'files' | 'events' | 'history'>('overview');
   const [conflict, setConflict] = useState<{ info: Info; name?: string } | null>(null);
   const [place, setPlace] = useState<Place | null | 'loading'>(null);
   const [events, setEvents] = useState<{ connected: boolean; events: Ev[]; error?: string } | 'loading' | null>(null);
@@ -196,13 +189,15 @@ export function VenuesExplorer({ mapId, editUrl, types, statuses, contracts }: {
   };
 
   return (
-    <main className="vn">
+    <main className={`vn${left ? '' : ' no-left'}`}>
+      {left && (
       <aside className="vn-left" aria-label="Venues by state">
         <div className="vn-left-head">
           <div><b>Venues</b><span className="muted"> · {venues.length}</span></div>
           <div className="vn-left-actions">
             <button className="vn-plus" onClick={() => { setAdding((a) => !a); setAddMsg(''); }} aria-label="Add a venue" title="Add an association, hotel or venue">+</button>
             <a className="linkbtn" href="/api/venues/export">Export</a>
+            <button className="vn-icon-btn" onClick={() => setLeft(false)} aria-label="Hide the venue list" title="Hide list">«</button>
           </div>
         </div>
         {adding && (
@@ -286,178 +281,216 @@ export function VenuesExplorer({ mapId, editUrl, types, statuses, contracts }: {
         </div>
         <p className="muted vn-small vn-pad"><a href={editUrl} target="_blank" rel="noreferrer">Add or move pins in Google ↗</a></p>
       </aside>
+      )}
 
       <section className="vn-map" aria-label="Google map">
         <iframe key={mapSrc} src={mapSrc} title="Club Wealth venues map" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
-        {!panel && <button className="vn-reopen" onClick={() => setPanel(true)}>Details ◂</button>}
+        {!left && <button className="vn-reopen at-left" onClick={() => setLeft(true)}>» Venues</button>}
+        {!panel && <button className="vn-reopen" onClick={() => setPanel(true)}>Details «</button>}
       </section>
 
       {panel && (
         <aside className="vn-right" aria-label="Venue details">
-          <div className="vn-right-head">
-            <div>
-              <b>{venue ? venue.name : 'Venue details'}</b>
-              {venue && (
-                <p className="muted vn-sub">
-                  {title(venue.state)}{venue.custom ? ' · added in the hub' : ''} · <a href={`https://www.google.com/maps/search/?api=1&query=${venue.lat},${venue.lng}`} target="_blank" rel="noreferrer">Open in Google Maps ↗</a>
-                </p>
-              )}
-            </div>
-            <button className="linkbtn" onClick={() => setPanel(false)} aria-label="Hide details">▸</button>
-          </div>
           {!venue ? (
-            <p className="muted vn-pad">Pick a venue on the left to see and add its details. The map zooms to it.</p>
-          ) : (
-            <div className="vn-form">
-              {conflict && (
-                <div className="vn-conflict">
-                  <b>{conflict.name ?? 'Someone'} saved this venue after you opened it.</b>
-                  <div className="vn-add-row">
-                    <button className="btn" onClick={takeTheirs}>Load their version</button>
-                    <button className="btn" onClick={keepMine}>Keep my edits</button>
-                  </div>
-                </div>
-              )}
-
-              <Section title="Details">
-                <div className="vn-two">
-                  <label>Type
-                    <select value={draft.type ?? ''} onChange={(e) => set('type', e.target.value)}>
-                      <option value="">—</option>
-                      {types.map((t) => <option key={t}>{t}</option>)}
-                    </select>
-                  </label>
-                  <label>Status
-                    <select value={draft.status ?? ''} onChange={(e) => set('status', e.target.value)}>
-                      <option value="">Not contacted yet</option>
-                      {statuses.filter((s) => s !== 'Not contacted yet').map((t) => <option key={t}>{t}</option>)}
-                    </select>
-                  </label>
-                </div>
-                <label>Description<textarea rows={3} value={draft.description ?? ''} onChange={(e) => set('description', e.target.value)} /></label>
-                <div className="vn-tags">
-                  <span>Tags</span>
-                  <div className="vn-tag-list">
-                    {(draft.tags ?? []).map((t) => (
-                      <span key={t} className="chip">{t} <button aria-label={`Remove ${t}`} onClick={() => set('tags', (draft.tags ?? []).filter((x) => x !== t))}>×</button></span>
-                    ))}
-                  </div>
-                  <input placeholder="Add a tag and press Enter" value={tagInput} onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }} onBlur={addTag} />
-                </div>
-              </Section>
-
-              <Section title="Address & phone">
-                <label>Address<input value={draft.address ?? ''} onChange={(e) => set('address', e.target.value)} placeholder={venue.address ?? ''} /></label>
-                <div className="vn-two">
-                  <label>Phone<input value={draft.phone ?? ''} onChange={(e) => set('phone', e.target.value)} /></label>
-                  <label>Website<input value={draft.website ?? ''} onChange={(e) => set('website', e.target.value)} placeholder="https://" /></label>
-                </div>
-                {place === 'loading' && <p className="muted vn-small">Looking up the address…</p>}
-                {place && place !== 'loading' && (
-                  <div className="vn-found">
-                    <span className="muted vn-small">{place.nearest ? 'Nearest address to the pin (OpenStreetMap), check it:' : `Found on ${place.source === 'google' ? 'Google' : 'OpenStreetMap'}:`}</span>
-                    {place.address && <span>{place.address}</span>}
-                    {place.phone && <span>{place.phone}</span>}
-                    {place.website && <a href={place.website} target="_blank" rel="noreferrer">{place.website}</a>}
-                    {(!draft.address || (!draft.phone && place.phone) || (!draft.website && place.website)) && <button className="linkbtn" onClick={useFound}>Use these</button>}
-                  </div>
-                )}
-                {place === null && <p className="muted vn-small">No address found automatically; type it in.</p>}
-              </Section>
-
-              <Section title="Contact & follow-up">
-                <label>Contact person<input value={draft.contact ?? ''} onChange={(e) => set('contact', e.target.value)} placeholder="Name, phone, email" /></label>
-                <div className="vn-two">
-                  <label>Last contacted<input type="date" value={draft.lastContacted ?? ''} onChange={(e) => set('lastContacted', e.target.value)} /></label>
-                  <label>Follow up on<input type="date" value={draft.followUp ?? ''} onChange={(e) => set('followUp', e.target.value)} /></label>
-                </div>
-                {isDue(draft) && <p className="vn-warn vn-small">Follow-up due {fmtDate(draft.followUp)}</p>}
-              </Section>
-
-              <Section title="Booking & cost" open={false}>
-                <span className="vn-label">Capacity (one room can have both setups)</span>
-                <div className="vn-two">
-                  <label>Classroom max<input inputMode="numeric" value={draft.classroom ?? ''} onChange={(e) => set('classroom', e.target.value)} placeholder="e.g. 60" /></label>
-                  <label>Theater max<input inputMode="numeric" value={draft.theater ?? ''} onChange={(e) => set('theater', e.target.value)} placeholder="e.g. 80" /></label>
-                </div>
-                <label>Rate<input value={draft.rate ?? ''} onChange={(e) => set('rate', e.target.value)} placeholder="e.g. $500 half day" /></label>
-                <div className="vn-two">
-                  <label>Deposit<input value={draft.deposit ?? ''} onChange={(e) => set('deposit', e.target.value)} placeholder="e.g. $200, due 14 days before" /></label>
-                  <label>Contract
-                    <select value={draft.contract ?? ''} onChange={(e) => set('contract', e.target.value)}>
-                      <option value="">—</option>
-                      {contracts.map((c) => <option key={c}>{c}</option>)}
-                    </select>
-                  </label>
-                </div>
-                <label>Cancellation terms<textarea rows={2} value={draft.cancellation ?? ''} onChange={(e) => set('cancellation', e.target.value)} /></label>
-                <p className="muted vn-small">Every rate change is kept in the history below.</p>
-              </Section>
-
-              <label>Notes<textarea rows={4} value={draft.notes ?? ''} onChange={(e) => set('notes', e.target.value)} /></label>
-
-              <div className="vn-save">
-                <button className="btn primary" onClick={save} disabled={!dirty || saving || Boolean(conflict)}>{saving ? 'Saving…' : 'Save'}</button>
-                {msg && <span className={msg === 'Saved' ? 'vn-ok' : 'vn-err'}>{msg}</span>}
-              </div>
-              {saved?.updatedAt && <p className="muted vn-small">Last updated by {names[saved.updatedBy ?? ''] ?? 'someone'} · {new Date(saved.updatedAt).toLocaleString()}</p>}
-
-              <Section title={`Photos & files (${saved?.files?.length ?? 0})`}>
-                <div className="vn-files">
-                  {(saved?.files ?? []).map((f) => (
-                    <div key={f.id} className="vn-file">
-                      {f.type.startsWith('image/')
-                        ? <a href={`/api/venues/files/${f.id}`} target="_blank" rel="noreferrer"><img src={`/api/venues/files/${f.id}`} alt={f.name} /></a>
-                        : <a className="vn-pdf" href={`/api/venues/files/${f.id}`} target="_blank" rel="noreferrer">PDF</a>}
-                      <span title={f.name}>{f.name}</span>
-                      <button className="linkbtn" onClick={() => removeFile(f.id)} aria-label={`Remove ${f.name}`}>×</button>
-                    </div>
-                  ))}
-                </div>
-                <input ref={fileRef} type="file" accept="image/png,image/jpeg,application/pdf" multiple hidden onChange={(e) => upload(e.target.files)} />
-                <button className="btn" onClick={() => fileRef.current?.click()} disabled={uploading}>{uploading ? 'Uploading…' : 'Add photos or files'}</button>
-                <p className="muted vn-small">Room setup, floor plan, contract… PNG, JPEG or PDF, up to 4 MB each.</p>
-              </Section>
-
-              <Section title="Eventbrite events here">
-                {events === 'loading' && <p className="muted vn-small">Checking Eventbrite…</p>}
-                {events && events !== 'loading' && !events.connected && <p className="muted vn-small">Eventbrite isn’t connected to the hub yet.</p>}
-                {events && events !== 'loading' && events.error && <p className="vn-err vn-small">{events.error}</p>}
-                {events && events !== 'loading' && events.connected && !events.error && !events.events.length && <p className="muted vn-small">No Eventbrite events found at this venue.</p>}
-                {events && events !== 'loading' && events.events.length > 0 && (
-                  <ul className="vn-events">
-                    {events.events.map((e) => (
-                      <li key={e.id}>
-                        <a href={e.url} target="_blank" rel="noreferrer">{e.name}</a>
-                        <span className="muted vn-small">
-                          {e.start ? new Date(e.start).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
-                          {e.start && e.start > new Date().toISOString() ? ' · upcoming' : ''}
-                          {e.sold != null ? ` · ${e.sold}${e.capacity ? `/${e.capacity}` : ''} registered` : ''}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Section>
-
-              <Section title="History" open={false}>
-                {history === null && <p className="muted vn-small">Loading…</p>}
-                {history && !history.length && <p className="muted vn-small">No changes yet.</p>}
-                {history && history.length > 0 && (
-                  <ul className="vn-history">
-                    {history.map((c, i) => (
-                      <li key={i}>
-                        <span className="muted vn-small">{new Date(c.at).toLocaleString()} · {c.byName}</span>
-                        <span><b>{FIELD_NAMES[c.field] ?? c.field}</b>{c.from ? <>: <s>{c.from}</s></> : ''}{c.to ? <> → {c.to}</> : c.from ? ' cleared' : ''}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Section>
-
-              {venue.custom && <button className="linkbtn vn-remove" onClick={removeVenue}>Remove this hub-added venue</button>}
+            <div className="vn-empty">
+              <button className="vn-icon-btn vn-close" onClick={() => setPanel(false)} aria-label="Hide details" title="Hide details">»</button>
+              <div className="vn-empty-art" aria-hidden="true">📍</div>
+              <b>Pick a venue</b>
+              <p className="muted">Choose one on the left to see and add its details. The map zooms to it.</p>
             </div>
+          ) : (
+            <>
+              <header className="vn-right-head">
+                <div className="vn-head-top">
+                  <span className="vn-eyebrow">{title(venue.state)}{venue.custom ? ' · added in the hub' : ''}</span>
+                  <button className="vn-icon-btn" onClick={() => setPanel(false)} aria-label="Hide details" title="Hide details">»</button>
+                </div>
+                <h2>{venue.name}</h2>
+                <div className="vn-head-meta">
+                  <span className={`vn-status tone-${STATUS_TONE[statusOf(saved)]}`}>{statusOf(saved)}</span>
+                  {saved?.type && <span className="vn-type">{saved.type}</span>}
+                  {isDue(saved) && <span className="vn-type is-due">Follow-up due</span>}
+                  <a className="vn-link" href={`https://www.google.com/maps/search/?api=1&query=${venue.lat},${venue.lng}`} target="_blank" rel="noreferrer">Google Maps ↗</a>
+                </div>
+                <nav className="vn-tabs" role="tablist">
+                  {(['overview', 'booking', 'files', 'events', 'history'] as const).map((t) => (
+                    <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'is-on' : ''} onClick={() => setTab(t)}>
+                      {t === 'overview' ? 'Overview' : t === 'booking' ? 'Booking' : t === 'files' ? `Files${saved?.files?.length ? ` · ${saved.files.length}` : ''}` : t === 'events' ? 'Events' : 'History'}
+                    </button>
+                  ))}
+                </nav>
+              </header>
+
+              <div className="vn-body">
+                {conflict && (
+                  <div className="vn-callout warn">
+                    <b>{conflict.name ?? 'Someone'} saved this venue after you opened it.</b>
+                    <div className="vn-row">
+                      <button className="btn" onClick={takeTheirs}>Load their version</button>
+                      <button className="btn" onClick={keepMine}>Keep my edits</button>
+                    </div>
+                  </div>
+                )}
+
+                {tab === 'overview' && (
+                  <>
+                    <div className="vn-group">
+                      <span className="vn-label">Status</span>
+                      <div className="vn-seg">
+                        {statuses.map((st) => (
+                          <button key={st} className={`tone-${STATUS_TONE[st]}${statusOf(draft) === st ? ' is-on' : ''}`}
+                            onClick={() => set('status', st === 'Not contacted yet' ? '' : st)}>{st}</button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="vn-group">
+                      <span className="vn-label">Type</span>
+                      <div className="vn-chips">
+                        {types.map((t) => (
+                          <button key={t} className={draft.type === t ? 'is-on' : ''} onClick={() => set('type', draft.type === t ? '' : t)}>{t}</button>
+                        ))}
+                      </div>
+                    </div>
+                    <label className="vn-field">Description<textarea rows={3} value={draft.description ?? ''} onChange={(e) => set('description', e.target.value)} placeholder="What's the room like? Anything the team should know?" /></label>
+                    <div className="vn-field">
+                      <span>Tags</span>
+                      <div className="vn-tagbox">
+                        {(draft.tags ?? []).map((t) => (
+                          <span key={t} className="vn-tag">{t}<button aria-label={`Remove ${t}`} onClick={() => set('tags', (draft.tags ?? []).filter((x) => x !== t))}>×</button></span>
+                        ))}
+                        <input placeholder={draft.tags?.length ? 'Add…' : 'Add a tag, press Enter'} value={tagInput} onChange={(e) => setTagInput(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }} onBlur={addTag} />
+                      </div>
+                    </div>
+
+                    <h3 className="vn-h">Address & contact</h3>
+                    <label className="vn-field">Address<input value={draft.address ?? ''} onChange={(e) => set('address', e.target.value)} placeholder={venue.address ?? ''} /></label>
+                    {place === 'loading' && <p className="muted vn-small">Looking up the address…</p>}
+                    {place && place !== 'loading' && (!draft.address || (!draft.phone && place.phone) || (!draft.website && place.website)) && (
+                      <div className="vn-callout">
+                        <span className="muted vn-small">{place.nearest ? 'Nearest address to the pin (OpenStreetMap), please check:' : `Found on ${place.source === 'google' ? 'Google' : 'OpenStreetMap'}:`}</span>
+                        {place.address && <span>{place.address}</span>}
+                        {place.phone && <span>{place.phone}</span>}
+                        {place.website && <span>{place.website}</span>}
+                        <button className="vn-textbtn" onClick={useFound}>Use these</button>
+                      </div>
+                    )}
+                    <div className="vn-two">
+                      <label className="vn-field">Phone<input value={draft.phone ?? ''} onChange={(e) => set('phone', e.target.value)} /></label>
+                      <label className="vn-field">Website<input value={draft.website ?? ''} onChange={(e) => set('website', e.target.value)} placeholder="https://" /></label>
+                    </div>
+                    <label className="vn-field">Contact person<input value={draft.contact ?? ''} onChange={(e) => set('contact', e.target.value)} placeholder="Name, phone, email" /></label>
+                    <div className="vn-two">
+                      <label className="vn-field">Last contacted<input type="date" value={draft.lastContacted ?? ''} onChange={(e) => set('lastContacted', e.target.value)} /></label>
+                      <label className="vn-field">Follow up on<input type="date" value={draft.followUp ?? ''} onChange={(e) => set('followUp', e.target.value)} /></label>
+                    </div>
+                    <label className="vn-field">Notes<textarea rows={4} value={draft.notes ?? ''} onChange={(e) => set('notes', e.target.value)} /></label>
+                  </>
+                )}
+
+                {tab === 'booking' && (
+                  <>
+                    <h3 className="vn-h first">Capacity <span className="muted vn-small">one room can have both setups</span></h3>
+                    <div className="vn-two">
+                      <label className="vn-field">Classroom max<input inputMode="numeric" value={draft.classroom ?? ''} onChange={(e) => set('classroom', e.target.value)} placeholder="e.g. 60" /></label>
+                      <label className="vn-field">Theater max<input inputMode="numeric" value={draft.theater ?? ''} onChange={(e) => set('theater', e.target.value)} placeholder="e.g. 80" /></label>
+                    </div>
+                    <h3 className="vn-h">Cost</h3>
+                    <div className="vn-two">
+                      <label className="vn-field">Rate<input value={draft.rate ?? ''} onChange={(e) => set('rate', e.target.value)} placeholder="e.g. $500 half day" /></label>
+                      <label className="vn-field">Deposit<input value={draft.deposit ?? ''} onChange={(e) => set('deposit', e.target.value)} placeholder="e.g. $200" /></label>
+                    </div>
+                    <div className="vn-group">
+                      <span className="vn-label">Contract</span>
+                      <div className="vn-chips">
+                        {contracts.map((c) => (
+                          <button key={c} className={draft.contract === c ? 'is-on' : ''} onClick={() => set('contract', draft.contract === c ? '' : c)}>{c}</button>
+                        ))}
+                      </div>
+                    </div>
+                    <label className="vn-field">Cancellation terms<textarea rows={3} value={draft.cancellation ?? ''} onChange={(e) => set('cancellation', e.target.value)} /></label>
+                    <p className="muted vn-small">Every rate change is kept in History.</p>
+                  </>
+                )}
+
+                {tab === 'files' && (
+                  <>
+                    <div className="vn-files">
+                      {(saved?.files ?? []).map((f) => (
+                        <figure key={f.id} className="vn-file">
+                          {f.type.startsWith('image/')
+                            ? <a href={`/api/venues/files/${f.id}`} target="_blank" rel="noreferrer"><img src={`/api/venues/files/${f.id}`} alt={f.name} /></a>
+                            : <a className="vn-pdf" href={`/api/venues/files/${f.id}`} target="_blank" rel="noreferrer">PDF</a>}
+                          <figcaption title={f.name}>{f.name}</figcaption>
+                          <button className="vn-icon-btn sm" onClick={() => removeFile(f.id)} aria-label={`Remove ${f.name}`}>✕</button>
+                        </figure>
+                      ))}
+                      <button className="vn-drop" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                        <span aria-hidden="true">＋</span>{uploading ? 'Uploading…' : 'Add photos or files'}
+                      </button>
+                    </div>
+                    <input ref={fileRef} type="file" accept="image/png,image/jpeg,application/pdf" multiple hidden onChange={(e) => upload(e.target.files)} />
+                    <p className="muted vn-small">Room setup, floor plan, contract… PNG, JPEG or PDF, up to 4 MB each.</p>
+                    {msg && msg !== 'Saved' && <p className="vn-err">{msg}</p>}
+                  </>
+                )}
+
+                {tab === 'events' && (
+                  <>
+                    {events === 'loading' && <p className="muted vn-small">Checking Eventbrite…</p>}
+                    {events && events !== 'loading' && !events.connected && <p className="muted">Eventbrite isn’t connected to the hub yet.</p>}
+                    {events && events !== 'loading' && events.error && <p className="vn-err">{events.error}</p>}
+                    {events && events !== 'loading' && events.connected && !events.error && !events.events.length && <p className="muted">No Eventbrite events found at this venue yet.</p>}
+                    {events && events !== 'loading' && events.events.length > 0 && (
+                      <ul className="vn-list">
+                        {events.events.map((e) => (
+                          <li key={e.id}>
+                            <a href={e.url} target="_blank" rel="noreferrer">{e.name}</a>
+                            <span className="muted vn-small">
+                              {e.start ? new Date(e.start).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
+                              {e.sold != null ? ` · ${e.sold}${e.capacity ? `/${e.capacity}` : ''} registered` : ''}
+                            </span>
+                            {e.start && e.start > new Date().toISOString() && <span className="vn-type">Upcoming</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                )}
+
+                {tab === 'history' && (
+                  <>
+                    {history === null && <p className="muted vn-small">Loading…</p>}
+                    {history && !history.length && <p className="muted">No changes yet.</p>}
+                    {history && history.length > 0 && (
+                      <ol className="vn-timeline">
+                        {history.map((c, i) => (
+                          <li key={i}>
+                            <span><b>{FIELD_NAMES[c.field] ?? c.field}</b>{c.from ? <> <s>{c.from}</s></> : ''}{c.to ? <> → {c.to}</> : c.from ? ' cleared' : ''}</span>
+                            <span className="muted vn-small">{c.byName} · {new Date(c.at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    )}
+                  </>
+                )}
+
+                {venue.custom && tab === 'overview' && <button className="vn-textbtn danger" onClick={removeVenue}>Remove this hub-added venue</button>}
+              </div>
+
+              {(tab === 'overview' || tab === 'booking') && (
+                <footer className="vn-savebar">
+                  <span className="muted vn-small">
+                    {msg ? <span className={msg === 'Saved' ? 'vn-ok' : 'vn-err'}>{msg}</span>
+                      : saved?.updatedAt ? `Updated by ${names[saved.updatedBy ?? ''] ?? 'someone'} · ${new Date(saved.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : 'Not saved yet'}
+                  </span>
+                  <div className="vn-row">
+                    {dirty && <button className="btn" onClick={() => { setDraft(editable(saved)); setMsg(''); }}>Discard</button>}
+                    <button className="btn primary" onClick={save} disabled={!dirty || saving || Boolean(conflict)}>{saving ? 'Saving…' : 'Save'}</button>
+                  </div>
+                </footer>
+              )}
+            </>
           )}
         </aside>
       )}

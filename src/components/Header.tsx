@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { HeaderToggle } from './HeaderToggle';
 import type { Person } from '@/config/people';
 import { visibleDepartments, canManageIntegrations, isSuperAdmin, eodOnly } from '@/lib/access';
 import { canViewEventbrite } from '@/lib/integrations/eventbrite/access';
@@ -45,6 +46,7 @@ function LockedHeader({ user, initials, current }: { user: Person; initials: str
             <button className="linkbtn" type="submit">Sign out</button>
           </form>
         </div>
+        <HeaderToggle />
       </div>
     </header>
   );
@@ -100,6 +102,7 @@ export function Header({ user, current }: { user: Person; current?: string }) {
             <button className="linkbtn" type="submit">Sign out</button>
           </form>
         </div>
+        <HeaderToggle />
       </div>
     </header>
   );

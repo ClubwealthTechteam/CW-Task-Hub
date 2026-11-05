@@ -43,7 +43,7 @@ export default async function RoutinesPage() {
   if (!isSuperAdmin(user)) notFound();
   const report = await routinesReport();
   const now = Date.now();
-  const stale = !report || now - report.at > 2.5 * 3600000;
+  const stale = !report || now - report.at > (new Date().getDay() % 6 === 0 ? 72 : 3) * 3600000; // every 2 h on weekdays
   const rows = (report?.routines ?? []).map((r) => ({ r, s: runState(r, now) }));
   const order: Record<Tone, number> = { bad: 0, warn: 1, run: 2, ok: 3, off: 4 };
   rows.sort((a, b) => order[a.s.tone] - order[b.s.tone] || a.r.name.localeCompare(b.r.name));
@@ -63,7 +63,7 @@ export default async function RoutinesPage() {
             <ul>
               <li><i className={count('bad') ? 'off' : 'ok'} aria-hidden="true" /><span><b>Failed</b><small>{count('bad') || 'None'}</small></span></li>
               <li><i className={count('warn') ? 'off' : 'ok'} aria-hidden="true" /><span><b>Late or not run yet</b><small>{count('warn') || 'None'}</small></span></li>
-              <li><i className={stale ? 'off' : 'ok'} aria-hidden="true" /><span><b>Status report</b><small>{stale ? 'Not updating: check the “Routines status → hub” routine' : 'Updates every hour'}</small></span></li>
+              <li><i className={stale ? 'off' : 'ok'} aria-hidden="true" /><span><b>Status report</b><small>{stale ? 'Not updating: check the “Routines status → hub” routine' : 'Updates every 2 hours on weekdays'}</small></span></li>
             </ul>
           </div>
         </AdminTabs>
@@ -74,7 +74,7 @@ export default async function RoutinesPage() {
             <p className="muted small">Times are Pacific. “Failed” means the run itself errored; a run that worked but posted nothing still shows OK, so check its Slack channel too.</p>
           </div>
           {!rows.length ? (
-            <p className="muted">No routines reported yet. The “Routines status → hub” routine posts them here every hour.</p>
+            <p className="muted">No routines reported yet. The “Routines status → hub” routine posts them here every 2 hours on weekdays.</p>
           ) : (
             <div className="rt-wrap">
               <table className="rt-table">

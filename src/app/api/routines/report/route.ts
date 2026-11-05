@@ -1,4 +1,4 @@
-// Called by the "Routines status → hub" Claude routine every hour with ROUTINES_REPORT_SECRET.
+// Called by the "Routines status → hub" Claude routine (every 2 hours on weekdays) with ROUTINES_REPORT_SECRET.
 // The secret only lets it post the routines' status; it can't read anything from the hub.
 
 import { NextResponse } from 'next/server';

@@ -1,6 +1,6 @@
 // Status of the Club Wealth Claude routines (scheduled tasks on claude.ai), shown on Admin settings →
 // Routines. The hub can't list routines itself, so a small "Routines status → hub" routine reads them
-// every hour and posts them to /api/routines/report (ROUTINES_REPORT_SECRET). Stored in the hub store.
+// every 2 hours on weekdays and posts them to /api/routines/report (ROUTINES_REPORT_SECRET). Stored in the hub store.
 
 import { getJSON, setJSON } from '@/lib/store';
 

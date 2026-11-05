@@ -55,3 +55,39 @@ export async function eventsAtVenue(v: Venue): Promise<{ connected: boolean; eve
     })),
   };
 }
+
+// Venues saved in Eventbrite (every place Club Wealth has held an event), with their full address.
+interface EbVenue { name?: string; latitude?: string; longitude?: string; address?: { localized_address_display?: string; address_1?: string; city?: string; region?: string; postal_code?: string } }
+
+async function eventbriteVenues(): Promise<{ name: string; lat: number; lng: number; address: string }[]> {
+  return cached('venues:eventbrite:venues', 1800, async () => {
+    const out: { name: string; lat: number; lng: number; address: string }[] = [];
+    let continuation: string | undefined;
+    for (let page = 0; page < 15; page++) {
+      const body = (await callEventbrite('venues.list', { page_size: 200, ...(continuation ? { continuation } : {}) })) as
+        { venues?: EbVenue[]; pagination?: { has_more_items?: boolean; continuation?: string } };
+      for (const v of body.venues ?? []) {
+        const a = v.address ?? {};
+        const address = a.localized_address_display || [a.address_1, a.city, [a.region, a.postal_code].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+        if (address) out.push({ name: v.name ?? '', lat: Number(v.latitude), lng: Number(v.longitude), address });
+      }
+      if (!body.pagination?.has_more_items || !body.pagination.continuation) break;
+      continuation = body.pagination.continuation;
+    }
+    return out;
+  });
+}
+
+/** The address Eventbrite has for this venue (closest saved Eventbrite venue within ~400 m, or the same name). */
+export async function eventbriteAddress(v: Venue): Promise<string | null> {
+  if (!eventbriteConfigured()) return null;
+  const name = norm(v.name);
+  let best: { d: number; address: string } | null = null;
+  for (const e of await eventbriteVenues()) {
+    const d = Number.isFinite(e.lat) && e.lat ? km(v.lat, v.lng, e.lat, e.lng) : Infinity;
+    const vn = norm(e.name);
+    const sameName = vn.length > 6 && (vn === name || name.includes(vn) || vn.includes(name));
+    if ((d < 0.4 || sameName) && (!best || d < best.d)) best = { d, address: e.address };
+  }
+  return best?.address ?? null;
+}

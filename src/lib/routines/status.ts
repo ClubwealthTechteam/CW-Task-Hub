@@ -1,10 +1,12 @@
 // Status of the Club Wealth Claude routines (scheduled tasks on claude.ai), shown on Admin settings →
-// Routines. The hub can't list routines itself, so a small "Routines status → hub" routine reads them
-// every 2 hours on weekdays and posts them to /api/routines/report (ROUTINES_REPORT_SECRET). Stored in the hub store.
+// Routines. The hub can't list routines itself and scheduled routines can't list each other, so:
+//  - each routine posts its own run when it finishes (POST /api/routines/report/run: done or failed + summary);
+//  - the full list (names, schedules) is posted to /api/routines/report from a Claude chat when routines change.
+// Both use ROUTINES_REPORT_SECRET (added by the cloud environment). Next and late runs come from the schedule.
 
 import { getJSON, setJSON } from '@/lib/store';
 
-export interface RoutineRun { status: string; firedAt?: string; finishedAt?: string; sessionId?: string; failureReason?: string }
+export interface RoutineRun { status: string; firedAt?: string; finishedAt?: string; sessionId?: string; failureReason?: string; summary?: string }
 export interface RoutineStatus {
   id: string;
   name: string;
@@ -41,10 +43,34 @@ export function cleanReport(body: unknown): RoutineStatus[] {
   });
 }
 
+const runTime = (x?: RoutineRun) => Date.parse(x?.finishedAt ?? x?.firedAt ?? '') || 0;
+
+/** Replaces the list (names, schedules) but keeps each routine's newer self-reported run. */
 export async function saveReport(routines: RoutineStatus[]) {
-  const report: RoutinesReport = { at: Date.now(), routines };
+  const old = await routinesReport();
+  const byId = new Map((old?.routines ?? []).map((r) => [r.id, r]));
+  const merged = routines.map((r) => {
+    const prev = byId.get(r.id)?.lastRun;
+    return prev && runTime(prev) > runTime(r.lastRun) ? { ...r, lastRun: prev } : r;
+  });
+  const report: RoutinesReport = { at: Date.now(), routines: merged };
   await setJSON(KEY, report);
   return report;
+}
+
+/** A routine reporting its own run as it finishes. Unknown routines are added by name. */
+export async function saveRun(body: unknown) {
+  const o = (body ?? {}) as Record<string, unknown>;
+  const id = str(o.id, 80), name = str(o.name, 160);
+  if (!id || !/^trig_[A-Za-z0-9]+$/.test(id)) return null;
+  const now = new Date().toISOString();
+  const run: RoutineRun = { status: o.ok === false ? 'FAILED' : 'SUCCEEDED', firedAt: str(o.startedAt, 40) ?? now, finishedAt: now, summary: str(o.summary, 300) };
+  const old = (await routinesReport()) ?? { at: Date.now(), routines: [] };
+  const i = old.routines.findIndex((r) => r.id === id);
+  if (i >= 0) old.routines[i] = { ...old.routines[i], lastRun: run, ...(name ? { name } : {}) };
+  else old.routines.push({ id, name: name ?? id, enabled: true, cron: str(o.cron, 120), lastRun: run });
+  await setJSON(KEY, old);
+  return run;
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

@@ -86,6 +86,11 @@ export function useDragBubble() {
     else style.right = pos.right;
     if (cy < window.innerHeight / 2) { style.top = Math.max(MARGIN, window.innerHeight - pos.bottom - SIZE); style.bottom = 'auto'; }
     else style.bottom = pos.bottom;
+    // Never let the window run off the screen (its title bar was hidden when the bubble sat part-way up).
+    const edge = typeof style.top === 'number' ? style.top : (style.bottom as number);
+    style.maxHeight = Math.max(240, window.innerHeight - edge - MARGIN);
+    if (typeof style.left === 'number') style.maxWidth = window.innerWidth - style.left - MARGIN;
+    else style.maxWidth = window.innerWidth - (style.right as number) - MARGIN;
     return style;
   }, [pos]);
 

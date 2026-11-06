@@ -210,7 +210,7 @@ export function ChatWidget({ firstName }: { firstName: string }) {
   return (
     <section className={`cwa-window ${size}`} style={size === 'open' ? drag.windowStyle() : undefined} role="dialog" aria-label="CW Assistant">
       <header className="cwa-head">
-        <div className="cwa-badge" aria-hidden="true">CW</div>
+        <div className="cwa-badge" aria-hidden="true"><img src="/cw-assistant.png" alt="" /></div>
         <div className="cwa-title">
           <b>CW Assistant</b>
           <span>{pending ? 'Writing a reply…' : ready === false ? 'Not switched on yet' : usage?.limit != null ? `${usage.left} of ${usage.limit} messages left today` : 'Usually replies in 1–2 min'}</span>
@@ -232,7 +232,7 @@ export function ChatWidget({ firstName }: { firstName: string }) {
               {ready === false && <p className="cwa-note">CW Assistant isn’t switched on yet. Miguel is finishing the setup.</p>}
               {!conv?.messages.length && (
                 <div className="cwa-empty">
-                  <div className="cwa-badge lg" aria-hidden="true">CW</div>
+                  <div className="cwa-badge lg" aria-hidden="true"><img src="/cw-assistant.png" alt="" /></div>
                   <h2>Hi {firstName}, how can I help?</h2>
                   <div className="cwa-starters">
                     {STARTERS.map((s) => <button key={s} onClick={() => { setText(s); inputRef.current?.focus(); }}>{s}</button>)}
@@ -241,7 +241,7 @@ export function ChatWidget({ firstName }: { firstName: string }) {
               )}
               {conv?.messages.map((m) => (
                 <div key={m.id} className={`cwa-msg ${m.role} ${m.status}`}>
-                  {m.role === 'assistant' && <div className="cwa-badge sm" aria-hidden="true">CW</div>}
+                  {m.role === 'assistant' && <div className="cwa-badge sm" aria-hidden="true"><img src="/cw-assistant.png" alt="" /></div>}
                   <div className="cwa-bub">
                     {m.status === 'pending' && live ? <div className="cwa-live"><Markdown text={live} /></div> : m.status === 'pending' ? (
                       <span className="cwa-typing" aria-label="CW Assistant is writing">

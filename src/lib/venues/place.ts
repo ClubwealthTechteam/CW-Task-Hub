@@ -78,8 +78,27 @@ export async function geocode(address: string): Promise<{ lat: number; lng: numb
     const p = res?.ok ? (await res.json())?.places?.[0] : null;
     if (p?.location) return { lat: p.location.latitude, lng: p.location.longitude, address: p.formattedAddress ?? address };
   }
-  const q = new URLSearchParams({ q: address, format: 'jsonv2', limit: '1', countrycodes: 'us' });
-  const hit = await fetch(`https://nominatim.openstreetmap.org/search?${q}`, { headers: { 'User-Agent': UA }, cache: 'no-store' })
-    .then((r) => (r.ok ? r.json() : [])).then((a) => a?.[0]).catch(() => null);
-  return hit ? { lat: Number(hit.lat), lng: Number(hit.lon), address: hit.display_name } : null;
+  // OpenStreetMap often finds nothing when the address has a suite/unit ("#100", "Suite 200") or a
+  // country name, so retry with those parts removed. If a shortened version is what matched, keep the
+  // address as the team typed it (suite included) so it isn't lost.
+  const tries = addressVariants(address);
+  for (let i = 0; i < tries.length; i++) {
+    if (i) await new Promise((r) => setTimeout(r, 1100)); // OpenStreetMap allows 1 lookup per second
+    const q = new URLSearchParams({ q: tries[i], format: 'jsonv2', limit: '1', countrycodes: 'us' });
+    const hit = await fetch(`https://nominatim.openstreetmap.org/search?${q}`, { headers: { 'User-Agent': UA }, cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : [])).then((a) => a?.[0]).catch(() => null);
+    if (hit) return { lat: Number(hit.lat), lng: Number(hit.lon), address: i ? address : hit.display_name };
+  }
+  return null;
+}
+
+/** The address as typed, then without suite/unit numbers and country, then also without the ZIP. */
+export function addressVariants(address: string): string[] {
+  const tidy = (s: string) => s.replace(/\s+,/g, ',').replace(/,\s*,/g, ',').replace(/\s{2,}/g, ' ').replace(/^[\s,]+|[\s,]+$/g, '');
+  const noCountry = address.replace(/,?\s*(united states( of america)?|u\.?s\.?a\.?)\s*$/i, '');
+  const noSuite = noCountry
+    .replace(/\s*(?:,\s*)?#\s*[\w-]+\b/g, '')
+    .replace(/\s*(?:,\s*)?\b(?:suite|ste|unit|apt|apartment|room|rm|fl|floor|bldg|building)\b\.?\s*#?\s*(?:[\w-]*\d[\w-]*|[a-z])\b/gi, '');
+  const noZip = noSuite.replace(/\s+\d{5}(?:-\d{4})?\s*$/, '');
+  return [...new Set([address, noSuite, noZip].map(tidy).filter(Boolean))];
 }

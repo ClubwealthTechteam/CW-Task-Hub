@@ -14,8 +14,9 @@ import { EOD_HOME, eodOnly, membersOpen } from '@/lib/access';
 // /api/chat/reply/canva is how the routine puts a design into the person's Canva (same token).
 // /api/backup is called by the nightly GitHub Action with BACKUP_SECRET.
 // /api/routines/report is called by the 'Routines status → hub' routine with ROUTINES_REPORT_SECRET.
-// /api/venues/ratings/requests is called by the venue rating DMs routine with VENUE_RATINGS_SECRET.
-const PUBLIC = ['/login', '/api/auth/login', '/api/health', '/api/chat/reply', '/api/chat/reply/file', '/api/chat/reply/canva', '/api/zapier/inbox', '/api/council/snapshot', '/api/council/keap', '/api/council/report', '/api/backup', '/api/routines/report', '/api/routines/report/run', '/api/venues/ratings/requests'];
+// /api/venues/ratings/requests (and its copy /api/routines/report/venue-ratings, which the venue rating DMs
+// routine calls) take VENUE_RATINGS_SECRET or ROUTINES_REPORT_SECRET.
+const PUBLIC = ['/login', '/api/auth/login', '/api/health', '/api/chat/reply', '/api/chat/reply/file', '/api/chat/reply/canva', '/api/zapier/inbox', '/api/council/snapshot', '/api/council/keap', '/api/council/report', '/api/backup', '/api/routines/report', '/api/routines/report/run', '/api/routines/report/venue-ratings', '/api/venues/ratings/requests'];
 const councilCron = (req: NextRequest) => req.nextUrl.pathname === '/api/council/run' && req.method === 'GET';
 // /celebrations/* are the public poster template, logo and scripts the Slack celebrations routine downloads.
 // The Task Recording write-up routine reads and answers with a token made for that one recording.

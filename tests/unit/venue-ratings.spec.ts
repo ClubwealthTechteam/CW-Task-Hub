@@ -63,7 +63,7 @@ test('rating DMs: each rater once per event, with the venue, place, date and lin
     personId: 'tara', name: 'Tara Hellickson', slackId: 'U03JNPKQ2G2',
     message: 'How was Orlando Regional REALTOR® Association (Orlando, FL, Nov 22, 2026)? Rate it here: https://hub.example/venues/rate/florida--orlando/999',
   });
-  expect(reqs[0].recipients[2].slackId).toBeNull(); // Camille's Slack id isn't known yet
+  expect(reqs[0].recipients[2].slackId).toBe('U0A9JTDE0SH'); // Camille
 
   await markRequestsSent('999', ['tara', 'miguel']);
   reqs = pendingRequests(events, await sentRequests(), 'https://hub.example');

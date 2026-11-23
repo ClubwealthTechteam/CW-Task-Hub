@@ -22,7 +22,7 @@ export const VENUE_RATERS = ['tara', 'miguel', 'camille'];
 export const canRateVenues = (user: Person | null | undefined) => Boolean(user) && (isSuperAdmin(user) || VENUE_RATERS.includes(user!.id));
 
 /** Slack member ids for the DM. Camille's isn't known yet: fill it in, until then the routine skips her. */
-export const CAMILLE_SLACK_ID = '';
+export const CAMILLE_SLACK_ID = 'U0A9JTDE0SH';
 export const RATER_SLACK_IDS: Record<string, string> = { tara: 'U03JNPKQ2G2', miguel: 'U0C6BGGHY3C', camille: CAMILLE_SLACK_ID };
 
 export interface VenueRating {

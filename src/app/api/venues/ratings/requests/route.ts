@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   if (denied) return denied;
   const b = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const people = Array.isArray(b.personIds) ? b.personIds.filter((p): p is string => typeof p === 'string' && VENUE_RATERS.includes(p)) : [];
-  if (!isEventId(b.eventId) || !people.length) return NextResponse.json({ error: 'Send eventId and personIds (tara, miguel, camille)' }, { status: 400 });
+  if (!isEventId(b.eventId) || !people.length) return NextResponse.json({ error: 'Send eventId and personIds (andrea, liz, miguel)' }, { status: 400 });
   await markRequestsSent(b.eventId, people);
   return NextResponse.json({ recorded: people.map((p) => `${b.eventId}:${p}`) });
 }

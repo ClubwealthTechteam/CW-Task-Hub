@@ -18,12 +18,11 @@ export const RATING_SCORES = ['Good', 'Okay', 'Bad'] as const;
 export const RATING_VERDICTS = ['All good', 'Not recommended next time', 'Do not come back'] as const;
 
 /** Who gets the DM and can rate (plus super admins). */
-export const VENUE_RATERS = ['tara', 'miguel', 'camille'];
+export const VENUE_RATERS = ['andrea', 'liz', 'miguel'];
 export const canRateVenues = (user: Person | null | undefined) => Boolean(user) && (isSuperAdmin(user) || VENUE_RATERS.includes(user!.id));
 
-/** Slack member ids for the DM. Camille's isn't known yet: fill it in, until then the routine skips her. */
-export const CAMILLE_SLACK_ID = 'U0A9JTDE0SH';
-export const RATER_SLACK_IDS: Record<string, string> = { tara: 'U03JNPKQ2G2', miguel: 'U0C6BGGHY3C', camille: CAMILLE_SLACK_ID };
+/** Slack member ids for the DM (a rater without one is listed with slackId null and skipped). */
+export const RATER_SLACK_IDS: Record<string, string> = { andrea: 'U0AJX1UUZKK', liz: 'U0AJBMGH96F', miguel: 'U0C6BGGHY3C' };
 
 export interface VenueRating {
   eventId: string;

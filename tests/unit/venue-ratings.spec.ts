@@ -28,12 +28,14 @@ test('every area needs Good, Okay or Bad, and a known verdict', () => {
   expect(r).toEqual({ rating: { ...full, note: undefined } });
 });
 
-test('who can rate: Tara, Miguel, Camille and super admins, not the rest of the team', () => {
-  expect(canRateVenues(personById('tara'))).toBe(true);
+test('who can rate: Andrea, Liz, Miguel and super admins, not the rest of the team', () => {
+  expect(canRateVenues(personById('andrea'))).toBe(true);
+  expect(canRateVenues(personById('liz'))).toBe(true);
   expect(canRateVenues(personById('miguel'))).toBe(true);
-  expect(canRateVenues(personById('camille'))).toBe(true);
   expect(canRateVenues(personById('omerson'))).toBe(true); // super admin
-  expect(canRateVenues(personById('andrea'))).toBe(false);
+  expect(canRateVenues(personById('camille'))).toBe(true); // super admin, but no DM
+  expect(canRateVenues(personById('ali'))).toBe(false);
+  expect(canRateVenues(personById('tara'))).toBe(false);
   expect(canRateVenues(null)).toBe(false);
   expect(isEventId('1234567890')).toBe(true);
   expect(isEventId('12a')).toBe(false);
@@ -58,17 +60,18 @@ test('rating DMs: each rater once per event, with the venue, place, date and lin
   let reqs = pendingRequests(events, await sentRequests(), 'https://hub.example');
   expect(reqs).toHaveLength(1);
   expect(reqs[0].link).toBe('https://hub.example/venues/rate/florida--orlando/999');
-  expect(reqs[0].recipients.map((r) => r.personId)).toEqual(['tara', 'miguel', 'camille']);
+  expect(reqs[0].recipients.map((r) => r.personId)).toEqual(['andrea', 'liz', 'miguel']);
   expect(reqs[0].recipients[0]).toEqual({
-    personId: 'tara', name: 'Tara Hellickson', slackId: 'U03JNPKQ2G2',
+    personId: 'andrea', name: 'Andrea Uy', slackId: 'U0AJX1UUZKK',
     message: 'How was Orlando Regional REALTOR® Association (Orlando, FL, Nov 22, 2026)? Rate it here: https://hub.example/venues/rate/florida--orlando/999',
   });
-  expect(reqs[0].recipients[2].slackId).toBe('U0A9JTDE0SH'); // Camille
+  expect(reqs[0].recipients[1].slackId).toBe('U0AJBMGH96F'); // Liz
+  expect(reqs[0].recipients[2].slackId).toBe('U0C6BGGHY3C'); // Miguel
 
-  await markRequestsSent('999', ['tara', 'miguel']);
+  await markRequestsSent('999', ['andrea', 'miguel']);
   reqs = pendingRequests(events, await sentRequests(), 'https://hub.example');
-  expect(reqs[0].recipients.map((r) => r.personId)).toEqual(['camille']);
-  await markRequestsSent('999', ['camille']);
+  expect(reqs[0].recipients.map((r) => r.personId)).toEqual(['liz']);
+  await markRequestsSent('999', ['liz']);
   expect(pendingRequests(events, await sentRequests(), 'https://hub.example')).toEqual([]);
 });
 

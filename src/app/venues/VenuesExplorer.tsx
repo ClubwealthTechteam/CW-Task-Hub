@@ -22,6 +22,9 @@ interface Info {
 interface Place { address?: string; phone?: string; website?: string; source: string; nearest?: boolean }
 interface Ev { id: string; name: string; start: string; status: string; url: string; capacity?: number; sold?: number }
 interface Change { at: number; by: string; byName: string; field: string; from?: string; to?: string }
+interface Rating { eventId: string; eventName?: string; eventDate?: string; by: string; byName: string; at: number; scores: Record<string, string>; verdict: string; note?: string }
+const RATING_LABELS: [string, string][] = [['cleanliness', 'Cleanliness'], ['staff', 'Staff & association'], ['arrangement', 'Arrangement'], ['neighborhood', 'Neighborhood']];
+const RATING_TONE: Record<string, string> = { Good: 'ok', Okay: 'warn', Bad: 'bad', 'All good': 'ok', 'Not recommended next time': 'warn', 'Do not come back': 'bad' };
 
 const NO_STATUS = 'No status yet';
 const STATUS_TONE: Record<string, string> = { Renting: 'ok', 'Not Renting': 'bad', [NO_STATUS]: 'muted' };
@@ -70,7 +73,8 @@ export function VenuesExplorer({ editUrl, types, statuses, amenities, contracts 
   const [draft, setDraft] = useState<Info>({});
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
-  const [tab, setTab] = useState<'overview' | 'booking' | 'files' | 'events' | 'history'>('overview');
+  const [tab, setTab] = useState<'overview' | 'booking' | 'files' | 'events' | 'ratings' | 'history'>('overview');
+  const [ratings, setRatings] = useState<Rating[] | null>(null);
   const [conflict, setConflict] = useState<{ info: Info; name?: string } | null>(null);
   const [place, setPlace] = useState<Place | null | 'loading'>(null);
   const [events, setEvents] = useState<{ connected: boolean; events: Ev[]; error?: string } | 'loading' | null>(null);
@@ -122,8 +126,9 @@ export function VenuesExplorer({ editUrl, types, statuses, amenities, contracts 
   const venue = venues.find((v) => v.id === sel);
   const saved = venue ? info[venue.id] : undefined;
   useEffect(() => {
-    setDraft(editable(saved)); setMsg(''); setConflict(null); setHistory(null);
+    setDraft(editable(saved)); setMsg(''); setConflict(null); setHistory(null); setRatings(null);
     if (!venue) return;
+    fetch(`/api/venues/ratings?id=${encodeURIComponent(venue.id)}`).then((r) => r.json()).then((d) => setRatings(d.ratings ?? [])).catch(() => setRatings([]));
     setPlace('loading'); setEvents('loading');
     fetch(`/api/venues/place?id=${encodeURIComponent(venue.id)}`).then((r) => r.json()).then((d) => setPlace(d.place ?? null)).catch(() => setPlace(null));
     fetch(`/api/venues/events?id=${encodeURIComponent(venue.id)}`).then((r) => r.json()).then(setEvents).catch(() => setEvents(null));
@@ -375,6 +380,8 @@ export function VenuesExplorer({ editUrl, types, statuses, amenities, contracts 
                   <span className={`vn-status tone-${STATUS_TONE[statusOf(draft)]}`}>{statusOf(draft)}</span>
                   {saved?.type && <span className="vn-type">{saved.type}</span>}
                   {isDue(saved) && <span className="vn-type is-due">Follow-up due</span>}
+                  {ratings?.[0] && <button className={`vn-status tone-${RATING_TONE[ratings[0].verdict] ?? 'muted'} vn-verdict`} onClick={() => setTab('ratings')}
+                    title={`Latest rating: ${ratings[0].byName}${ratings[0].eventDate ? `, event ${fmtDate(ratings[0].eventDate)}` : ''}`}>★ {ratings[0].verdict}</button>}
                   <a className="vn-link" href={`https://www.google.com/maps/search/?api=1&query=${venue.lat},${venue.lng}`} target="_blank" rel="noreferrer">Google Maps ↗</a>
                 </div>
                 <div className="vn-head-actions">
@@ -384,9 +391,9 @@ export function VenuesExplorer({ editUrl, types, statuses, amenities, contracts 
                   {undo?.kind === 'pin' && undo.id === venue.id && moveMsg === 'Pin moved' && <button className="vn-textbtn vn-undo" onClick={undoLast}>Undo</button>}
                 </div>
                 <nav className="vn-tabs" role="tablist">
-                  {(['overview', 'booking', 'files', 'events', 'history'] as const).map((t) => (
+                  {(['overview', 'booking', 'files', 'events', 'ratings', 'history'] as const).map((t) => (
                     <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'is-on' : ''} onClick={() => setTab(t)}>
-                      {t === 'overview' ? 'Overview' : t === 'booking' ? 'Booking' : t === 'files' ? `Files${saved?.files?.length ? ` · ${saved.files.length}` : ''}` : t === 'events' ? 'Events' : 'History'}
+                      {t === 'overview' ? 'Overview' : t === 'booking' ? 'Booking' : t === 'files' ? `Files${saved?.files?.length ? ` · ${saved.files.length}` : ''}` : t === 'events' ? 'Events' : t === 'ratings' ? `Ratings${ratings?.length ? ` · ${ratings.length}` : ''}` : 'History'}
                     </button>
                   ))}
                 </nav>
@@ -526,6 +533,31 @@ export function VenuesExplorer({ editUrl, types, statuses, amenities, contracts 
                               {e.sold != null ? ` · ${e.sold}${e.capacity ? `/${e.capacity}` : ''} registered` : ''}
                             </span>
                             {e.start && e.start > new Date().toISOString() && <span className="vn-type">Upcoming</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                )}
+
+                {tab === 'ratings' && (
+                  <>
+                    {ratings === null && <p className="muted vn-small">Loading…</p>}
+                    {ratings && !ratings.length && <p className="muted">No ratings yet. Tara, Miguel and Camille get a Slack message to rate the venue the day after each event here.</p>}
+                    {ratings && ratings.length > 0 && (
+                      <ul className="vn-ratings">
+                        {ratings.map((r) => (
+                          <li key={`${r.eventId}-${r.by}`} className="vn-rating">
+                            <div className="vn-rating-top">
+                              <span className={`vn-status tone-${RATING_TONE[r.verdict] ?? 'muted'}`}>{r.verdict}</span>
+                              <b className="vn-small">{r.byName}</b>
+                              <span className="muted vn-small">{new Date(r.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                            </div>
+                            <span className="muted vn-small">{[r.eventName ?? `Event ${r.eventId}`, fmtDate(r.eventDate)].filter(Boolean).join(' · ')}</span>
+                            <div className="vn-rating-scores">
+                              {RATING_LABELS.map(([k, label]) => <span key={k}><i className={`vn-dot tone-${RATING_TONE[r.scores[k]] ?? 'muted'}`} />{label}: {r.scores[k]}</span>)}
+                            </div>
+                            {r.note && <p className="vn-rating-note">“{r.note}”</p>}
                           </li>
                         ))}
                       </ul>

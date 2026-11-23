@@ -3,6 +3,7 @@
 import { personById } from '@/config/people';
 import { allVenues } from '@/lib/venues/all';
 import { allVenueInfo, FIELD_LABELS } from '@/lib/venues/info';
+import { latestVerdicts } from '@/lib/venues/ratings';
 import { venuesUser } from '../guard';
 
 export const dynamic = 'force-dynamic';
@@ -16,12 +17,14 @@ export async function GET() {
   const { error } = await venuesUser();
   if (error) return error;
   const [{ venues }, info] = await Promise.all([allVenues(), allVenueInfo()]);
+  const verdicts = await latestVerdicts(venues.map((v) => v.id));
   const fields = Object.keys(FIELD_LABELS);
-  const head = ['State', 'Venue', 'On Google map', 'Latitude', 'Longitude', ...fields.map((f) => FIELD_LABELS[f]), 'Files', 'Last updated', 'Updated by'];
+  const head = ['State', 'Venue', 'On Google map', 'Latitude', 'Longitude', ...fields.map((f) => FIELD_LABELS[f]), 'Latest rating', 'Files', 'Last updated', 'Updated by'];
   const rows = venues.map((v) => {
     const i = (info[v.id] ?? {}) as Record<string, unknown>;
     return [v.state, v.name, v.custom ? 'No (added in hub)' : 'Yes', v.lat, v.lng,
       ...fields.map((f) => (f === 'address' ? i.address ?? v.address : i[f])),
+      verdicts[v.id] ?? '',
       ((i.files as { name: string }[] | undefined) ?? []).map((x) => x.name),
       i.updatedAt ? new Date(i.updatedAt as number).toISOString().slice(0, 16).replace('T', ' ') : '',
       i.updatedBy ? personById(i.updatedBy as string)?.name ?? i.updatedBy : ''];

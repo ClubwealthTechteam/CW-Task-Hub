@@ -1,6 +1,6 @@
 // Events venues: the pins come from the Events team's Google My Maps ("CLUB WEALTH · Venues", by Andrea).
 // Google stays the source of the map, the icons and the locations; the hub reads the map's public KML
-// (read-only) and keeps the team's own notes per venue (description, tags, status…) in the hub store.
+// (read-only) and keeps the team's own notes per venue (type, status, amenities…) in the hub store.
 
 import { cached, getJSON, setJSON } from '@/lib/store';
 

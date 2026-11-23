@@ -1909,6 +1909,14 @@ html.hdr-collapsed .topbar { z-index: 1000; }
 .vnm { isolation: isolate; z-index: 0; }
 .vn-undo { font-size: 12.5px; padding: 0; }
 
+/* Venues: category glyph pins in the list, type chips and legend; amenity chips (multi-select). */
+.vn-pin { display: inline-flex; line-height: 0; }
+.vn-chips button { display: inline-flex; align-items: center; gap: 5px; }
+.vn-chips button .vn-pin svg { filter: drop-shadow(0 0 0.5px rgba(255, 255, 255, .9)); }
+.vn-amenities button.is-on span { font-weight: 800; }
+.vn-legend-h { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--line); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.vn-legend .vn-pin { display: inline-flex; }
+
 /* Admin settings → Routines */
 .rt { margin-top: 18px; display: flex; flex-direction: column; gap: 12px; }
 .rt-h h2 { margin: 0 0 2px; font-size: 18px; }

@@ -1,30 +1,29 @@
 'use client';
 
 // The hub's own venues map (Leaflet + OpenStreetMap tiles; free, no key). Every venue is a pin colored by
-// status, type or its Google color; clicking a pin picks the venue; the picked pin can be dragged to fix
-// its spot. Replaces the Google My Maps embed so new venues show up without adding a pin in Google.
+// status, type or its Google color, with its category's glyph inside; clicking a pin picks the venue; the
+// picked pin can be dragged to fix its spot. Replaces the Google My Maps embed so new venues show up without adding a pin in Google.
 
 import { useEffect, useRef, useState } from 'react';
 import type * as Leaflet from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { PIN_PATH, pinMark } from './glyphs';
 
 export interface MapVenue { id: string; name: string; lat: number; lng: number; color: string; icon: 'pin' | 'letter' }
 
-function pinHtml(color: string, letter: boolean, selected: boolean, dim: boolean) {
+function pinHtml(color: string, type: string | undefined, letter: boolean, selected: boolean, dim: boolean) {
   const size = selected ? 38 : 28;
-  const mark = letter
-    ? `<text x="12" y="12.6" text-anchor="middle" font-size="8" font-weight="800" fill="#fff" font-family="system-ui,sans-serif">T</text>`
-    : `<circle cx="12" cy="9" r="2.7" fill="#fff"/>`;
   return `<div class="vnm-pin${selected ? ' is-sel' : ''}${dim ? ' is-dim' : ''}" style="width:${size}px;height:${size}px">
     <svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">
-      <path d="M12 1.6a7.4 7.4 0 0 0-7.4 7.4c0 5.5 7.4 13.4 7.4 13.4s7.4-7.9 7.4-13.4A7.4 7.4 0 0 0 12 1.6Z" fill="${color}" stroke="#fff" stroke-width="1.4"/>
-      ${mark}
+      <path d="${PIN_PATH}" fill="${color}" stroke="#fff" stroke-width="1.4"/>
+      ${pinMark(type, color, letter)}
     </svg></div>`;
 }
 
-export function VenuesMap({ venues, colors, selected, shown, movable, onPick, onMoved }: {
+export function VenuesMap({ venues, colors, types, selected, shown, movable, onPick, onMoved }: {
   venues: MapVenue[];
   colors: Record<string, string>;   // pin color per venue id (status / type / Google)
+  types: Record<string, string | undefined>; // category per venue id (the glyph inside the pin)
   selected?: string;
   shown: Set<string>;               // venues matching the list's filters (others are faded)
   movable: boolean;                 // the picked pin can be dragged
@@ -75,7 +74,7 @@ export function VenuesMap({ venues, colors, selected, shown, movable, onPick, on
       seen.add(v.id);
       const isSel = v.id === selected;
       const icon = mod.divIcon({
-        html: pinHtml(colors[v.id] ?? v.color, v.icon === 'letter', isSel, !shown.has(v.id) && !isSel),
+        html: pinHtml(colors[v.id] ?? v.color, types[v.id], v.icon === 'letter', isSel, !shown.has(v.id) && !isSel),
         className: 'vnm-icon', iconSize: isSel ? [38, 38] : [28, 28], iconAnchor: isSel ? [19, 36] : [14, 27],
       });
       let mk = markers.current.get(v.id);

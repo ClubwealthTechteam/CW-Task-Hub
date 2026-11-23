@@ -7,6 +7,8 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { amenityOf, toggleAmenity } from '@/lib/venues/options';
+import { pinSvg } from './glyphs';
 
 const VenuesMap = dynamic(() => import('./VenuesMap').then((m) => m.VenuesMap), { ssr: false, loading: () => <div className="vnm vnm-loading">Loading map…</div> });
 
@@ -21,32 +23,30 @@ interface Place { address?: string; phone?: string; website?: string; source: st
 interface Ev { id: string; name: string; start: string; status: string; url: string; capacity?: number; sold?: number }
 interface Change { at: number; by: string; byName: string; field: string; from?: string; to?: string }
 
-const STATUS_TONE: Record<string, string> = { Renting: 'ok', 'Not Renting': 'bad', 'Not Available': 'warn', 'Not contacted yet': 'muted' };
-const STATUS_COLOR: Record<string, string> = { Renting: '#237a45', 'Not Renting': '#c0362c', 'Not Available': '#c98a17', 'Not contacted yet': '#8a94a7' };
-const TYPE_COLOR: Record<string, string> = { 'Realtor Association': '#1f5bd8', 'Builders Association': '#7a3fc2', Hotel: '#d2691e', 'Convention Center': '#0f8a8a' };
+const NO_STATUS = 'No status yet';
+const STATUS_TONE: Record<string, string> = { Renting: 'ok', 'Not Renting': 'bad', [NO_STATUS]: 'muted' };
+const STATUS_COLOR: Record<string, string> = { Renting: '#237a45', 'Not Renting': '#c0362c', [NO_STATUS]: '#8a94a7' };
+const TYPE_COLOR: Record<string, string> = { Hotel: '#d2691e', Association: '#1f5bd8', 'Home Builder': '#7a3fc2', 'Convention Center': '#0f8a8a', 'Apartment Association': '#b8336a' };
 const NO_TYPE = '#8a94a7';
+const ICON_INK = '#4a5872'; // legend pins when the colour isn't the type
 type ColorBy = 'status' | 'type' | 'google';
 const FIELD_NAMES: Record<string, string> = {
-  type: 'Type', status: 'Status', description: 'Description', tags: 'Tags', classroom: 'Classroom max', theater: 'Theater max', rate: 'Rate', deposit: 'Deposit',
+  type: 'Type', status: 'Status', description: 'Description', tags: 'Amenities', classroom: 'Classroom max', theater: 'Theater max', rate: 'Rate', deposit: 'Deposit',
   cancellation: 'Cancellation terms', contract: 'Contract', contact: 'Contact', phone: 'Phone', website: 'Website', address: 'Address',
   lastContacted: 'Last contacted', followUp: 'Follow-up', notes: 'Notes', file: 'File', added: 'Venue', location: 'Pin moved',
 };
 const title = (s: string) => s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 const editable = (i?: Info): Info => { const { files, updatedAt, updatedBy, ...rest } = i ?? {}; void files; void updatedAt; void updatedBy; return rest; };
-const statusOf = (i?: Info) => i?.status ?? 'Not contacted yet';
+const statusOf = (i?: Info) => i?.status ?? NO_STATUS;
 const fmtDate = (d?: string) => (d ? new Date(`${d}T12:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '');
 
-function Pin({ v, color }: { v: Venue; color?: string }) {
-  return (
-    <svg className="vn-pin" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-      <path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Z" fill={color ?? v.color} />
-      {v.icon === 'letter' ? <text x="12" y="12.5" textAnchor="middle" fontSize="8" fontWeight="800" fill="#fff">T</text> : <circle cx="12" cy="9" r="2.6" fill="#fff" />}
-    </svg>
-  );
+/** A small pin with the category glyph, as on the map (the glyph markup is the app's own fixed SVG). */
+function Pin({ type, color, letter, size = 18 }: { type?: string; color: string; letter?: boolean; size?: number }) {
+  return <span className="vn-pin" dangerouslySetInnerHTML={{ __html: pinSvg(type, color, letter, size) }} />;
 }
 
-export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUrl: string; types: string[]; statuses: string[]; contracts: string[] }) {
+export function VenuesExplorer({ editUrl, types, statuses, amenities, contracts }: { editUrl: string; types: string[]; statuses: string[]; amenities: string[]; contracts: string[] }) {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [info, setInfo] = useState<Record<string, Info>>({});
   const [names, setNames] = useState<Record<string, string>>({});
@@ -68,7 +68,6 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
   const [undo, setUndo] = useState<null | { kind: 'info'; id: string; before: Info } | { kind: 'pin'; id: string; lat: number; lng: number }>(null);
   const [undoing, setUndoing] = useState(false);
   const [draft, setDraft] = useState<Info>({});
-  const [tagInput, setTagInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const [tab, setTab] = useState<'overview' | 'booking' | 'files' | 'events' | 'history'>('overview');
@@ -106,7 +105,7 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
       if (fStatus && statusOf(i) !== fStatus) return false;
       if (dueOnly && !isDue(i)) return false;
       if (!s) return true;
-      return [v.name, v.state, v.address, i.description, i.notes, i.contact, i.address, ...(i.tags ?? [])].some((x) => x?.toLowerCase().includes(s));
+      return [v.name, v.state, v.address, i.type, i.notes, i.contact, i.address, ...(i.tags ?? [])].some((x) => x?.toLowerCase().includes(s));
     });
   }, [venues, info, q, fType, fStatus, dueOnly]); // eslint-disable-line react-hooks/exhaustive-deps
   const filtering = Boolean(q || fType || fStatus || dueOnly);
@@ -117,11 +116,13 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
     const c = colorBy === 'status' ? STATUS_COLOR[statusOf(i)] : colorBy === 'type' ? (i?.type ? TYPE_COLOR[i.type] : NO_TYPE) ?? NO_TYPE : v.color;
     return [v.id, c];
   })), [venues, info, colorBy, sel, draft.status, draft.type]);
+  // The glyph inside each pin is the category, whatever the colour shows (the picked venue: the unsaved choice).
+  const pinTypes = useMemo(() => Object.fromEntries(venues.map((v) => [v.id, v.id === sel ? draft.type : info[v.id]?.type])), [venues, info, sel, draft.type]);
 
   const venue = venues.find((v) => v.id === sel);
   const saved = venue ? info[venue.id] : undefined;
   useEffect(() => {
-    setDraft(editable(saved)); setMsg(''); setTagInput(''); setConflict(null); setHistory(null);
+    setDraft(editable(saved)); setMsg(''); setConflict(null); setHistory(null);
     if (!venue) return;
     setPlace('loading'); setEvents('loading');
     fetch(`/api/venues/place?id=${encodeURIComponent(venue.id)}`).then((r) => r.json()).then((d) => setPlace(d.place ?? null)).catch(() => setPlace(null));
@@ -145,11 +146,11 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
   const dirty = venue && JSON.stringify(draft) !== JSON.stringify(editable(saved));
 
   const set = (k: keyof Info, v: unknown) => setDraft((d) => ({ ...d, [k]: v === '' ? undefined : v }));
-  const addTag = () => {
-    const t = tagInput.trim();
-    if (t && !(draft.tags ?? []).includes(t)) set('tags', [...(draft.tags ?? []), t]);
-    setTagInput('');
-  };
+  // Amenities live in `tags`. Older free-text tags that match no amenity stay in the draft untouched (so just
+  // opening a venue changes nothing); the server drops them when the venue is saved.
+  const picked = (draft.tags ?? []).filter((t) => amenityOf(t));
+  const oldTags = (draft.tags ?? []).filter((t) => !amenityOf(t));
+  const toggle = (a: string) => { const next = [...toggleAmenity(picked, a), ...oldTags]; set('tags', next.length ? next : undefined); };
   const save = async () => {
     if (!venue) return;
     const before = editable(saved);
@@ -266,7 +267,7 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
             {addMsg && <p className="vn-err">{addMsg}</p>}
           </div>
         )}
-        <input className="vn-search" placeholder="Search venues, tags, notes…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input className="vn-search" placeholder="Search venues, amenities, notes…" value={q} onChange={(e) => setQ(e.target.value)} />
         <div className="vn-filters">
           <select value={fType} onChange={(e) => setFType(e.target.value)} aria-label="Filter by type">
             <option value="">All types</option>
@@ -290,7 +291,7 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
             const list = shown.filter((v) => v.state === st);
             if (filtering && !list.length) return null;
             const isOpen = open[st] ?? filtering;
-            const counts = statuses.map((s) => [s, all.filter((v) => statusOf(info[v.id]) === s).length] as const).filter(([, n]) => n);
+            const counts = [...statuses, NO_STATUS].map((s) => [s, all.filter((v) => statusOf(info[v.id]) === s).length] as const).filter(([, n]) => n);
             return (
               <section key={st} className="vn-state">
                 <div className="vn-state-row">
@@ -311,7 +312,7 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
                       return (
                         <li key={v.id}>
                           <button className={`vn-venue${v.id === sel ? ' is-sel' : ''}`} onClick={() => pick(v)}>
-                            <Pin v={v} color={pinColors[v.id]} />
+                            <Pin type={pinTypes[v.id]} color={pinColors[v.id] ?? v.color} letter={v.icon === 'letter'} />
                             <span className="vn-venue-name">{v.name}</span>
                             {(i?.classroom || i?.theater) && <span className="vn-cap" title="Classroom / Theater max">{i?.classroom ?? '–'}/{i?.theater ?? '–'}</span>}
                             {v.custom && <span className="vn-hub" title="Added in the hub, not on the Google map yet">hub</span>}
@@ -332,7 +333,7 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
       )}
 
       <section className="vn-map" aria-label="Map">
-        <VenuesMap venues={venues} colors={pinColors} selected={sel} shown={shownIds} movable={moving}
+        <VenuesMap venues={venues} colors={pinColors} types={pinTypes} selected={sel} shown={shownIds} movable={moving}
           onPick={(id) => { const v = venues.find((x) => x.id === id); if (v) { pick(v); setOpen((o) => ({ ...o, [v.state]: true })); } }}
           onMoved={(id, lat, lng) => { if (id === sel) movePin({ lat, lng }); }} />
         {!left && <button className="vn-reopen at-left" onClick={() => setLeft(true)}>» Venues</button>}
@@ -346,8 +347,10 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
               <option value="google">Google map colors</option>
             </select>
           </label>
-          {colorBy === 'status' && statuses.map((s) => <span key={s}><i style={{ background: STATUS_COLOR[s] }} />{s}</span>)}
-          {colorBy === 'type' && <>{types.map((t) => <span key={t}><i style={{ background: TYPE_COLOR[t] }} />{t}</span>)}<span><i style={{ background: NO_TYPE }} />No type yet</span></>}
+          {colorBy === 'status' && [...statuses, NO_STATUS].map((s) => <span key={s}><i style={{ background: STATUS_COLOR[s] }} />{s}</span>)}
+          <b className="vn-legend-h">{colorBy === 'type' ? 'Type' : 'Icon = type'}</b>
+          {types.map((t) => <span key={t}><Pin type={t} color={colorBy === 'type' ? TYPE_COLOR[t] : ICON_INK} size={20} />{t}</span>)}
+          <span><Pin color={colorBy === 'type' ? NO_TYPE : ICON_INK} size={20} />No type yet</span>
         </div>
       </section>
 
@@ -407,7 +410,7 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
                       <div className="vn-seg">
                         {statuses.map((st) => (
                           <button key={st} className={`tone-${STATUS_TONE[st]}${statusOf(draft) === st ? ' is-on' : ''}`}
-                            onClick={() => set('status', st === 'Not contacted yet' ? '' : st)}>{st}</button>
+                            onClick={() => set('status', draft.status === st ? '' : st)} aria-pressed={draft.status === st}>{st}</button>
                         ))}
                       </div>
                     </div>
@@ -415,23 +418,24 @@ export function VenuesExplorer({ editUrl, types, statuses, contracts }: { editUr
                       <span className="vn-label">Type</span>
                       <div className="vn-chips">
                         {types.map((t) => (
-                          <button key={t} className={draft.type === t ? 'is-on' : ''} onClick={() => set('type', draft.type === t ? '' : t)}>{t}</button>
+                          <button key={t} className={draft.type === t ? 'is-on' : ''} onClick={() => set('type', draft.type === t ? '' : t)} aria-pressed={draft.type === t}>
+                            <Pin type={t} color={TYPE_COLOR[t]} size={16} />{t}
+                          </button>
                         ))}
                       </div>
                     </div>
                     {venue.pin?.text && (
                       <div className="vn-callout"><span className="muted vn-small">On the Google map pin:</span><span style={{ whiteSpace: 'pre-line' }}>{venue.pin.text}</span></div>
                     )}
-                    <label className="vn-field">Description<textarea rows={3} value={draft.description ?? ''} onChange={(e) => set('description', e.target.value)} placeholder="What's the room like? Anything the team should know?" /></label>
-                    <div className="vn-field">
-                      <span>Tags</span>
-                      <div className="vn-tagbox">
-                        {(draft.tags ?? []).map((t) => (
-                          <span key={t} className="vn-tag">{t}<button aria-label={`Remove ${t}`} onClick={() => set('tags', (draft.tags ?? []).filter((x) => x !== t))}>×</button></span>
-                        ))}
-                        <input placeholder={draft.tags?.length ? 'Add…' : 'Add a tag, press Enter'} value={tagInput} onChange={(e) => setTagInput(e.target.value)}
-                          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }} onBlur={addTag} />
+                    <div className="vn-group">
+                      <span className="vn-label">Amenities</span>
+                      <div className="vn-chips vn-amenities">
+                        {amenities.map((a) => {
+                          const on = picked.includes(a);
+                          return <button key={a} className={on ? 'is-on' : ''} onClick={() => toggle(a)} aria-pressed={on}>{on && <span aria-hidden="true">✓ </span>}{a}</button>;
+                        })}
                       </div>
+                      {oldTags.length > 0 && <p className="muted vn-small">Old tags, not kept when you next save: {oldTags.join(', ')}. Put anything worth keeping in Notes.</p>}
                     </div>
 
                     <h3 className="vn-h">Address & contact</h3>

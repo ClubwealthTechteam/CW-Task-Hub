@@ -21,7 +21,7 @@ export async function GET() {
   const rows = venues.map((v) => {
     const i = (info[v.id] ?? {}) as Record<string, unknown>;
     return [v.state, v.name, v.custom ? 'No (added in hub)' : 'Yes', v.lat, v.lng,
-      ...fields.map((f) => (f === 'status' ? i.status ?? 'Not contacted yet' : f === 'address' ? i.address ?? v.address : i[f])),
+      ...fields.map((f) => (f === 'address' ? i.address ?? v.address : i[f])),
       ((i.files as { name: string }[] | undefined) ?? []).map((x) => x.name),
       i.updatedAt ? new Date(i.updatedAt as number).toISOString().slice(0, 16).replace('T', ' ') : '',
       i.updatedBy ? personById(i.updatedBy as string)?.name ?? i.updatedBy : ''];

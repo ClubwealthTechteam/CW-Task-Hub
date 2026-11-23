@@ -6,6 +6,7 @@ const PORT = 3100;
 
 export default defineConfig({
   testDir: 'tests',
+  testIgnore: 'unit/**', // unit tests run on their own: npm run test:unit
   timeout: 30_000,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',

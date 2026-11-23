@@ -1,23 +1,23 @@
-// The Events team's own details for each venue (Google My Maps can't hold these): description, type,
-// status, tags, contact, follow-up dates, booking/cost and files. Stored in the hub store; Google is
+// The Events team's own details for each venue (Google My Maps can't hold these): type, status,
+// amenities (kept in `tags`), contact, follow-up dates, booking/cost and files. Stored in the hub store; Google is
 // never written. Every save is checked against the version the person started from (so two people
 // can't silently overwrite each other) and logged in the venue's history.
 
 import type { Person } from '@/config/people';
 import { isSuperAdmin } from '@/lib/access';
 import { getJSON, setJSON } from '@/lib/store';
+import { cleanAmenities, readVenueInfo, VENUE_STATUSES, VENUE_TYPES } from './options';
 
-export const VENUE_TYPES = ['Realtor Association', 'Builders Association', 'Hotel', 'Convention Center'] as const;
-export const VENUE_STATUSES = ['Renting', 'Not Renting', 'Not Available', 'Not contacted yet'] as const;
+export { VENUE_AMENITIES, VENUE_STATUSES, VENUE_TYPES } from './options';
 export const CONTRACT_STATUSES = ['No contract', 'Quote received', 'Contract sent', 'Signed', 'Cancelled'] as const;
 
 export interface VenueFileRef { id: string; name: string; type: string; size: number; at: number; by: string }
 
 export interface VenueInfo {
-  description?: string;
+  description?: string;   // no longer shown or edited; older values are kept as they are
   type?: string;
   status?: string;
-  tags?: string[];
+  tags?: string[];        // the venue's amenities (VENUE_AMENITIES)
   contact?: string;
   phone?: string;
   website?: string;
@@ -38,7 +38,7 @@ export interface VenueInfo {
 
 /** Field labels, in the order they show in the history and the export. */
 export const FIELD_LABELS: Record<string, string> = {
-  type: 'Type', status: 'Status', description: 'Description', tags: 'Tags', classroom: 'Classroom max', theater: 'Theater max', rate: 'Rate',
+  type: 'Type', status: 'Status', tags: 'Amenities', classroom: 'Classroom max', theater: 'Theater max', rate: 'Rate',
   deposit: 'Deposit', cancellation: 'Cancellation terms', contract: 'Contract', contact: 'Contact', phone: 'Phone',
   website: 'Website', address: 'Address', lastContacted: 'Last contacted', followUp: 'Follow-up', notes: 'Notes',
 };
@@ -52,23 +52,32 @@ export interface VenueChange { at: number; by: string; field: string; from?: str
 export const VENUE_PEOPLE = ['ali', 'andrea', 'liz'];
 export const canUseVenues = (user: Person | null) => Boolean(user) && (isSuperAdmin(user) || VENUE_PEOPLE.includes(user!.id));
 
-export const allVenueInfo = () => getJSON<Record<string, VenueInfo>>(KEY, {});
+/** Every venue's details as stored (only for writing back: reads go through allVenueInfo). */
+const storedVenueInfo = () => getJSON<Record<string, VenueInfo>>(KEY, {});
+
+/** Every venue's details, with old type/status names read as today's (see readVenueInfo). The store isn't changed. */
+export async function allVenueInfo(): Promise<Record<string, VenueInfo>> {
+  const all = await storedVenueInfo();
+  return Object.fromEntries(Object.entries(all).map(([id, i]) => [id, readVenueInfo(i)]));
+}
 export const venueHistory = (id: string) => getJSON<VenueChange[]>(historyKey(id), []);
 
 const clip = (v: unknown, n: number) => (typeof v === 'string' ? v.trim().slice(0, n) : undefined) || undefined;
 const date = (v: unknown) => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined);
 const oneOf = (list: readonly string[], v: unknown) => list.find((x) => x === v);
 
-/** Cleans what the browser sent: only known fields, known type/status values, short strings. Files are kept server-side. */
+/**
+ * Cleans what the browser sent: only known fields, known type/status values, short strings, and only the
+ * fixed amenities in `tags` (old free-text tags are dropped here, i.e. when the venue is next saved).
+ * Files are kept server-side. The description is still kept so older notes aren't lost.
+ */
 export function cleanVenueInfo(b: Record<string, unknown>): VenueInfo {
-  const tags = Array.isArray(b.tags)
-    ? [...new Set(b.tags.map((t) => String(t).trim().slice(0, 40)).filter(Boolean))].slice(0, 20)
-    : undefined;
+  const tags = cleanAmenities(b.tags);
   return {
     description: clip(b.description, 2000),
     type: oneOf(VENUE_TYPES, b.type),
     status: oneOf(VENUE_STATUSES, b.status),
-    tags: tags?.length ? tags : undefined,
+    tags: tags.length ? tags : undefined,
     contact: clip(b.contact, 300),
     phone: clip(b.phone, 60),
     website: clip(b.website, 300),
@@ -96,8 +105,8 @@ export class VenueConflict extends Error {
  * saved in between, nothing is written and VenueConflict carries their version. Changes go to the history.
  */
 export async function saveVenueInfo(id: string, info: VenueInfo, by: string, baseUpdatedAt?: number): Promise<VenueInfo> {
-  const all = await allVenueInfo();
-  const before = all[id] ?? {};
+  const all = await storedVenueInfo();
+  const before = readVenueInfo(all[id] ?? {}); // compared as it reads, so an old name alone isn't logged as a change
   if ((before.updatedAt ?? 0) !== (baseUpdatedAt ?? 0)) throw new VenueConflict(before);
   const now = Date.now();
   const saved: VenueInfo = { ...info, files: before.files, updatedAt: now, updatedBy: by };
@@ -118,7 +127,7 @@ export async function logChanges(id: string, changes: VenueChange[]) {
 
 /** Files are added and removed on their own (not through the form), so they don't conflict with edits. */
 export async function setVenueFiles(id: string, update: (files: VenueFileRef[]) => VenueFileRef[]) {
-  const all = await allVenueInfo();
+  const all = await storedVenueInfo();
   const cur = all[id] ?? {};
   const files = update(cur.files ?? []);
   all[id] = { ...cur, files: files.length ? files : undefined };

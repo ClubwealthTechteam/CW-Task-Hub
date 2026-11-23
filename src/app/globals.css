@@ -1909,6 +1909,14 @@ html.hdr-collapsed .topbar { z-index: 1000; }
 .vnm { isolation: isolate; z-index: 0; }
 .vn-undo { font-size: 12.5px; padding: 0; }
 
+/* Venues: category glyph pins in the list, type chips and legend; amenity chips (multi-select). */
+.vn-pin { display: inline-flex; line-height: 0; }
+.vn-chips button { display: inline-flex; align-items: center; gap: 5px; }
+.vn-chips button .vn-pin svg { filter: drop-shadow(0 0 0.5px rgba(255, 255, 255, .9)); }
+.vn-amenities button.is-on span { font-weight: 800; }
+.vn-legend-h { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--line); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.vn-legend .vn-pin { display: inline-flex; }
+
 /* Admin settings → Routines */
 .rt { margin-top: 18px; display: flex; flex-direction: column; gap: 12px; }
 .rt-h h2 { margin: 0 0 2px; font-size: 18px; }
@@ -1926,3 +1934,50 @@ html.hdr-collapsed .topbar { z-index: 1000; }
 .rt-pill.t-warn { color: #8a5a0b; background: #fbf1de; } .rt-pill.t-off { color: var(--muted); background: var(--muted-tint); }
 .rt-pill.t-run { color: var(--accent); background: #eaf0fc; }
 .rt-table td small.rt-sum { color: var(--ink-2); font-size: 12px; max-width: 360px; }
+
+/* Post-event venue rating page (/venues/rate/…): phone-first, opened from a Slack DM. It stays usable on a
+   phone, so it's the one signed-in page the "desktop only" screen doesn't replace. */
+body:has(> .vr-page) > .desktop-only { display: none !important; }
+body:has(> .desktop-only) > main.vr-page { display: block !important; }
+body:has(> .vr-page) { overflow: auto !important; }
+.vr-page { min-height: 100vh; padding: 20px 16px 40px; background: var(--bg); }
+.vr-card { max-width: 520px; margin: 0 auto; background: var(--surface); border-radius: 16px; padding: 20px 18px 22px; box-shadow: 0 4px 18px rgba(18, 26, 43, .08); }
+.vr-brand { display: flex; align-items: baseline; gap: 10px; color: var(--navy); }
+.vr-brand b { font-family: var(--font-anton), Impact, sans-serif; font-weight: 400; font-size: 20px; letter-spacing: .02em; }
+.vr-brand span { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.vr-card h1 { font-size: 22px; line-height: 1.25; margin: 14px 0 4px; color: var(--ink); }
+.vr-sub { margin: 0 0 6px; color: var(--muted); font-size: 14px; }
+.vr-form { display: flex; flex-direction: column; gap: 4px; }
+.vr-group { border: 0; padding: 0; margin: 14px 0 0; min-width: 0; }
+.vr-group legend, .vr-text > span { font-size: 13px; font-weight: 700; color: var(--ink-2); margin-bottom: 8px; padding: 0; display: block; }
+.vr-text i { font-style: normal; font-weight: 500; color: var(--muted); }
+.vr-opts { display: grid; gap: 8px; }
+.vr-opts.three { grid-template-columns: repeat(3, 1fr); }
+.vr-opts button { min-height: 48px; border: 1.5px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 10px 12px; font: inherit; font-size: 15px; font-weight: 600; color: var(--ink-2); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: center; }
+.vr-opts button::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--tone); flex: none; }
+.vr-opts button.is-on { background: var(--tone-bg); color: var(--tone); border-color: var(--tone); }
+.vr-text textarea { width: 100%; box-sizing: border-box; font: inherit; font-size: 15px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface-2); resize: vertical; }
+.vr-text textarea:focus { outline: none; border-color: #9db6ea; background: var(--surface); }
+.vr-send { margin-top: 18px; min-height: 52px; border: 0; border-radius: 12px; background: var(--navy); color: #fff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+.vr-send:disabled { opacity: .45; cursor: default; }
+.vr-hint, .vr-note-info { margin: 6px 0 0; font-size: 13px; color: var(--muted); text-align: center; }
+.vr-note-info { text-align: left; background: var(--surface-2); border-radius: 10px; padding: 8px 10px; }
+.vr-err { margin: 10px 0 0; color: #c0362c; font-size: 14px; font-weight: 600; }
+.vr-done { text-align: center; padding: 26px 0 6px; }
+.vr-done b { font-size: 20px; color: var(--ink); }
+.vr-done p { color: var(--muted); }
+.vr-link { border: 0; background: none; color: var(--navy-2); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
+
+/* Venue panel: ratings tab */
+.vn-rating { list-style: none; padding: 12px 0; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.vn-ratings { margin: 0; padding: 0; }
+.vn-rating-top { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.vn-rating-scores { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; color: var(--ink-2); }
+.vn-rating-scores span { display: inline-flex; align-items: center; gap: 5px; }
+.vn-rating-note { margin: 0; font-size: 13px; color: var(--ink-2); white-space: pre-line; }
+.vn-verdict { border: 0; cursor: pointer; font: inherit; font-size: 12px; font-weight: 700; }
+/* Six tabs (with Ratings) fit the panel without scrolling. */
+.vn-tabs { gap: 0; padding: 0 12px; }
+.vn-tabs button { padding-inline: 6.5px; }
+.vr-opts button, .vr-send, .vr-link { -webkit-tap-highlight-color: transparent; }
+.vr-opts button:focus-visible, .vr-send:focus-visible { outline: 2px solid #9db6ea; outline-offset: 2px; }

@@ -8,7 +8,7 @@ import type { Venue } from './map';
 export interface VenueEvent { id: string; name: string; start: string; status: string; url: string; capacity?: number; sold?: number; venueName?: string }
 interface EbEvent {
   id: string; name?: { text?: string }; start?: { local?: string }; status?: string; url?: string; capacity?: number;
-  venue?: { name?: string; latitude?: string; longitude?: string } | null;
+  venue?: { name?: string; latitude?: string; longitude?: string; address?: { city?: string; region?: string } } | null;
   ticket_availability?: { quantity_sold?: number } | null;
 }
 
@@ -28,7 +28,7 @@ async function allEvents(): Promise<EbEvent[]> {
       })) as { events?: EbEvent[]; pagination?: { has_more_items?: boolean; continuation?: string } };
       out.push(...(body.events ?? []).map((e) => ({
         id: e.id, name: { text: e.name?.text }, start: { local: e.start?.local }, status: e.status, url: e.url, capacity: e.capacity,
-        venue: e.venue ? { name: e.venue.name, latitude: e.venue.latitude, longitude: e.venue.longitude } : null,
+        venue: e.venue ? { name: e.venue.name, latitude: e.venue.latitude, longitude: e.venue.longitude, address: { city: e.venue.address?.city, region: e.venue.address?.region } } : null,
         ticket_availability: e.ticket_availability ? { quantity_sold: e.ticket_availability.quantity_sold } : null,
       })));
       if (!body.pagination?.has_more_items || !body.pagination.continuation) break;
@@ -38,15 +38,17 @@ async function allEvents(): Promise<EbEvent[]> {
   });
 }
 
+/** Whether an Eventbrite event was held at this venue (within ~400 m of the pin, or the same venue name). */
+function heldAt(v: Venue, e: EbEvent) {
+  const lat = Number(e.venue?.latitude), lng = Number(e.venue?.longitude);
+  if (Number.isFinite(lat) && Number.isFinite(lng) && lat && km(v.lat, v.lng, lat, lng) < 0.4) return true;
+  const name = norm(v.name), vn = norm(e.venue?.name);
+  return Boolean(vn) && vn.length > 6 && (vn === name || name.includes(vn) || vn.includes(name));
+}
+
 export async function eventsAtVenue(v: Venue): Promise<{ connected: boolean; events: VenueEvent[] }> {
   if (!eventbriteConfigured()) return { connected: false, events: [] };
-  const name = norm(v.name);
-  const events = (await allEvents()).filter((e) => {
-    const lat = Number(e.venue?.latitude), lng = Number(e.venue?.longitude);
-    if (Number.isFinite(lat) && Number.isFinite(lng) && lat && km(v.lat, v.lng, lat, lng) < 0.4) return true;
-    const vn = norm(e.venue?.name);
-    return Boolean(vn) && vn.length > 6 && (vn === name || name.includes(vn) || vn.includes(name));
-  });
+  const events = (await allEvents()).filter((e) => heldAt(v, e));
   return {
     connected: true,
     events: events.map((e) => ({
@@ -90,4 +92,31 @@ export async function eventbriteAddress(v: Venue): Promise<string | null> {
     if ((d < 0.4 || sameName) && (!best || d < best.d)) best = { d, address: e.address };
   }
   return best?.address ?? null;
+}
+
+export interface HeldEvent { eventId: string; eventName: string; eventDate: string; venueId: string; venueName: string; place: string }
+
+/**
+ * Events that took place on `date` (YYYY-MM-DD, the event's local date) at a venue on the map, for the
+ * post-event rating DMs. Cancelled and draft events are left out. `place` is "City, ST" from Eventbrite.
+ */
+export async function eventsHeldOn(date: string, venues: Venue[]): Promise<HeldEvent[]> {
+  if (!eventbriteConfigured()) return [];
+  const out: HeldEvent[] = [];
+  for (const e of await allEvents()) {
+    if (!e.start?.local?.startsWith(date) || ['canceled', 'draft'].includes(e.status ?? '')) continue;
+    const v = venues.find((x) => heldAt(x, e));
+    if (!v) continue;
+    const a = e.venue?.address;
+    const place = a?.city ? [a.city, a.region].filter(Boolean).join(', ') : v.state.replace(/\b\w+/g, (w) => w[0] + w.slice(1).toLowerCase());
+    out.push({ eventId: e.id, eventName: e.name?.text ?? 'Event', eventDate: date, venueId: v.id, venueName: v.name, place });
+  }
+  return out;
+}
+
+/** One event as the rating page shows it (null when Eventbrite isn't connected or the event isn't found). */
+export async function findEvent(eventId: string): Promise<VenueEvent | null> {
+  if (!eventbriteConfigured()) return null;
+  const e = (await allEvents()).find((x) => x.id === eventId);
+  return e ? { id: e.id, name: e.name?.text ?? 'Event', start: e.start?.local ?? '', status: e.status ?? '', url: e.url ?? '', venueName: e.venue?.name } : null;
 }

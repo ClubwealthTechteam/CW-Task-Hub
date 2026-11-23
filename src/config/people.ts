@@ -42,6 +42,10 @@ export const PEOPLE: Person[] = [
   // #4 Admin
   { id: 'kathleen', name: 'Kathleen', role: 'member', departments: ['admin'], auditKey: 'kathleen' },
   { id: 'amrissa', name: 'Amrissa', role: 'member', departments: ['admin'], auditKey: 'amrissa' },
+
+  // Owners. Tara rates venues after half-day events (src/lib/venues/ratings.ts); she is a team member, so she
+  // only gets the pages team members have (EOD, SOP, the venue rating page), not the super admin tools.
+  { id: 'tara', name: 'Tara Hellickson', role: 'member', departments: ['admin'], title: 'CFO' },
 ];
 
 export const personById = (id: string | undefined | null) => PEOPLE.find((p) => p.id === id);

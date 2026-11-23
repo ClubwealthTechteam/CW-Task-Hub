@@ -1,5 +1,5 @@
 // For the "Venue rating DMs" Claude routine (the hub has no Slack bot of its own). Needs
-// "Authorization: Bearer <VENUE_RATINGS_SECRET>".
+// "Authorization: Bearer <VENUE_RATINGS_SECRET or ROUTINES_REPORT_SECRET>".
 // GET ?date=YYYY-MM-DD (default: yesterday, Pacific): the events held that day at a venue on the map, each
 //   with the Slack DMs still to send (people already DMed for that event are left out).
 // POST { eventId, personIds: [...] }: records that those people were DMed, so they aren't DMed again.
@@ -9,14 +9,14 @@ import { allVenues } from '@/lib/venues/all';
 import { eventsHeldOn } from '@/lib/venues/events';
 import { eventbriteConfigured } from '@/lib/integrations/eventbrite/client';
 import { isEventId, markRequestsSent, pendingRequests, sentRequests, VENUE_RATERS } from '@/lib/venues/ratings';
-import { ratingsRoutineAllowed } from './auth';
+import { ratingsRoutineAllowed, ratingsRoutineConfigured } from './auth';
 
 export const dynamic = 'force-dynamic';
 
 const yesterdayPacific = () => new Date(Date.now() - 86_400_000).toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
 
 function guard(req: Request) {
-  if (!process.env.VENUE_RATINGS_SECRET) return NextResponse.json({ error: 'Add VENUE_RATINGS_SECRET in Vercel' }, { status: 503 });
+  if (!ratingsRoutineConfigured()) return NextResponse.json({ error: 'Add VENUE_RATINGS_SECRET in Vercel' }, { status: 503 });
   if (!ratingsRoutineAllowed(req)) return NextResponse.json({ error: 'Not allowed' }, { status: 403 });
   return null;
 }
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   if (denied) return denied;
   const b = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const people = Array.isArray(b.personIds) ? b.personIds.filter((p): p is string => typeof p === 'string' && VENUE_RATERS.includes(p)) : [];
-  if (!isEventId(b.eventId) || !people.length) return NextResponse.json({ error: 'Send eventId and personIds (tara, miguel, camille)' }, { status: 400 });
+  if (!isEventId(b.eventId) || !people.length) return NextResponse.json({ error: 'Send eventId and personIds (andrea, liz, miguel)' }, { status: 400 });
   await markRequestsSent(b.eventId, people);
   return NextResponse.json({ recorded: people.map((p) => `${b.eventId}:${p}`) });
 }

@@ -543,7 +543,7 @@ export function VenuesExplorer({ editUrl, types, statuses, amenities, contracts 
                 {tab === 'ratings' && (
                   <>
                     {ratings === null && <p className="muted vn-small">Loading…</p>}
-                    {ratings && !ratings.length && <p className="muted">No ratings yet. Tara, Miguel and Camille get a Slack message to rate the venue the day after each event here.</p>}
+                    {ratings && !ratings.length && <p className="muted">No ratings yet. Andrea, Liz and Miguel get a Slack message to rate the venue the day after each event here.</p>}
                     {ratings && ratings.length > 0 && (
                       <ul className="vn-ratings">
                         {ratings.map((r) => (

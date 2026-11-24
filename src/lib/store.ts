@@ -39,6 +39,15 @@ export async function setJSONFor(key: string, value: unknown, seconds: number) {
   else memory.set(key, raw);
 }
 
+/** Sets the key only if it doesn't exist yet (a lock); true when this call set it. Expires after `seconds`. */
+export async function setJSONIfAbsent(key: string, value: unknown, seconds: number): Promise<boolean> {
+  const raw = JSON.stringify(value);
+  if (storeIsPersistent()) return (await redis(['SET', key, raw, 'NX', 'EX', seconds])) === 'OK';
+  if (memory.has(key)) return false;
+  memory.set(key, raw);
+  return true;
+}
+
 export async function deleteKey(key: string) {
   if (storeIsPersistent()) await redis(['DEL', key]);
   else memory.delete(key);

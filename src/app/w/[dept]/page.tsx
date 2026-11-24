@@ -109,6 +109,7 @@ export default async function WorkspacePage(
         <h5>About this task</h5>
         <p className="ws-sum">{selected.summary}</p>
         <div className="row"><StagePill a={selected} />{owner && <span className="muted small">Owner: {owner.name}</span>}</div>
+        {selected.id === 'amrissa-reality' && <Link href="/reality" className="btn primary" style={{ alignSelf: 'flex-start' }}>Open the REality page</Link>}
       </section>
 
       {selected.integrations.includes('keap') && (

@@ -121,6 +121,23 @@ const live: Automation[] = [
     runsIn: 'Claude routine + Zapier (#half-day-registration-forms)',
     source: 'live',
   },
+  {
+    id: 'amrissa-reality',
+    ownerId: 'amrissa',
+    department: 'admin',
+    title: 'REality intro emails',
+    summary:
+      'People who tick “Recruiting” on their half-day form are listed on the REality page. Am reviews the list and the email preview and presses Send: each person gets the Intro to REality email from Admin Client Care (cc Mona & Jessica), their Keap “Intro Email” task is completed, and Jessica gets the list. The CW Assistant messages Am and Miguel on Slack when a new list is ready.',
+    integrationNote: 'Half-day forms sheet, Keap, SMTP (Admin.ClientCare), Slack, Claude routine',
+    integrations: ['claude', 'keap', 'google-sheets', 'slack', 'gmail'],
+    difficulty: 'Medium',
+    recommendation: 'Live. Review and send on the REality page (/reality).',
+    requested: true,
+    auditStatus: 'Completed',
+    stage: 'live',
+    runsIn: 'the REality page in the hub + the “REality intro emails (Amrissa)” Claude routine',
+    source: 'live',
+  },
 ];
 
 export const AUTOMATIONS: Automation[] = [...live, ...fromAudit];

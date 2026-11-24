@@ -29,9 +29,11 @@ export const MEMBERS_EOD_ONLY = true;
 export const EOD_HOME = '/eod';
 /** Pages team members can open while MEMBERS_EOD_ONLY is on. The SOP Handbook is for POCs, who come from any team;
  *  Task Recording is for everyone who records a task for Miguel. Venues is the Events team's venue map (the page checks the team); /venues/rate/… is the post-event venue rating
- *  page Tara, Miguel and Camille open from their Slack DM (the page checks who can rate). */
+ *  page Tara, Miguel and Camille open from their Slack DM (the page checks who can rate). /reality is Am's REality
+ *  intro emails review (the page checks it's Am or a super admin). */
 export const membersOpen = (pathname: string) => pathname === EOD_HOME || pathname === '/sop' || pathname.startsWith('/sop/')
-  || pathname === '/task-recordings' || pathname.startsWith('/task-recordings/') || pathname === '/venues' || pathname.startsWith('/venues/rate/');
+  || pathname === '/task-recordings' || pathname.startsWith('/task-recordings/') || pathname === '/venues' || pathname.startsWith('/venues/rate/')
+  || pathname === '/reality';
 export const eodOnly = (user: Person | null | undefined) => MEMBERS_EOD_ONLY && Boolean(user) && !isSuperAdmin(user);
 
 /** Only super admins add, edit or test integrations. */

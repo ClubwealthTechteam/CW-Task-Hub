@@ -4,7 +4,7 @@
 //   still to email with the exact email (subject, html, text) the REality page previewed }.
 // POST { action: 'create', rows: [{ row, keapId, first, last, email, location }] } → { batch, url }.
 // POST { action: 'claim', id } → claims an approved batch for this run (409 if another run has it).
-// POST { action: 'result', id, results: [{ row, status: 'sent'|'skipped', note?, sentAt? }], done?, list?, summary? }.
+// POST { action: 'result', id, results: [{ row, status: 'sent'|'skipped', note?, sentAt?, task?: 'completed'|'none'|'failed' }], done?, list?, summary? }.
 
 import { NextResponse } from 'next/server';
 import { reportAllowed } from '../auth';

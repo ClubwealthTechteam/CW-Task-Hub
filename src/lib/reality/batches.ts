@@ -13,7 +13,11 @@ export type PersonStatus = 'waiting' | 'left out' | 'sent' | 'skipped';
 export interface RealityPerson {
   row: number; keapId: string; first: string; last: string; email: string; location: string;
   status: PersonStatus; note?: string; sentAt?: string;
+  /** The person's Keap "Intro Email" task after the send: completed, none open, or the completion failed. */
+  task?: TaskResult;
 }
+export type TaskResult = 'completed' | 'none' | 'failed';
+export const TASK_RESULTS: TaskResult[] = ['completed', 'none', 'failed'];
 export type BatchStatus = 'waiting' | 'approved' | 'sending' | 'done';
 export interface RealityBatch {
   id: string; createdAt: string; status: BatchStatus; people: RealityPerson[];
@@ -95,7 +99,7 @@ export async function claimBatch(id: string) {
   return { batch: x };
 }
 
-export interface PersonResult { row: number; status: 'sent' | 'skipped'; note?: string; sentAt?: string }
+export interface PersonResult { row: number; status: 'sent' | 'skipped'; note?: string; sentAt?: string; task?: TaskResult }
 
 /** The routine reports what happened. `done` closes the batch (with the list for Jessica). */
 export async function recordResults(id: string, results: PersonResult[], done: boolean, list?: RealityBatch['list'], summary?: string, now = new Date()) {
@@ -104,10 +108,13 @@ export async function recordResults(id: string, results: PersonResult[], done: b
   if (!b) return { error: 'Batch not found' };
   for (const r of results) {
     const p = b.people.find((x) => x.row === r.row);
-    if (!p || p.status === 'left out' || p.status === 'sent') continue;
+    if (!p || p.status === 'left out') continue;
+    // A sent person can only have their Keap task result filled in later (never un-sent).
+    if (p.status === 'sent') { if (r.task && TASK_RESULTS.includes(r.task)) p.task = r.task; continue; }
     p.status = r.status === 'sent' ? 'sent' : 'skipped';
     p.note = r.note ? String(r.note).slice(0, 200) : undefined;
     p.sentAt = r.status === 'sent' ? (r.sentAt || now.toISOString()) : undefined;
+    p.task = r.status === 'sent' && r.task && TASK_RESULTS.includes(r.task) ? r.task : undefined;
   }
   if (list) b.list = { sent: Boolean(list.sent), count: Number(list.count) || 0, leftOut: (list.leftOut ?? []).map((s) => String(s).slice(0, 120)).slice(0, 50) };
   if (summary) b.summary = String(summary).slice(0, 300);

@@ -2,11 +2,28 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-interface Person { row: number; keapId: string; first: string; last: string; email: string; location: string; status: 'waiting' | 'left out' | 'sent' | 'skipped'; note?: string; sentAt?: string; preview: string }
+interface Person { row: number; keapId: string; first: string; last: string; email: string; location: string; status: 'waiting' | 'left out' | 'sent' | 'skipped'; note?: string; sentAt?: string; task?: 'completed' | 'none' | 'failed'; preview: string }
 interface Batch { id: string; createdAt: string; status: 'waiting' | 'approved' | 'sending' | 'done'; people: Person[]; approvedBy?: string; approvedAt?: string; doneAt?: string; list?: { sent: boolean; count: number; leftOut: string[] }; summary?: string }
 interface Data { batches: Batch[]; from: string; cc: string[]; routine: boolean }
 
 const when = (iso?: string) => (iso ? new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/Los_Angeles' }) + ' PT' : '');
+const TASK_NOTE: Record<string, string> = { none: 'no open Intro Email task in Keap', failed: 'Keap didn’t complete the task', '': 'not reported' };
+const taskNote = (p: Person) => TASK_NOTE[p.task ?? ''] ?? 'not reported';
+
+/** "22 completed" or "21 of 22 completed", with who and why when any aren't done. */
+function TaskCell({ sent }: { sent: Person[] }) {
+  if (!sent.length) return <>—</>;
+  const done = sent.filter((p) => p.task === 'completed');
+  const notDone = sent.filter((p) => p.task !== 'completed');
+  if (!notDone.length) return <span className="rl-task ok">{done.length} completed</span>;
+  return (
+    <details>
+      <summary className="rl-task warn">{done.length} of {sent.length} completed</summary>
+      <ul>{notDone.map((p) => <li key={p.row}>{p.first} {p.last}: {taskNote(p)}</li>)}</ul>
+    </details>
+  );
+}
+
 const STATUS_LABEL: Record<Batch['status'], string> = { waiting: 'Waiting for review', approved: 'Approved · sending soon', sending: 'Sending…', done: 'Sent' };
 
 export function RealityReview() {
@@ -133,7 +150,7 @@ export function RealityReview() {
         <section className="rl-history">
           <h2>Sent</h2>
           <table>
-            <thead><tr><th>Approved</th><th>By</th><th>Emailed</th><th>Skipped</th><th>List to Jessica</th></tr></thead>
+            <thead><tr><th>Approved</th><th>By</th><th>Emailed</th><th>Keap tasks</th><th>Skipped</th><th>List to Jessica</th></tr></thead>
             <tbody>
               {history.map((b) => {
                 const sent = b.people.filter((p) => p.status === 'sent');
@@ -142,7 +159,13 @@ export function RealityReview() {
                   <tr key={b.id}>
                     <td>{when(b.approvedAt)}</td>
                     <td>{b.approvedBy ?? '—'}</td>
-                    <td><details><summary>{sent.length}</summary><ul>{sent.map((p) => <li key={p.row}>{p.first} {p.last} · {p.location}</li>)}</ul></details></td>
+                    <td>{sent.length ? <details><summary>{sent.length}</summary><ul>{sent.map((p) => (
+                      <li key={p.row}>
+                        <span className={p.task === 'completed' ? 'rl-tick ok' : 'rl-tick warn'} title={p.task === 'completed' ? 'Keap task completed' : `Keap task: ${taskNote(p)}`}>{p.task === 'completed' ? '✓' : '⚠'}</span>
+                        {p.first} {p.last} · {p.location}
+                      </li>
+                    ))}</ul></details> : '0'}</td>
+                    <td><TaskCell sent={sent} /></td>
                     <td>{skipped.length ? <details><summary>{skipped.length}</summary><ul>{skipped.map((p) => <li key={p.row}>{p.first} {p.last}: {p.status === 'left out' ? 'left out' : p.note || 'skipped'}</li>)}</ul></details> : '0'}</td>
                     <td>{b.list ? (b.list.sent ? `Sent · ${b.list.count} people` : 'Not sent') : '—'}</td>
                   </tr>
@@ -158,11 +181,12 @@ export function RealityReview() {
 
 function ActiveBatch({ batch }: { batch: Batch }) {
   const sent = batch.people.filter((p) => p.status === 'sent').length;
+  const tasks = batch.people.filter((p) => p.task === 'completed').length;
   const toSend = batch.people.filter((p) => p.status !== 'left out').length;
   return (
     <section className="rl-active">
       <span className="rl-pill">{STATUS_LABEL[batch.status]}</span>
-      <p><b>{sent} of {toSend}</b> emails sent · approved by {batch.approvedBy} {when(batch.approvedAt)}</p>
+      <p><b>{sent} of {toSend}</b> emails sent · <b>{tasks}</b> Keap {tasks === 1 ? 'task' : 'tasks'} completed · approved by {batch.approvedBy} {when(batch.approvedAt)}</p>
       <div className="rl-progress"><span style={{ width: `${toSend ? Math.round((sent / toSend) * 100) : 0}%` }} /></div>
     </section>
   );

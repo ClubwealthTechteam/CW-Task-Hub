@@ -52,9 +52,23 @@ test('one open batch at a time; approve, claim once, record results', async () =
   expect('error' in (await claimBatch(made.batch.id))).toBe(false);
   expect('error' in (await claimBatch(made.batch.id))).toBe(true);
 
-  await recordResults(made.batch.id, [{ row: 2, status: 'sent' }, { row: 3, status: 'sent' }, { row: 4, status: 'skipped', note: 'Email doesn’t match Keap' }], true, { sent: true, count: 1, leftOut: [] });
+  await recordResults(made.batch.id, [{ row: 2, status: 'sent', task: 'completed' }, { row: 3, status: 'sent' }, { row: 4, status: 'skipped', note: 'Email doesn’t match Keap', task: 'completed' }], true, { sent: true, count: 1, leftOut: [] });
   const b = await findBatch(made.batch.id);
   expect(b?.status).toBe('done');
   expect(b?.people.map((p) => p.status)).toEqual(['sent', 'left out', 'skipped']);
   expect(b?.list).toEqual({ sent: true, count: 1, leftOut: [] });
+  // Only sent people carry a Keap task result; a left-out or skipped person never does.
+  expect(b?.people.map((p) => p.task)).toEqual(['completed', undefined, undefined]);
+});
+
+test('a Keap task result can be filled in after the send, and bad values are ignored', async () => {
+  const clean = cleanRows([row(2), row(3)]);
+  if ('error' in clean) throw new Error(clean.error);
+  const made = await createBatch(clean.people);
+  if ('error' in made) throw new Error('not made');
+  await approveBatch(made.batch.id, am, []);
+  await recordResults(made.batch.id, [{ row: 2, status: 'sent' }, { row: 3, status: 'sent', task: 'bogus' as never }], false);
+  await recordResults(made.batch.id, [{ row: 2, status: 'sent', task: 'none' }], true);
+  const b = await findBatch(made.batch.id);
+  expect(b?.people.map((p) => [p.status, p.task])).toEqual([['sent', 'none'], ['sent', undefined]]);
 });

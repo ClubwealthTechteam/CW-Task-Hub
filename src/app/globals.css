@@ -2029,3 +2029,10 @@ body:has(> .vr-page) { overflow: auto !important; }
 .rl-history details summary { cursor: pointer; color: var(--accent); font-weight: 600; }
 .rl-history ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; color: var(--ink-2); }
 @media (max-width: 960px) { .rl-grid { grid-template-columns: 1fr; } .rl-list { border-right: 0; border-bottom: 1px solid var(--line); max-height: none; } }
+.rl-task { font-weight: 600; }
+.rl-task.ok { color: var(--ok); }
+.rl-task.warn { color: var(--warn); }
+.rl-tick { display: inline-block; width: 18px; font-weight: 700; }
+.rl-tick.ok { color: var(--ok); }
+.rl-tick.warn { color: var(--warn); }
+.rl-history details summary.rl-task.warn { color: var(--warn); }

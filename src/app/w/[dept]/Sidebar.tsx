@@ -6,7 +6,7 @@ import type { Automation } from '@/data/automations';
 import { isSuperAdmin } from '@/lib/access';
 import { isConnected, taskIcon } from '@/lib/workspace';
 import { Icon } from '@/components/Icon';
-import { TASK_GROUPS } from '@/config/task-layout';
+import { ONLY_TASKS, TASK_GROUPS } from '@/config/task-layout';
 
 interface Props {
   user: Person;
@@ -25,6 +25,12 @@ export function Sidebar({ user, dept, tasks, selectedId, sheetCount, formCount, 
   const mineForm = mineAll.filter((a) => a.source === 'form');
   const byOwner = new Map<string, Automation[]>();
   for (const a of tasks) if (a.ownerId !== user.id) byOwner.set(a.ownerId, [...(byOwner.get(a.ownerId) ?? []), a]);
+  // People whose tasks were cleared (ONLY_TASKS) still show by name for super admins, with no tasks.
+  if (isSuperAdmin(user)) {
+    for (const id of Object.keys(ONLY_TASKS)) {
+      if (id !== user.id && !byOwner.has(id) && personById(id)?.departments.includes(dept.id)) byOwner.set(id, []);
+    }
+  }
   const keapOn = isConnected('keap');
 
   const navItem = (a: Automation) => (
@@ -71,7 +77,7 @@ export function Sidebar({ user, dept, tasks, selectedId, sheetCount, formCount, 
               <span>{personById(id)?.name.split(/\s+/)[0] ?? id}&apos;s tasks</span>
               <span className="ws-count">{list.length}</span>
             </summary>
-            <div className="ws-navs">{renderList(list)}</div>
+            <div className="ws-navs">{list.length ? renderList(list) : <p className="ws-empty">No tasks right now.</p>}</div>
           </details>
         ))}
         {tasks.length === 0 && <p className="ws-empty">{isSuperAdmin(user) ? 'No tasks in this department yet.' : 'You don’t have any tasks yet. Fill in the Workflow Process Form and your processes show up here.'}</p>}

@@ -6,7 +6,7 @@ import type { DepartmentId } from '@/config/departments';
 import { AUTOMATIONS, type Automation } from './automations';
 import { getSubmissions } from '@/lib/forms/submissions';
 import { formAutomations } from '@/lib/forms/plan';
-import { FORM_ONLY, HANDLED_ELSEWHERE, IN_PROGRESS } from '@/config/task-layout';
+import { FORM_ONLY, HANDLED_ELSEWHERE, IN_PROGRESS, ONLY_TASKS } from '@/config/task-layout';
 
 export async function allAutomations(): Promise<Automation[]> {
   const fromForms = formAutomations(await getSubmissions());
@@ -14,6 +14,7 @@ export async function allAutomations(): Promise<Automation[]> {
   const replaced = new Set(FORM_ONLY.filter((id) => fromForms.some((a) => a.ownerId === id)));
   return [...AUTOMATIONS, ...fromForms]
     .filter((a) => !HANDLED_ELSEWHERE[a.id] && !(a.source === 'audit' && replaced.has(a.ownerId)))
+    .filter((a) => !ONLY_TASKS[a.ownerId] || ONLY_TASKS[a.ownerId].includes(a.id))
     .map((a) => (a.stage === 'skeleton' && IN_PROGRESS.includes(a.id) ? { ...a, stage: 'building' as const } : a));
 }
 

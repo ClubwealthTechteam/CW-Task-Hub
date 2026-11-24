@@ -28,6 +28,8 @@ export const LIVE_IN_HUB: Record<string, string | null> = {
 
 /** People whose list shows only their Workflow Process Form tasks (their AI Audit tasks are hidden). */
 export const FORM_ONLY: string[] = ['jizel', 'liz'];
+/** People whose task list is only these tasks (their audit and form tasks are hidden, not deleted). */
+export const ONLY_TASKS: Record<string, string[]> = { amrissa: ['amrissa-reality'], kathleen: [], camille: [] };
 
 /** Built in the hub and being tried out by their owner (shown as In progress until confirmed live). */
 export const IN_PROGRESS: string[] = [
